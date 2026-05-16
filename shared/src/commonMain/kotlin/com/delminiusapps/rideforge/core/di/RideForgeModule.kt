@@ -58,11 +58,11 @@ import org.koin.dsl.module
 val rideForgeModule = module {
     single<com.delminiusapps.rideforge.data.remote.ApiClient> { MockApiClient() }
     single<BluetoothTrainerClient> { createPlatformBluetoothTrainerClient() }
-    single<TrainerConnectionRepository> { DefaultTrainerConnectionRepository(get()) }
-    single<TrainerControlService> { DefaultTrainerControlService(get()) }
     single { AppConfig() }
     single { DataSourceMonitor() }
     single { createRideForgeKeyValueStore() }
+    single<TrainerConnectionRepository> { DefaultTrainerConnectionRepository(get(), get()) }
+    single<TrainerControlService> { DefaultTrainerControlService(get()) }
     single { WorkoutLocalStorage(get()) }
     single { AuthSessionStore() }
     single { ApiClient(createRideForgeHttpClient(), get(), get(), get()) }
