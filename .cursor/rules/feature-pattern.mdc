@@ -1,0 +1,38 @@
+# Feature Architecture
+
+Each feature must follow this structure:
+
+```
+features/<feature-name>/
+    data/
+        dto/
+        api/
+        repository/
+        mapper/
+    domain/
+        model/
+        repository/
+        usecase/
+    presentation/
+        state/
+        viewmodel/
+        ui/
+```
+
+Rules:
+
+- domain must not depend on data
+- DTOs exist only in data layer
+- repositories map DTO -> domain
+- ViewModel uses UseCases
+- UI consumes ViewModel state
+
+Always generate for a new feature:
+
+- DTO
+- Mapper
+- Repository
+- UseCase
+- ViewModel
+- Compose Screen
+- DI module wiring

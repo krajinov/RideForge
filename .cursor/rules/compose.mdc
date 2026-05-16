@@ -1,0 +1,248 @@
+# Compose Multiplatform – Balanced Architecture Rules
+
+## Core rule
+
+Keep screens stateless where possible.
+
+Use this default:
+- screen state belongs in the screen ViewModel
+- business logic belongs in ViewModels and UseCases
+- child composables should be stateless by default
+- local composable state is allowed only for small, purely UI concerns
+
+Rule of thumb:
+- if state has screen or feature meaning, put it in the ViewModel
+- if state is only visual and temporary, it may stay local
+
+---
+
+## UI (Composable)
+
+DO:
+- keep screens stateless
+- render UI only from state
+- emit user intent via `UiAction` or callbacks
+- keep composables simple, predictable, and easy to test
+
+Example:
+
+    @Composable
+    fun Screen(
+        state: ScreenUiState,
+        onAction: (ScreenUiAction) -> Unit
+    )
+
+DO NOT:
+- call APIs, repositories, or use cases
+- implement business logic
+- coordinate workflows
+- mutate external state directly
+
+---
+
+## ViewModel (per screen/feature)
+
+DO:
+- create one ViewModel per screen/feature
+- define:
+  - UiState
+  - UiAction
+  - UiEvent
+- keep all screen/feature state in that ViewModel when it affects behavior, data, validation, or workflow
+- handle all screen-specific logic
+- call use cases
+- expose state via StateFlow
+- emit events via SharedFlow
+
+DO NOT:
+- manage multiple unrelated features in one ViewModel
+- centralize all app logic in one ViewModel
+
+---
+
+## State ownership
+
+DO:
+- keep state at the lowest level that needs it
+- store feature state in that feature’s ViewModel
+- pass state down to child composables as parameters
+- keep screens stateless
+
+Put state in the screen ViewModel when it affects:
+- screen rendering
+- fetched or transformed data
+- validation
+- workflow steps
+- form behavior
+- filtering/search that changes screen content
+- selected tabs/sections that change content or behavior
+- dialog or sheet visibility tied to business flow
+- testing or reproducibility
+
+DO NOT:
+- store business data in composables
+- store feature state in parent/root state without need
+- duplicate the same meaningful state across layers
+
+---
+
+## Child composables inside a screen
+
+DO:
+- make child composables stateless by default
+- pass only the data they need
+- pass callbacks for user interactions
+- keep them reusable and previewable
+
+Preferred pattern:
+
+    @Composable
+    fun CategoriesContent(
+        state: CategoriesUiState,
+        onAction: (CategoriesUiAction) -> Unit
+    )
+
+Local state inside child composables is allowed only for small UI-only details.
+
+Examples of allowed local state:
+- transient animation flags
+- temporary visual expansion that does not affect business logic
+- framework-required UI glue state
+- ephemeral focus/interaction state
+
+DO NOT:
+- let child composables own screen or feature state
+- let child composables perform business actions directly
+- hide important screen behavior in local state
+
+RULE:
+Child composables should be stateless by default. Local state is an exception, not the default.
+
+---
+
+## Local composable state
+
+Default:
+- prefer ViewModel state over local composable state
+
+Local composable state is allowed ONLY if all of the following are true:
+- it is purely visual
+- it is temporary
+- it is not business state
+- it does not affect workflow logic
+- it does not need to be shared across the screen
+- it does not need to be restored, tested, or observed as screen behavior
+
+Good candidates for local state:
+- transient animation/UI flags
+- short-lived visual toggles
+- framework integration details
+
+Move state to the ViewModel if it represents:
+- form input with screen meaning
+- search/filter query that changes visible content
+- selected tab that changes loaded or shown data
+- dialog/sheet visibility tied to a screen flow
+- expand/collapse state that affects user flow
+- anything important enough to test as part of screen behavior
+
+RULE:
+If in doubt, move the state to the screen ViewModel.
+
+---
+
+## Parent / root / coordinator layers
+
+DO:
+- handle only:
+  - navigation between flows
+  - global session/auth state
+  - deep links
+  - global UI (snackbar, settings, overlays)
+  - other truly cross-feature concerns
+
+DO NOT:
+- implement feature-specific logic
+- handle CRUD for child screens
+- own feature loading/error/data state
+- proxy all feature actions through one central handler
+
+RULE:
+If logic belongs to ONE screen or feature, it MUST be in that screen’s ViewModel.
+
+---
+
+## Business logic
+
+DO:
+- keep business logic in ViewModels and UseCases
+- keep repositories responsible for data access only
+
+DO NOT:
+- put business logic in composables
+- put feature-specific business logic in parent/root layers
+
+---
+
+## Side effects
+
+DO:
+- use LaunchedEffect only for:
+  - collecting events
+  - initial actions
+  - reacting to runtime/navigation parameters
+  - UI reactions such as snackbar, focus, or scroll
+
+DO NOT:
+- run business logic inside composables
+- launch feature workflows directly from composable bodies
+
+---
+
+## Navigation
+
+DO:
+- keep navigation at the level that owns the flow
+- pass navigation via callbacks
+- keep screen APIs focused and predictable
+
+DO NOT:
+- route all navigation through one massive ViewModel
+- couple unrelated screens through shared mutable state
+
+---
+
+## Anti-patterns (FORBIDDEN)
+
+- god ViewModel (auth + navigation + CRUD + feature logic)
+- single global state for all screens
+- giant when controlling entire app behavior
+- feature logic in parent/root layer
+- stateless UI with hidden central logic
+- parent/root ViewModel owning child feature state
+- excessive local state hiding screen behavior
+
+---
+
+## Decision rules
+
+1. Logic for ONE screen or feature → that screen/feature ViewModel
+2. State that affects screen behavior/content → screen ViewModel
+3. Shared across multiple unrelated features → parent/root layer
+4. Purely visual, temporary, and isolated UI detail → may stay local
+
+Default:
+- use FEATURE ViewModel
+- keep SCREEN stateless
+- keep CHILD COMPOSABLES stateless by default
+- allow local state only for small UI-only details
+
+---
+
+## Target architecture
+
+- Composable → UI only
+- Child composables → UI only by default
+- Screen ViewModel → screen state + feature logic
+- UseCase → business rules
+- Repository → data access

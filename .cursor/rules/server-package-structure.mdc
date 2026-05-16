@@ -1,0 +1,27 @@
+# Ktor Server Package Structure
+
+Server module layout under application package:
+
+```
+Application.kt
+config/
+di/
+plugins/
+routes/
+services/
+data/tables/
+data/dao/
+util/
+models/ (optional, prefer shared module for KMP DTOs)
+```
+
+Rules:
+
+- Keep `Application.kt` as wiring only.
+- Install DI first, initialize database, then call `configure*()` plugins in explicit order.
+- Put plugin setup in `plugins/` (`configureSerialization`, `configureStatusPages`, `configureMonitoring`, `configureRouting`, `configureBackgroundJobs`, etc.).
+- Put route groups in `routes/` with `fun Route.xxxRoutes()`.
+- Keep handlers thin: parse/validate input, call service, respond.
+- Keep business logic in `services/` (constructor injection only, no framework dependencies).
+- Keep table definitions in `data/tables/`, queries in `data/dao/`.
+- Keep shared API DTOs in `shared` module for KMP projects.

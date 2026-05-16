@@ -1,0 +1,937 @@
+Reusing configuration cache.
+> Task :server:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :server:compileKotlin UP-TO-DATE
+> Task :server:compileJava NO-SOURCE
+> Task :server:processResources
+> Task :server:classes
+
+> Task :server:run
+2026-05-14 11:15:53.771 [main] INFO  io.ktor.server.Application - Autoreload is disabled because the development mode is off.
+2026-05-14 11:15:54.065 [main] INFO  io.ktor.server.Application - Application started in 0.443 seconds.
+2026-05-14 11:15:54.181 [DefaultDispatcher-worker-1] INFO  io.ktor.server.Application - Responding at http://0.0.0.0:8080
+2026-05-14 11:16:10.653 [eventLoopGroupProxy-3-1] TRACE io.ktor.server.plugins.cors.CORS - GET /health: Start handler
+2026-05-14 11:16:10.653 [eventLoopGroupProxy-3-1] TRACE io.ktor.server.plugins.cors.CORS - GET /health: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:10.657 [eventLoopGroupProxy-3-1] TRACE io.ktor.server.routing.Routing - Trace for [health]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:1 -> SUCCESS @ /health
+    /health [(method:GET)], segment:1 -> SUCCESS @ /health [(method:GET)]
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "health" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /health [(method:GET)]
+2026-05-14 11:16:10.678 [eventLoopGroupProxy-3-1] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /health
+2026-05-14 11:16:11.061 [eventLoopGroupProxy-3-1] INFO  io.ktor.server.Application - 200 OK: GET - /health in 412ms
+2026-05-14 11:16:47.825 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /auth/me: Start handler
+2026-05-14 11:16:47.826 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /auth/me: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:47.827 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [auth, me]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:1 -> SUCCESS @ /auth
+    /auth/register, segment:1 -> FAILURE "Selector didn't match" @ /auth/register
+    /auth/login, segment:1 -> FAILURE "Selector didn't match" @ /auth/login
+    /auth/refresh, segment:1 -> FAILURE "Selector didn't match" @ /auth/refresh
+    /auth [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /auth [(authenticate auth-jwt)]
+      /auth/me [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /auth/me [(authenticate auth-jwt)]
+        /auth/me [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /auth/me [(authenticate auth-jwt), (method:GET)]
+      /auth/logout [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /auth/logout [(authenticate auth-jwt)]
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "auth" -> "(authenticate auth-jwt)" -> "me" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /auth/me [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:47.836 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /auth/me with auth-jwt
+2026-05-14 11:16:47.893 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /auth/me with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:47.905 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /auth/me
+2026-05-14 11:16:47.906 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /auth/me in 82ms
+2026-05-14 11:16:48.369 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /profile: Start handler
+2026-05-14 11:16:48.370 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /profile: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:48.371 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [profile]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /profile [(authenticate auth-jwt)]
+      /profile [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /profile [(authenticate auth-jwt), (method:GET)]
+      /profile [(authenticate auth-jwt), (method:PUT)], segment:1 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt), (method:PUT)]
+      /profile/ftp [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /profile/ftp [(authenticate auth-jwt)]
+      /profile/weight [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /profile/weight [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "profile" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /profile [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:48.372 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /profile with auth-jwt
+2026-05-14 11:16:48.373 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /profile with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:48.375 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /profile
+2026-05-14 11:16:48.375 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /profile in 6ms
+2026-05-14 11:16:48.444 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Start handler
+2026-05-14 11:16:48.445 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:48.447 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, recommended]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt)]
+        /workouts/recommended [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Better match was already found" @ /workouts/{id} [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "recommended" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:48.447 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/recommended with auth-jwt
+2026-05-14 11:16:48.449 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/recommended with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:48.453 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/recommended
+2026-05-14 11:16:48.454 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/recommended in 10ms
+2026-05-14 11:16:48.471 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Start handler
+2026-05-14 11:16:48.471 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:48.474 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30, intervals]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> FAILURE "Not all segments matched" @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+          /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "intervals" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:48.475 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30/intervals with auth-jwt
+2026-05-14 11:16:48.475 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30/intervals with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:48.484 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30/intervals
+2026-05-14 11:16:48.485 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30/intervals in 14ms
+2026-05-14 11:16:48.529 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history?limit=5: Start handler
+2026-05-14 11:16:48.529 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history?limit=5: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:48.530 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [history]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt)]
+      /history [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+      /history/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /history/{id} [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "history" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:48.530 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /history?limit=5 with auth-jwt
+2026-05-14 11:16:48.531 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /history?limit=5 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:48.543 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /history?limit=5
+2026-05-14 11:16:48.543 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /history in 14ms
+2026-05-14 11:16:58.178 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /plans: Start handler
+2026-05-14 11:16:58.179 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /plans: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:16:58.179 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [plans]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /plans [(authenticate auth-jwt)]
+      /plans [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /plans [(authenticate auth-jwt), (method:GET)]
+      /plans/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /plans/{id} [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "plans" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /plans [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:16:58.180 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /plans with auth-jwt
+2026-05-14 11:16:58.181 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /plans with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:16:58.190 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /plans
+2026-05-14 11:16:58.191 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /plans in 13ms
+2026-05-14 11:17:05.386 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Start handler
+2026-05-14 11:17:05.387 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:17:05.388 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, recommended]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt)]
+        /workouts/recommended [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Better match was already found" @ /workouts/{id} [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "recommended" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:17:05.388 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/recommended with auth-jwt
+2026-05-14 11:17:05.390 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/recommended with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:17:05.391 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/recommended
+2026-05-14 11:17:05.392 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/recommended in 6ms
+2026-05-14 11:17:05.482 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Start handler
+2026-05-14 11:17:05.482 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:17:05.483 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30, intervals]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> FAILURE "Not all segments matched" @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+          /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "intervals" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:17:05.484 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30/intervals with auth-jwt
+2026-05-14 11:17:05.485 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30/intervals with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:17:05.489 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30/intervals
+2026-05-14 11:17:05.489 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30/intervals in 7ms
+2026-05-14 11:18:09.186 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history: Start handler
+2026-05-14 11:18:09.189 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.191 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [history]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt)]
+      /history [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+      /history/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /history/{id} [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "history" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.192 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /history with auth-jwt
+2026-05-14 11:18:09.196 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /history with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.198 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /history
+2026-05-14 11:18:09.199 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /history in 14ms
+2026-05-14 11:18:09.401 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history: Start handler
+2026-05-14 11:18:09.401 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.402 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [history]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt)]
+      /history [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+      /history/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /history/{id} [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "history" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.402 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /history with auth-jwt
+2026-05-14 11:18:09.404 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /history with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.406 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /history
+2026-05-14 11:18:09.407 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /history in 6ms
+2026-05-14 11:18:09.441 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-vo2max-5x3: Start handler
+2026-05-14 11:18:09.441 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-vo2max-5x3: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.442 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-vo2max-5x3]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-vo2max-5x3]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-vo2max-5x3]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.442 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-vo2max-5x3 with auth-jwt
+2026-05-14 11:18:09.443 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-vo2max-5x3 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.445 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-vo2max-5x3
+2026-05-14 11:18:09.445 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-vo2max-5x3 in 4ms
+2026-05-14 11:18:09.545 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-vo2max-5x3: Start handler
+2026-05-14 11:18:09.545 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-vo2max-5x3: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.546 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-vo2max-5x3]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-vo2max-5x3]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-vo2max-5x3]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.546 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-vo2max-5x3 with auth-jwt
+2026-05-14 11:18:09.548 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-vo2max-5x3 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.549 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-vo2max-5x3
+2026-05-14 11:18:09.549 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-vo2max-5x3 in 4ms
+2026-05-14 11:18:09.617 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-endurance-60: Start handler
+2026-05-14 11:18:09.618 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-endurance-60: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.618 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-endurance-60]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-endurance-60]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-endurance-60]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.619 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-endurance-60 with auth-jwt
+2026-05-14 11:18:09.620 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-endurance-60 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.621 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-endurance-60
+2026-05-14 11:18:09.622 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-endurance-60 in 5ms
+2026-05-14 11:18:09.688 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-threshold-4x8: Start handler
+2026-05-14 11:18:09.689 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-threshold-4x8: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.689 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-threshold-4x8]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-threshold-4x8]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-threshold-4x8]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.690 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-threshold-4x8 with auth-jwt
+2026-05-14 11:18:09.691 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-threshold-4x8 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.692 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-threshold-4x8
+2026-05-14 11:18:09.693 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-threshold-4x8 in 5ms
+2026-05-14 11:18:09.704 [eventLoopGroupProxy-3-3] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-endurance-60: Start handler
+2026-05-14 11:18:09.704 [eventLoopGroupProxy-3-3] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-endurance-60: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.705 [eventLoopGroupProxy-3-3] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-endurance-60]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-endurance-60]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-endurance-60]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.705 [eventLoopGroupProxy-3-3] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-endurance-60 with auth-jwt
+2026-05-14 11:18:09.706 [eventLoopGroupProxy-3-3] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-endurance-60 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.707 [eventLoopGroupProxy-3-3] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-endurance-60
+2026-05-14 11:18:09.707 [eventLoopGroupProxy-3-3] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-endurance-60 in 3ms
+2026-05-14 11:18:09.714 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Start handler
+2026-05-14 11:18:09.714 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.715 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.715 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30 with auth-jwt
+2026-05-14 11:18:09.715 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.715 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30
+2026-05-14 11:18:09.716 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30 in 2ms
+2026-05-14 11:18:09.754 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-threshold-4x8: Start handler
+2026-05-14 11:18:09.755 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-threshold-4x8: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.755 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-threshold-4x8]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-threshold-4x8]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-threshold-4x8]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.756 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-threshold-4x8 with auth-jwt
+2026-05-14 11:18:09.757 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-threshold-4x8 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.758 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-threshold-4x8
+2026-05-14 11:18:09.759 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-threshold-4x8 in 5ms
+2026-05-14 11:18:09.784 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Start handler
+2026-05-14 11:18:09.785 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:09.786 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:09.786 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30 with auth-jwt
+2026-05-14 11:18:09.787 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:09.788 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30
+2026-05-14 11:18:09.788 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30 in 4ms
+2026-05-14 11:18:19.499 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Start handler
+2026-05-14 11:18:19.499 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:19.500 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:19.500 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30 with auth-jwt
+2026-05-14 11:18:19.502 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:19.502 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30
+2026-05-14 11:18:19.503 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30 in 4ms
+2026-05-14 11:18:19.537 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Start handler
+2026-05-14 11:18:19.538 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:19.538 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30, intervals]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> FAILURE "Not all segments matched" @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+          /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "intervals" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:19.539 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30/intervals with auth-jwt
+2026-05-14 11:18:19.540 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30/intervals with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:19.541 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30/intervals
+2026-05-14 11:18:19.542 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30/intervals in 5ms
+2026-05-14 11:18:19.597 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - POST /sessions/start: Start handler
+2026-05-14 11:18:19.597 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - POST /sessions/start: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:19.597 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [sessions, start]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Selector didn't match" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /sessions [(authenticate auth-jwt)]
+      /sessions/start [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /sessions/start [(authenticate auth-jwt)]
+        /sessions/start [(authenticate auth-jwt), (method:POST)], segment:2 -> SUCCESS @ /sessions/start [(authenticate auth-jwt), (method:POST)]
+      /sessions/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Better match was already found" @ /sessions/{id} [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "sessions" -> "start" -> "(method:POST)"
+Routing resolve result:
+  SUCCESS @ /sessions/start [(authenticate auth-jwt), (method:POST)]
+2026-05-14 11:18:19.598 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /sessions/start with auth-jwt
+2026-05-14 11:18:19.598 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /sessions/start with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:19.605 [eventLoopGroupProxy-3-2] TRACE i.k.server.engine.DefaultTransform - No Default Transformations found for class io.ktor.utils.io.ByteChannel and expected type TypeInfo(com.delminiusapps.rideforge.dto.StartSessionRequest) for call /sessions/start
+2026-05-14 11:18:19.617 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /sessions/start
+2026-05-14 11:18:19.618 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: POST - /sessions/start in 21ms
+2026-05-14 11:18:19.628 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Start handler
+2026-05-14 11:18:19.628 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:19.628 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:2 -> FAILURE "Selector didn't match" @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:19.628 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30 with auth-jwt
+2026-05-14 11:18:19.629 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:19.629 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30
+2026-05-14 11:18:19.629 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30 in 1ms
+2026-05-14 11:18:30.758 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /auth/me: Start handler
+2026-05-14 11:18:30.759 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /auth/me: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:30.760 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [auth, me]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:1 -> SUCCESS @ /auth
+    /auth/register, segment:1 -> FAILURE "Selector didn't match" @ /auth/register
+    /auth/login, segment:1 -> FAILURE "Selector didn't match" @ /auth/login
+    /auth/refresh, segment:1 -> FAILURE "Selector didn't match" @ /auth/refresh
+    /auth [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /auth [(authenticate auth-jwt)]
+      /auth/me [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /auth/me [(authenticate auth-jwt)]
+        /auth/me [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /auth/me [(authenticate auth-jwt), (method:GET)]
+      /auth/logout [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /auth/logout [(authenticate auth-jwt)]
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "auth" -> "(authenticate auth-jwt)" -> "me" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /auth/me [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:30.761 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /auth/me with auth-jwt
+2026-05-14 11:18:30.762 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /auth/me with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:30.763 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /auth/me
+2026-05-14 11:18:30.764 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /auth/me in 6ms
+2026-05-14 11:18:30.840 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /profile: Start handler
+2026-05-14 11:18:30.840 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /profile: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:30.840 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [profile]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /profile [(authenticate auth-jwt)]
+      /profile [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /profile [(authenticate auth-jwt), (method:GET)]
+      /profile [(authenticate auth-jwt), (method:PUT)], segment:1 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt), (method:PUT)]
+      /profile/ftp [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /profile/ftp [(authenticate auth-jwt)]
+      /profile/weight [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /profile/weight [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "profile" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /profile [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:30.841 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /profile with auth-jwt
+2026-05-14 11:18:30.841 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /profile with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:30.842 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /profile
+2026-05-14 11:18:30.843 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /profile in 3ms
+2026-05-14 11:18:31.181 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Start handler
+2026-05-14 11:18:31.181 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:31.182 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, recommended]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt)]
+        /workouts/recommended [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Better match was already found" @ /workouts/{id} [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "recommended" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:31.182 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/recommended with auth-jwt
+2026-05-14 11:18:31.183 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/recommended with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:31.184 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/recommended
+2026-05-14 11:18:31.184 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/recommended in 3ms
+2026-05-14 11:18:31.203 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Start handler
+2026-05-14 11:18:31.203 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:31.203 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30, intervals]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> FAILURE "Not all segments matched" @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+          /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "intervals" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:31.204 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30/intervals with auth-jwt
+2026-05-14 11:18:31.204 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30/intervals with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:31.204 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30/intervals
+2026-05-14 11:18:31.205 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30/intervals in 2ms
+2026-05-14 11:18:31.235 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history?limit=5: Start handler
+2026-05-14 11:18:31.235 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /history?limit=5: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:31.235 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [history]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt)]
+      /history [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+      /history/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /history/{id} [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "history" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /history [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:31.235 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /history?limit=5 with auth-jwt
+2026-05-14 11:18:31.236 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /history?limit=5 with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:31.236 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /history?limit=5
+2026-05-14 11:18:31.236 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /history in 1ms
+2026-05-14 11:18:33.625 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /plans: Start handler
+2026-05-14 11:18:33.625 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /plans: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:33.626 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [plans]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /plans [(authenticate auth-jwt)]
+      /plans [(authenticate auth-jwt), (method:GET)], segment:1 -> SUCCESS @ /plans [(authenticate auth-jwt), (method:GET)]
+      /plans/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /plans/{id} [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /workouts [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "plans" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /plans [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:33.626 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /plans with auth-jwt
+2026-05-14 11:18:33.627 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /plans with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:33.628 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /plans
+2026-05-14 11:18:33.630 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /plans in 5ms
+2026-05-14 11:18:37.963 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Start handler
+2026-05-14 11:18:37.964 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/recommended: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:37.965 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, recommended]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt)]
+        /workouts/recommended [(authenticate auth-jwt), (method:GET)], segment:2 -> SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:1 -> FAILURE "Better match was already found" @ /workouts/{id} [(authenticate auth-jwt)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "recommended" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS @ /workouts/recommended [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:37.965 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/recommended with auth-jwt
+2026-05-14 11:18:37.967 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/recommended with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:37.969 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/recommended
+2026-05-14 11:18:37.970 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/recommended in 7ms
+2026-05-14 11:18:37.998 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Start handler
+2026-05-14 11:18:37.998 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.plugins.cors.CORS - GET /workouts/workout-recovery-30/intervals: Skip CORS handler because request lacks the Origin header
+2026-05-14 11:18:37.998 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.routing.Routing - Trace for [workouts, workout-recovery-30, intervals]
+/, segment:0 -> SUCCESS @ /
+  / [<slash>], segment:0 -> SUCCESS @ / [<slash>]
+    / [<slash>, (method:GET)], segment:0 -> FAILURE "Not all segments matched" @ / [<slash>, (method:GET)]
+  /health, segment:0 -> FAILURE "Selector didn't match" @ /health
+  /openapi.json, segment:0 -> FAILURE "Selector didn't match" @ /openapi.json
+  /auth, segment:0 -> FAILURE "Selector didn't match" @ /auth
+  / [(authenticate auth-jwt)], segment:0 -> SUCCESS @ / [(authenticate auth-jwt)]
+    /profile [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /profile [(authenticate auth-jwt)]
+    /plans [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /plans [(authenticate auth-jwt)]
+    /my-plan [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /my-plan [(authenticate auth-jwt)]
+    /workouts [(authenticate auth-jwt)], segment:1 -> SUCCESS @ /workouts [(authenticate auth-jwt)]
+      /workouts [(authenticate auth-jwt), (method:GET)], segment:1 -> FAILURE "Not all segments matched" @ /workouts [(authenticate auth-jwt), (method:GET)]
+      /workouts/recommended [(authenticate auth-jwt)], segment:1 -> FAILURE "Selector didn't match" @ /workouts/recommended [(authenticate auth-jwt)]
+      /workouts/{id} [(authenticate auth-jwt)], segment:2 -> SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id} [(authenticate auth-jwt)]
+        /workouts/{id} [(authenticate auth-jwt), (method:GET)], segment:2 -> FAILURE "Not all segments matched" @ /workouts/{id} [(authenticate auth-jwt), (method:GET)]
+        /workouts/{id}/intervals [(authenticate auth-jwt)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt)]
+          /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)], segment:3 -> SUCCESS @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+    /sessions [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /sessions [(authenticate auth-jwt)]
+    /history [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /history [(authenticate auth-jwt)]
+    /devices [(authenticate auth-jwt)], segment:0 -> FAILURE "Selector didn't match" @ /devices [(authenticate auth-jwt)]
+Matched routes:
+  "" -> "(authenticate auth-jwt)" -> "workouts" -> "{id}" -> "intervals" -> "(method:GET)"
+Routing resolve result:
+  SUCCESS; Parameters [id=[workout-recovery-30]] @ /workouts/{id}/intervals [(authenticate auth-jwt), (method:GET)]
+2026-05-14 11:18:37.999 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Trying to authenticate /workouts/workout-recovery-30/intervals with auth-jwt
+2026-05-14 11:18:37.999 [eventLoopGroupProxy-3-2] TRACE io.ktor.server.auth.Authentication - Authentication succeeded for /workouts/workout-recovery-30/intervals with provider io.ktor.server.auth.jwt.JWTAuthenticationProvider@2d9c45c3
+2026-05-14 11:18:37.999 [eventLoopGroupProxy-3-2] TRACE i.k.s.p.statuspages.StatusPages - No status code found for call: /workouts/workout-recovery-30/intervals
+2026-05-14 11:18:38.000 [eventLoopGroupProxy-3-2] INFO  io.ktor.server.Application - 200 OK: GET - /workouts/workout-recovery-30/intervals in 2ms
+
+> Task :server:run FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':server:run'.
+> Process 'command '/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java'' finished with non-zero exit value 137
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 15m 8s
+3 actionable tasks: 2 executed, 1 up-to-date
+Configuration cache entry reused.

@@ -1,0 +1,1 @@
+ALTER TABLE local_workout_session ADD COLUMN completed_at_epoch_millis INTEGER;

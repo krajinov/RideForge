@@ -1,0 +1,9 @@
+# Testing
+
+Testing defaults:
+
+- add or update focused tests for changed logic
+- prefer high-signal tests over broad full-suite execution
+- test viewmodel state transitions and repository behavior
+- for UI behavior changes, run manual desktop walkthrough
+- keep tests deterministic; avoid network calls in unit tests

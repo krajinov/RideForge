@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_app_name">RideForge</string>
+    <string name="common_loading">Loading...</string>
+    <string name="common_error_occurred">An error occurred.</string>
+    <string name="common_back">Back</string>
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_close">Close</string>
+    <string name="common_offline_warning">Backend unavailable. Showing mock data.</string>
+</resources>

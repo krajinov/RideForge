@@ -1,0 +1,15 @@
+# Networking
+
+Use Ktor client.
+
+`HttpClient` must live in:
+
+`core/network/`
+
+Rules:
+
+- define API interface + API implementation
+- DTO models are part of the data layer
+- repositories map DTO to domain models
+- parse server errors and propagate meaningful messages
+- authenticated routes must use bearer token from a shared session store

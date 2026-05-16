@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workout_loading_engine">Loading workout engine...</string>
+    <string name="workout_load_error">Unable to load workout.</string>
+    <string name="workout_current_power">CURRENT POWER</string>
+    <string name="workout_watts">watts</string>
+    <string name="workout_target">Target</string>
+    <string name="workout_cadence">Cadence</string>
+    <string name="workout_heart_rate">Heart rate</string>
+    <string name="workout_remaining">Remaining</string>
+    <string name="workout_next">Next</string>
+    <string name="workout_finish">Finish</string>
+    <string name="workout_current_interval_progress">Current interval progress</string>
+    <string name="workout_total_progress">Total workout progress</string>
+    <string name="workout_pause">Pause</string>
+    <string name="workout_resume">Resume</string>
+    <string name="workout_skip_interval">Skip Interval</string>
+    <string name="workout_end">End Workout</string>
+    <string name="workout_sync_synced">Synced</string>
+    <string name="workout_sync_syncing">Syncing</string>
+    <string name="workout_sync_pending">Pending sync</string>
+    <string name="workout_sync_failed">Sync failed</string>
+    <string name="workout_complete_title">Workout Complete</string>
+    <string name="workout_complete_loading_summary">Loading summary...</string>
+    <string name="workout_complete_loading_workout">Loading completed workout...</string>
+    <string name="workout_complete_load_error">Unable to load completed workout.</string>
+    <string name="workout_complete_summary_format">%1$s summary</string>
+    <string name="workout_complete_duration">Duration</string>
+    <string name="workout_complete_average_power">Avg Power</string>
+    <string name="workout_complete_normalized_power">Normalized</string>
+    <string name="workout_complete_calories">Calories</string>
+    <string name="workout_complete_tss">TSS</string>
+    <string name="workout_complete_completion">Completion</string>
+    <string name="workout_complete_power_curve">Power curve</string>
+    <string name="workout_complete_save">Save Workout</string>
+    <string name="workout_complete_saving">Saving...</string>
+    <string name="workout_complete_saving_message">Saving workout to backend...</string>
+    <string name="workout_complete_save_failed">Backend sync failed. Workout is saved locally and will retry later.</string>
+    <string name="workout_complete_share">Share</string>
+    <string name="workout_complete_return_home">Return Home</string>
+</resources>

@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS local_workout_session (
+    id TEXT NOT NULL PRIMARY KEY,
+    workout_id TEXT NOT NULL,
+    workout_name TEXT NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    average_power_watts INTEGER NOT NULL,
+    normalized_power_watts INTEGER NOT NULL,
+    calories INTEGER NOT NULL,
+    tss INTEGER NOT NULL,
+    completion_percent INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS local_workout_metric_sample (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL
+);

@@ -1,0 +1,66 @@
+# String Resource Rules
+
+Use string resources for all user-facing copy.
+
+## Core rule
+
+DO:
+- keep user-facing text in `composeApp/src/commonMain/composeResources/values/`
+- use `strings_common.xml` for shared copy used across multiple features or core UI components
+- use `strings_<feature>.xml` for feature-specific copy
+- create a dedicated file for each distinct feature domain, for example `strings_settings.xml`
+- reuse existing resource ids before adding new ones
+
+DO NOT:
+- hardcode user-facing strings in composables, ViewModels, UI state, UI events, or reusable core components
+- place one feature's strings into an unrelated feature file
+- duplicate the same copy under multiple resource ids unless the text meaning is genuinely different
+
+## Naming
+
+DO:
+- prefix ids by domain, for example:
+  - `common_*`
+  - `auth_*`
+  - `events_*`
+  - `judge_*`
+  - `organizer_*`
+  - `settings_*`
+- keep names descriptive and stable
+- prefer names based on meaning, not location in the UI tree
+
+## Formatting
+
+DO:
+- use resource placeholders instead of Kotlin string interpolation for user-facing formatted text
+- make placeholder types match the Kotlin arguments exactly
+- use numbered placeholders such as `%1$s`, `%1$d`
+
+DO NOT:
+- build user-facing strings with `"$value / $max"` or similar when a resource should own the format
+- pass a `String` into a `%d` placeholder or an `Int` into a `%s` placeholder
+
+## Compose usage
+
+In composables:
+- use `stringResource(Res.string.some_id, ...)`
+
+In non-composable presentation code that carries user-facing text:
+- use `UiText.resource(...)` for resource-backed copy
+- use `UiText.dynamic(...)` only for truly dynamic messages that cannot be modeled as resources, such as backend-provided error text
+- keep `UiState` and `UiEvent` fields as `UiText` when they represent user-facing messages
+- resolve `UiText` at the UI edge with `resolve()` or `resolveString()` when needed
+
+DO NOT:
+- expose raw `String` for user-facing error/snackbar/banner/toast text in ViewModels unless it is intentionally dynamic backend content
+
+## Feature workflow
+
+When adding a new feature:
+- create or extend that feature's string file
+- keep shared copy in `strings_common.xml`
+- move misplaced strings into the correct domain file instead of adding more copy to the wrong file
+
+Before finishing:
+- search for newly added hardcoded UI text
+- verify new resource ids compile and are imported correctly

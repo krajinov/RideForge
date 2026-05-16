@@ -1,0 +1,332 @@
+CREATE TABLE local_store (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+CREATE TABLE metric_upload_buffer (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL,
+    speed_kmh REAL NOT NULL DEFAULT 0.0
+);
+
+CREATE TABLE pending_session_event (
+    id INTEGER NOT NULL PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    workout_id TEXT,
+    elapsed_seconds INTEGER
+);
+
+CREATE TABLE pending_session_event_metric_sample (
+    event_id INTEGER NOT NULL,
+    sample_index INTEGER NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL,
+    speed_kmh REAL NOT NULL DEFAULT 0.0,
+    PRIMARY KEY(event_id, sample_index)
+);
+
+CREATE TABLE remote_session_binding (
+    local_session_id TEXT NOT NULL PRIMARY KEY,
+    remote_session_id TEXT NOT NULL
+);
+
+CREATE TABLE pending_sync_metadata (
+    id INTEGER NOT NULL PRIMARY KEY,
+    next_id INTEGER NOT NULL
+);
+
+CREATE TABLE local_workout_session (
+    id TEXT NOT NULL PRIMARY KEY,
+    workout_id TEXT NOT NULL,
+    workout_name TEXT NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    average_power_watts INTEGER NOT NULL,
+    normalized_power_watts INTEGER NOT NULL,
+    calories INTEGER NOT NULL,
+    tss INTEGER NOT NULL,
+    completion_percent INTEGER NOT NULL,
+    completed_at_epoch_millis INTEGER
+);
+
+CREATE TABLE local_workout_metric_sample (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL,
+    speed_kmh REAL NOT NULL DEFAULT 0.0
+);
+
+CREATE TABLE active_workout (
+    id INTEGER NOT NULL PRIMARY KEY,
+    workout_id TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    ftp_watts INTEGER NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    control_mode TEXT NOT NULL,
+    is_paused INTEGER NOT NULL,
+    erg_enabled INTEGER NOT NULL,
+    updated_at_epoch_millis INTEGER NOT NULL
+);
+
+CREATE TABLE active_workout_sample (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL,
+    speed_kmh REAL NOT NULL DEFAULT 0.0
+);
+
+selectValue:
+SELECT value
+FROM local_store
+WHERE key = ?;
+
+upsertValue:
+INSERT OR REPLACE INTO local_store(key, value)
+VALUES (?, ?);
+
+deleteValue:
+DELETE FROM local_store
+WHERE key = ?;
+
+selectMetricUploadBuffer:
+SELECT session_id, elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM metric_upload_buffer
+ORDER BY id ASC;
+
+selectMetricUploadSamples:
+SELECT elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM metric_upload_buffer
+WHERE session_id = ?
+ORDER BY id ASC;
+
+insertMetricUploadSample:
+INSERT INTO metric_upload_buffer(
+    session_id,
+    elapsed_seconds,
+    current_power_watts,
+    target_power_watts,
+    cadence_rpm,
+    heart_rate_bpm,
+    speed_kmh
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteMetricUploadSamples:
+DELETE FROM metric_upload_buffer
+WHERE session_id = ?;
+
+deleteAllMetricUploadSamples:
+DELETE FROM metric_upload_buffer;
+
+selectPendingSessionEvents:
+SELECT id, event_type, session_id, workout_id, elapsed_seconds
+FROM pending_session_event
+ORDER BY id ASC;
+
+selectPendingSessionEventMetricSamples:
+SELECT elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM pending_session_event_metric_sample
+WHERE event_id = ?
+ORDER BY sample_index ASC;
+
+insertPendingSessionEvent:
+INSERT OR REPLACE INTO pending_session_event(
+    id,
+    event_type,
+    session_id,
+    workout_id,
+    elapsed_seconds
+)
+VALUES (?, ?, ?, ?, ?);
+
+insertPendingSessionEventMetricSample:
+INSERT OR REPLACE INTO pending_session_event_metric_sample(
+    event_id,
+    sample_index,
+    elapsed_seconds,
+    current_power_watts,
+    target_power_watts,
+    cadence_rpm,
+    heart_rate_bpm,
+    speed_kmh
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deletePendingSessionEventMetricSamples:
+DELETE FROM pending_session_event_metric_sample;
+
+deletePendingSessionEventMetricSamplesForEvent:
+DELETE FROM pending_session_event_metric_sample
+WHERE event_id = ?;
+
+deletePendingSessionEvents:
+DELETE FROM pending_session_event;
+
+deletePendingSessionEvent:
+DELETE FROM pending_session_event
+WHERE id = ?;
+
+selectRemoteSessionBindings:
+SELECT local_session_id, remote_session_id
+FROM remote_session_binding;
+
+insertRemoteSessionBinding:
+INSERT OR REPLACE INTO remote_session_binding(local_session_id, remote_session_id)
+VALUES (?, ?);
+
+deleteRemoteSessionBindings:
+DELETE FROM remote_session_binding;
+
+selectPendingSyncNextId:
+SELECT next_id
+FROM pending_sync_metadata
+WHERE id = 1;
+
+upsertPendingSyncNextId:
+INSERT OR REPLACE INTO pending_sync_metadata(id, next_id)
+VALUES (1, ?);
+
+deletePendingSyncMetadata:
+DELETE FROM pending_sync_metadata;
+
+selectLocalWorkoutSessions:
+SELECT id, workout_id, workout_name, elapsed_seconds, average_power_watts, normalized_power_watts, calories, tss, completion_percent, completed_at_epoch_millis
+FROM local_workout_session
+ORDER BY id ASC;
+
+selectLocalWorkoutSession:
+SELECT id, workout_id, workout_name, elapsed_seconds, average_power_watts, normalized_power_watts, calories, tss, completion_percent, completed_at_epoch_millis
+FROM local_workout_session
+WHERE id = ?;
+
+upsertLocalWorkoutSession:
+INSERT OR REPLACE INTO local_workout_session(
+    id,
+    workout_id,
+    workout_name,
+    elapsed_seconds,
+    average_power_watts,
+    normalized_power_watts,
+    calories,
+    tss,
+    completion_percent,
+    completed_at_epoch_millis
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteLocalWorkoutSessions:
+DELETE FROM local_workout_session;
+
+selectLocalWorkoutMetricSamples:
+SELECT session_id, elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM local_workout_metric_sample
+ORDER BY id ASC;
+
+selectLocalWorkoutSessionMetricSamples:
+SELECT elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM local_workout_metric_sample
+WHERE session_id = ?
+ORDER BY id ASC;
+
+insertLocalWorkoutMetricSample:
+INSERT INTO local_workout_metric_sample(
+    session_id,
+    elapsed_seconds,
+    current_power_watts,
+    target_power_watts,
+    cadence_rpm,
+    heart_rate_bpm,
+    speed_kmh
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteLocalWorkoutMetricSamples:
+DELETE FROM local_workout_metric_sample;
+
+deleteLocalWorkoutSessionMetricSamples:
+DELETE FROM local_workout_metric_sample
+WHERE session_id = ?;
+
+selectActiveWorkout:
+SELECT workout_id, session_id, ftp_watts, elapsed_seconds, control_mode, is_paused, erg_enabled, updated_at_epoch_millis
+FROM active_workout
+WHERE id = 1;
+
+upsertActiveWorkout:
+INSERT OR REPLACE INTO active_workout(
+    id,
+    workout_id,
+    session_id,
+    ftp_watts,
+    elapsed_seconds,
+    control_mode,
+    is_paused,
+    erg_enabled,
+    updated_at_epoch_millis
+)
+VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectActiveWorkoutSamples:
+SELECT elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM active_workout_sample
+ORDER BY id ASC;
+
+selectActiveWorkoutSampleRows:
+SELECT id, elapsed_seconds, current_power_watts, target_power_watts, cadence_rpm, heart_rate_bpm, speed_kmh
+FROM active_workout_sample
+ORDER BY id ASC;
+
+insertActiveWorkoutSample:
+INSERT INTO active_workout_sample(
+    elapsed_seconds,
+    current_power_watts,
+    target_power_watts,
+    cadence_rpm,
+    heart_rate_bpm,
+    speed_kmh
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+updateActiveWorkoutSample:
+UPDATE active_workout_sample
+SET elapsed_seconds = ?,
+    current_power_watts = ?,
+    target_power_watts = ?,
+    cadence_rpm = ?,
+    heart_rate_bpm = ?,
+    speed_kmh = ?
+WHERE id = ?;
+
+deleteActiveWorkoutSampleById:
+DELETE FROM active_workout_sample
+WHERE id = ?;
+
+trimActiveWorkoutSamples:
+DELETE FROM active_workout_sample
+WHERE id NOT IN (
+    SELECT id
+    FROM active_workout_sample
+    ORDER BY id DESC
+    LIMIT ?
+);
+
+deleteActiveWorkoutSamples:
+DELETE FROM active_workout_sample;
+
+deleteActiveWorkout:
+DELETE FROM active_workout;

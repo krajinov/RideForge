@@ -1,0 +1,14 @@
+# Dependency Injection
+
+Use Koin.
+
+All modules go in:
+
+`core/di/`
+
+Rules:
+
+- `single` for services, API implementations, and repositories
+- `factory` for use cases
+- `viewModel` for viewmodels
+- initialize Koin once at app startup

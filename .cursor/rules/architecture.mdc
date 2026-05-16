@@ -1,0 +1,15 @@
+# Architecture
+
+Use clean architecture boundaries:
+
+- `data` for DTO, API, mapper, repository implementation
+- `domain` for business models, repository interfaces, and use cases
+- `presentation` for UI state, events, actions, viewmodels, and composables
+
+Rules:
+
+- domain must not depend on data
+- data can depend on domain contracts
+- presentation must only use use cases (never API directly)
+- keep features self-contained under `features/<name>/...`
+- keep cross-cutting concerns in `core/`

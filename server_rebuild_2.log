@@ -1,0 +1,66 @@
+Reusing configuration cache.
+> Task :server:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :server:compileKotlin UP-TO-DATE
+> Task :server:processResources
+> Task :server:compileJava NO-SOURCE
+> Task :server:classes
+
+> Task :server:run FAILED
+2026-05-14 11:13:20.012 [main] INFO  io.ktor.server.Application - Autoreload is disabled because the development mode is off.
+Exception in thread "main" java.lang.ExceptionInInitializerError
+	at com.delminiusapps.rideforge.repositories.InMemoryUserRepository.<init>(InMemoryRepositories.kt:17)
+	at com.delminiusapps.rideforge.plugins.ServiceRegistry.<init>(ServiceRegistry.kt:20)
+	at com.delminiusapps.rideforge.ApplicationKt.module(Application.kt:27)
+	at com.delminiusapps.rideforge.ApplicationKt$main$1.invokeSuspend(Application.kt:18)
+	at com.delminiusapps.rideforge.ApplicationKt$main$1.invoke(Application.kt)
+	at com.delminiusapps.rideforge.ApplicationKt$main$1.invoke(Application.kt)
+	at io.ktor.server.engine.EmbeddedServer$wrapWithDynamicModule$1.invokeSuspend(EmbeddedServerJvm.kt:452)
+	at io.ktor.server.engine.EmbeddedServer$wrapWithDynamicModule$1.invoke(EmbeddedServerJvm.kt)
+	at io.ktor.server.engine.EmbeddedServer$wrapWithDynamicModule$1.invoke(EmbeddedServerJvm.kt)
+	at io.ktor.server.application.ApplicationModules_jvmKt$LoadSequentially$1.loadModules(ApplicationModules.jvm.kt:75)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1$1.invokeSuspend(EmbeddedServerJvm.kt:393)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1$1.invoke(EmbeddedServerJvm.kt)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1$1.invoke(EmbeddedServerJvm.kt)
+	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndspatched(Undispatched.kt:66)
+	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatchedOrReturnIgnoreTimeout(Undispatched.kt:50)
+	at kotlinx.coroutines.TimeoutKt.setupTimeout(Timeout.kt:149)
+	at kotlinx.coroutines.TimeoutKt.withTimeout(Timeout.kt:44)
+	at kotlinx.coroutines.TimeoutKt.withTimeout-KLykuaI(Timeout.kt:72)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1.invokeSuspend(EmbeddedServerJvm.kt:392)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1.invoke(EmbeddedServerJvm.kt)
+	at io.ktor.server.engine.EmbeddedServer$instantiateAndConfigureApplication$1.invoke(EmbeddedServerJvm.kt)
+	at io.ktor.server.engine.EmbeddedServer$avoidingDoubleStartup$1.invokeSuspend(EmbeddedServerJvm.kt:464)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:263)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:94)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source)
+	at io.ktor.server.engine.EmbeddedServer.avoidingDoubleStartup(EmbeddedServerJvm.kt:463)
+	at io.ktor.server.engine.EmbeddedServer.instantiateAndConfigureApplication(EmbeddedServerJvm.kt:391)
+	at io.ktor.server.engine.EmbeddedServer.createApplication(EmbeddedServerJvm.kt:168)
+	at io.ktor.server.engine.EmbeddedServer.start(EmbeddedServerJvm.kt:322)
+	at com.delminiusapps.rideforge.ApplicationKt.main(Application.kt:19)
+	at com.delminiusapps.rideforge.ApplicationKt.main(Application.kt)
+Caused by: java.lang.IllegalArgumentException: Workout workout-vo2max-6x2 duration mismatch: expected 2400 s (40 min), but intervals sum to 2520 s.
+	at com.delminiusapps.rideforge.repositories.SeedDataLoader.loadWorkouts(SeedDataLoader.kt:48)
+	at com.delminiusapps.rideforge.repositories.SeedData.<clinit>(SeedData.kt:44)
+	... 36 more
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':server:run'.
+> Process 'command '/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+3 actionable tasks: 2 executed, 1 up-to-date
+Configuration cache entry reused.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_login_title">RideForge</string>
+    <string name="auth_login_subtitle">Sign in to sync your training data.</string>
+    <string name="auth_register_subtitle">Create an account to sync training history.</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_name_label">Name</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_signing_in">Signing in...</string>
+    <string name="auth_create_account">Create Account</string>
+    <string name="auth_creating_account">Creating account...</string>
+    <string name="auth_already_have_account">I already have an account</string>
+    <string name="auth_use_demo">Use demo credentials</string>
+    <string name="auth_error_name_required">Name is required.</string>
+    <string name="auth_error_email_required">Email is required.</string>
+    <string name="auth_error_password_required">Password is required.</string>
+    <string name="auth_error_password_short">Password must be at least 8 characters.</string>
+    <string name="auth_error_request_failed">Unable to authenticate. Check the backend or use demo credentials.</string>
+</resources>

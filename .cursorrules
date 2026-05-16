@@ -1,0 +1,34 @@
+This project is a Kotlin Multiplatform application.
+
+Tech stack:
+
+- Kotlin Multiplatform
+- Compose Multiplatform
+- MVVM architecture
+- Koin dependency injection
+- Ktor client
+- Coroutines and Flow
+- Clean Architecture
+
+Always follow rule files located in:
+
+.cursor/rules/
+
+When generating new features, follow the feature architecture pattern.
+
+Always generate:
+
+DTO
+Mapper
+Repository
+UseCase
+ViewModel
+Compose Screen
+DI module
+
+Prefer commonMain unless platform code is required.
+
+Never generate Android-only code unless explicitly requested.
+
+Never hardcode user-facing strings in UI or ViewModel code.
+Use Compose Multiplatform string resources and follow the string resource rules in `.cursor/rules/string-resources.mdc`.

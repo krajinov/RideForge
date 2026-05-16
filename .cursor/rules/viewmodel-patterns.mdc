@@ -1,0 +1,36 @@
+# ViewModel State Pattern
+
+Every ViewModel must expose:
+
+- State (`StateFlow`)
+- Events (`SharedFlow`)
+- Actions (sealed interface/class)
+
+Pattern:
+
+    import com.degustor.app.core.ui.UiText
+
+    data class UserUiState(
+        val loading: Boolean = false,
+        val users: List<User> = emptyList(),
+        val error: UiText? = null
+    )
+
+    sealed interface UserUiAction {
+        data object Load : UserUiAction
+    }
+
+    sealed interface UserUiEvent {
+        data class ShowMessage(val value: UiText) : UserUiEvent
+    }
+
+Rules:
+
+- expose immutable `StateFlow` and `SharedFlow`
+- keep mutable flows private
+- ViewModel handles presentation logic and screen state
+- ViewModel must not call API or repository directly
+- ViewModel should depend on use cases for business logic
+- ViewModel may depend on other presentation-safe abstractions when justified
+- use `UiText` for user-facing messages in state and events
+- only use raw `String` for non-UI data or intentionally dynamic backend content

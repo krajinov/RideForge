@@ -1,0 +1,9 @@
+# Kotlin Style
+
+- Prefer immutable `val` over `var`.
+- Use data classes for pure state holders.
+- Keep functions short and single-purpose.
+- Use sealed interfaces/classes for UI actions and events.
+- Use `runCatching` for concise success/failure flows.
+- Prefer explicit imports over wildcards in new files.
+- Keep code in ASCII unless the file already uses Unicode.

@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS pending_session_event (
+    id INTEGER NOT NULL PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    workout_id TEXT,
+    elapsed_seconds INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS pending_session_event_metric_sample (
+    event_id INTEGER NOT NULL,
+    sample_index INTEGER NOT NULL,
+    elapsed_seconds INTEGER NOT NULL,
+    current_power_watts INTEGER NOT NULL,
+    target_power_watts INTEGER NOT NULL,
+    cadence_rpm INTEGER NOT NULL,
+    heart_rate_bpm INTEGER NOT NULL,
+    PRIMARY KEY(event_id, sample_index)
+);
+
+CREATE TABLE IF NOT EXISTS remote_session_binding (
+    local_session_id TEXT NOT NULL PRIMARY KEY,
+    remote_session_id TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS pending_sync_metadata (
+    id INTEGER NOT NULL PRIMARY KEY,
+    next_id INTEGER NOT NULL
+);

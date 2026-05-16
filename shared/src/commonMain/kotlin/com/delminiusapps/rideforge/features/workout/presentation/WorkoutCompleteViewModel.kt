@@ -1,0 +1,141 @@
+package com.delminiusapps.rideforge.features.workout.presentation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.delminiusapps.rideforge.domain.usecase.GetSessionSummaryUseCase
+import com.delminiusapps.rideforge.domain.usecase.ObserveSessionSyncStatusUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
+import com.delminiusapps.rideforge.models.SyncStatus
+import com.delminiusapps.rideforge.models.WorkoutSession
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class WorkoutCompleteViewModel(
+    private val getSessionSummaryUseCase: GetSessionSummaryUseCase,
+    private val syncPendingSessionsUseCase: SyncPendingSessionsUseCase,
+    private val observeSessionSyncStatusUseCase: ObserveSessionSyncStatusUseCase,
+    private val sessionId: String,
+) : ViewModel() {
+    private val _state = MutableStateFlow<WorkoutCompleteUiState>(WorkoutCompleteUiState.Loading)
+    val state: StateFlow<WorkoutCompleteUiState> = _state.asStateFlow()
+
+    private val _events = MutableSharedFlow<WorkoutCompleteEvent>()
+    val events: SharedFlow<WorkoutCompleteEvent> = _events.asSharedFlow()
+
+    private var latestSyncStatus = SyncStatus.Synced
+
+    init {
+        observeSyncStatus()
+        loadSummary()
+    }
+
+    fun onAction(action: WorkoutCompleteAction) {
+        when (action) {
+            WorkoutCompleteAction.Save -> saveWorkout()
+        }
+    }
+
+    private fun observeSyncStatus() {
+        viewModelScope.launch {
+            observeSessionSyncStatusUseCase().collect { status ->
+                latestSyncStatus = status
+                _state.update { state ->
+                    when (state) {
+                        is WorkoutCompleteUiState.Ready -> state.copy(syncStatus = status)
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadSummary() {
+        viewModelScope.launch {
+            runCatching {
+                getSessionSummaryUseCase(sessionId)
+            }.onSuccess { summary ->
+                _state.update { WorkoutCompleteUiState.Ready(summary = summary, syncStatus = latestSyncStatus) }
+            }.onFailure {
+                _state.update { WorkoutCompleteUiState.Error }
+            }
+        }
+    }
+
+    private fun saveWorkout() {
+        val ready = _state.value as? WorkoutCompleteUiState.Ready ?: return
+        if (ready.isSaving) return
+
+        _state.update { state ->
+            when (state) {
+                is WorkoutCompleteUiState.Ready -> state.copy(isSaving = true, saveFailed = false)
+                else -> state
+            }
+        }
+
+        viewModelScope.launch {
+            runCatching {
+                syncPendingSessionsUseCase()
+                getSessionSummaryUseCase(sessionId)
+            }.onSuccess { summary ->
+                if (latestSyncStatus == SyncStatus.Synced) {
+                    _state.update {
+                        WorkoutCompleteUiState.Ready(
+                            summary = summary,
+                            syncStatus = latestSyncStatus,
+                            isSaving = false,
+                        )
+                    }
+                    _events.emit(WorkoutCompleteEvent.NavigateHome)
+                } else {
+                    _state.update { state ->
+                        when (state) {
+                            is WorkoutCompleteUiState.Ready -> state.copy(
+                                summary = summary,
+                                syncStatus = latestSyncStatus,
+                                isSaving = false,
+                                saveFailed = true,
+                            )
+                            else -> state
+                        }
+                    }
+                }
+            }.onFailure {
+                _state.update { state ->
+                    when (state) {
+                        is WorkoutCompleteUiState.Ready -> state.copy(
+                            syncStatus = latestSyncStatus,
+                            isSaving = false,
+                            saveFailed = true,
+                        )
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+}
+
+sealed interface WorkoutCompleteUiState {
+    data object Loading : WorkoutCompleteUiState
+    data object Error : WorkoutCompleteUiState
+    data class Ready(
+        val summary: WorkoutSession,
+        val syncStatus: SyncStatus,
+        val isSaving: Boolean = false,
+        val saveFailed: Boolean = false,
+    ) : WorkoutCompleteUiState
+}
+
+sealed interface WorkoutCompleteAction {
+    data object Save : WorkoutCompleteAction
+}
+
+sealed interface WorkoutCompleteEvent {
+    data object NavigateHome : WorkoutCompleteEvent
+}

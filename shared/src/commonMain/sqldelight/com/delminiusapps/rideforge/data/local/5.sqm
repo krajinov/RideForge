@@ -1,0 +1,7 @@
+ALTER TABLE metric_upload_buffer ADD COLUMN speed_kmh REAL NOT NULL DEFAULT 0.0;
+
+ALTER TABLE pending_session_event_metric_sample ADD COLUMN speed_kmh REAL NOT NULL DEFAULT 0.0;
+
+ALTER TABLE local_workout_metric_sample ADD COLUMN speed_kmh REAL NOT NULL DEFAULT 0.0;
+
+ALTER TABLE active_workout_sample ADD COLUMN speed_kmh REAL NOT NULL DEFAULT 0.0;

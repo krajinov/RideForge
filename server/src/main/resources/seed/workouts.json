@@ -1,0 +1,605 @@
+[
+  {
+    "id": "ftp-w1d1",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 1,
+    "dayNumber": 1,
+    "workoutType": "SWEET_SPOT",
+    "name": "FTP Builder W1D1 Sweet Spot Intro",
+    "description": "Introduction to sweet spot training. Two 10-minute intervals at 88-92% FTP.",
+    "durationMinutes": 45,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z3", "Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Sweet Spot 1", "durationSeconds": 600, "targetFtpPercent": 90, "type": "work" },
+      { "name": "Recovery", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Sweet Spot 2", "durationSeconds": 600, "targetFtpPercent": 90, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "ftp-w1d2",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 1,
+    "dayNumber": 2,
+    "workoutType": "ENDURANCE",
+    "name": "FTP Builder W1D2 Endurance Support",
+    "description": "Steady endurance ride to support your harder efforts.",
+    "durationMinutes": 60,
+    "difficulty": "Beginner",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 55, "type": "warmup" },
+      { "name": "Steady Base", "durationSeconds": 2400, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "ftp-w1d3",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 1,
+    "dayNumber": 3,
+    "workoutType": "THRESHOLD",
+    "name": "FTP Builder W1D3 Threshold Starter",
+    "description": "Three 8-minute threshold efforts at 100% FTP.",
+    "durationMinutes": 55,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Threshold 1", "durationSeconds": 480, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 240, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 2", "durationSeconds": 480, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 240, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 3", "durationSeconds": 480, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 480, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "ftp-w2d1",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 2,
+    "dayNumber": 1,
+    "workoutType": "SWEET_SPOT",
+    "name": "FTP Builder W2D1 Sweet Spot 3x8",
+    "description": "Increased volume in the sweet spot zone.",
+    "durationMinutes": 50,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z3", "Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Sweet Spot 1", "durationSeconds": 480, "targetFtpPercent": 92, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 240, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Sweet Spot 2", "durationSeconds": 480, "targetFtpPercent": 92, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 240, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Sweet Spot 3", "durationSeconds": 480, "targetFtpPercent": 92, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 480, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "ftp-w2d2",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 2,
+    "dayNumber": 2,
+    "workoutType": "OVER_UNDER",
+    "name": "FTP Builder W2D2 Over Under Intro",
+    "description": "Intro to over-unders: 1 min over (105%), 2 min under (95%).",
+    "durationMinutes": 45,
+    "difficulty": "Hard",
+    "targetZones": ["Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Under 1", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 1", "durationSeconds": 60, "targetFtpPercent": 105, "type": "work" },
+      { "name": "Under 2", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 2", "durationSeconds": 60, "targetFtpPercent": 105, "type": "work" },
+      { "name": "Recovery", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Under 3", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 3", "durationSeconds": 60, "targetFtpPercent": 105, "type": "work" },
+      { "name": "Under 4", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 4", "durationSeconds": 60, "targetFtpPercent": 105, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 1080, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "ftp-w2d3",
+    "planId": "plan-ftp-builder",
+    "weekNumber": 2,
+    "dayNumber": 3,
+    "workoutType": "THRESHOLD",
+    "name": "FTP Builder W2D3 Threshold 4x6",
+    "description": "Four 6-minute threshold efforts with shorter recoveries.",
+    "durationMinutes": 60,
+    "difficulty": "Hard",
+    "targetZones": ["Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 65, "type": "warmup" },
+      { "name": "Threshold 1", "durationSeconds": 360, "targetFtpPercent": 102, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 180, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 2", "durationSeconds": 360, "targetFtpPercent": 102, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 180, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 3", "durationSeconds": 360, "targetFtpPercent": 102, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 180, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 4", "durationSeconds": 360, "targetFtpPercent": 102, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 720, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w1d1",
+    "planId": "plan-endurance-base",
+    "weekNumber": 1,
+    "dayNumber": 1,
+    "workoutType": "ENDURANCE",
+    "name": "Endurance Base W1D1 Easy Endurance",
+    "description": "A very gentle start to your base building phase.",
+    "durationMinutes": 45,
+    "difficulty": "Beginner",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 50, "type": "warmup" },
+      { "name": "Easy Base", "durationSeconds": 1800, "targetFtpPercent": 65, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w1d2",
+    "planId": "plan-endurance-base",
+    "weekNumber": 1,
+    "dayNumber": 2,
+    "workoutType": "ENDURANCE",
+    "name": "Endurance Base W1D2 Cadence Endurance",
+    "description": "Endurance ride focused on maintaining a steady, high cadence.",
+    "durationMinutes": 60,
+    "difficulty": "Beginner",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 55, "type": "warmup" },
+      { "name": "Steady Spin", "durationSeconds": 2400, "targetFtpPercent": 68, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w1d3",
+    "planId": "plan-endurance-base",
+    "weekNumber": 1,
+    "dayNumber": 3,
+    "workoutType": "ENDURANCE",
+    "name": "Endurance Base W1D3 Long Z2 Ride",
+    "description": "The longest ride of your first week. Pure aerobic development.",
+    "durationMinutes": 90,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Long Base", "durationSeconds": 3600, "targetFtpPercent": 72, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 900, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w2d1",
+    "planId": "plan-endurance-base",
+    "weekNumber": 2,
+    "dayNumber": 1,
+    "workoutType": "RECOVERY",
+    "name": "Endurance Base W2D1 Recovery Spin",
+    "description": "Active recovery to prepare for the week ahead.",
+    "durationMinutes": 30,
+    "difficulty": "Beginner",
+    "targetZones": ["Z1"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 300, "targetFtpPercent": 45, "type": "warmup" },
+      { "name": "Recovery", "durationSeconds": 1200, "targetFtpPercent": 52, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 40, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w2d2",
+    "planId": "plan-endurance-base",
+    "weekNumber": 2,
+    "dayNumber": 2,
+    "workoutType": "TEMPO",
+    "name": "Endurance Base W2D2 Tempo Endurance",
+    "description": "Endurance ride with short tempo segments.",
+    "durationMinutes": 60,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2", "Z3"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Base", "durationSeconds": 900, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Tempo", "durationSeconds": 600, "targetFtpPercent": 82, "type": "work" },
+      { "name": "Base", "durationSeconds": 900, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "base-w2d3",
+    "planId": "plan-endurance-base",
+    "weekNumber": 2,
+    "dayNumber": 3,
+    "workoutType": "ENDURANCE",
+    "name": "Endurance Base W2D3 Endurance Plus",
+    "description": "Slightly more intense endurance work.",
+    "durationMinutes": 75,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Steady Endurance", "durationSeconds": 3300, "targetFtpPercent": 75, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w1d1",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 1,
+    "dayNumber": 1,
+    "workoutType": "VO2_MAX",
+    "name": "VO2 W1D1 VO2 Max Starter",
+    "description": "Introduction to VO2 max work. Five 2-minute efforts.",
+    "durationMinutes": 45,
+    "difficulty": "Hard",
+    "targetZones": ["Z5"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "VO2 1", "durationSeconds": 120, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 2", "durationSeconds": 120, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 3", "durationSeconds": 120, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 4", "durationSeconds": 120, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 4", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 5", "durationSeconds": 120, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 720, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w1d2",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 1,
+    "dayNumber": 2,
+    "workoutType": "RECOVERY",
+    "name": "VO2 W1D2 Recovery Spin",
+    "description": "Easy recovery after the VO2 Max starter.",
+    "durationMinutes": 30,
+    "difficulty": "Beginner",
+    "targetZones": ["Z1"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 300, "targetFtpPercent": 45, "type": "warmup" },
+      { "name": "Recovery", "durationSeconds": 1200, "targetFtpPercent": 50, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 40, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w1d3",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 1,
+    "dayNumber": 3,
+    "workoutType": "VO2_MAX",
+    "name": "VO2 W1D3 5x3 VO2 Max",
+    "description": "Five 3-minute VO2 max efforts at 115% FTP.",
+    "durationMinutes": 55,
+    "difficulty": "Hard",
+    "targetZones": ["Z5"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "VO2 1", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 180, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 2", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 180, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 3", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 180, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 4", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 4", "durationSeconds": 180, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 5", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 780, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w2d1",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 2,
+    "dayNumber": 1,
+    "workoutType": "VO2_MAX",
+    "name": "VO2 W2D1 Anaerobic Openers",
+    "description": "Short anaerobic bursts to prepare for top-end work.",
+    "durationMinutes": 45,
+    "difficulty": "Hard",
+    "targetZones": ["Z6"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Burst 1", "durationSeconds": 30, "targetFtpPercent": 140, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 270, "targetFtpPercent": 50, "type": "recovery" },
+      { "name": "Burst 2", "durationSeconds": 30, "targetFtpPercent": 140, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 270, "targetFtpPercent": 50, "type": "recovery" },
+      { "name": "Burst 3", "durationSeconds": 30, "targetFtpPercent": 140, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 270, "targetFtpPercent": 50, "type": "recovery" },
+      { "name": "Burst 4", "durationSeconds": 30, "targetFtpPercent": 140, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 870, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w2d2",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 2,
+    "dayNumber": 2,
+    "workoutType": "ENDURANCE",
+    "name": "VO2 W2D2 Endurance Reset",
+    "description": "Steady state endurance ride to reset between intensity.",
+    "durationMinutes": 60,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Steady Base", "durationSeconds": 2400, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "vo2-w2d3",
+    "planId": "plan-vo2-booster",
+    "weekNumber": 2,
+    "dayNumber": 3,
+    "workoutType": "VO2_MAX",
+    "name": "VO2 W2D3 VO2 Max Progression",
+    "description": "Six 3-minute efforts with decreasing recovery time.",
+    "durationMinutes": 60,
+    "difficulty": "Hard",
+    "targetZones": ["Z5"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "VO2 1", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 180, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 2", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 150, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 3", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 150, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 4", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 4", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 5", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery 5", "durationSeconds": 120, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "VO2 6", "durationSeconds": 180, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 900, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w1d1",
+    "planId": "plan-weight-loss",
+    "weekNumber": 1,
+    "dayNumber": 1,
+    "workoutType": "ENDURANCE",
+    "name": "Weight Loss W1D1 Easy Burn",
+    "description": "Low intensity ride focusing on fat oxidation.",
+    "durationMinutes": 45,
+    "difficulty": "Beginner",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 50, "type": "warmup" },
+      { "name": "Fat Burn", "durationSeconds": 1800, "targetFtpPercent": 62, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w1d2",
+    "planId": "plan-weight-loss",
+    "weekNumber": 1,
+    "dayNumber": 2,
+    "workoutType": "ENDURANCE",
+    "name": "Weight Loss W1D2 Steady Endurance",
+    "description": "A sixty-minute session at a steady aerobic pace.",
+    "durationMinutes": 60,
+    "difficulty": "Beginner",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 55, "type": "warmup" },
+      { "name": "Steady Endurance", "durationSeconds": 2400, "targetFtpPercent": 65, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w1d3",
+    "planId": "plan-weight-loss",
+    "weekNumber": 1,
+    "dayNumber": 3,
+    "workoutType": "TEMPO",
+    "name": "Weight Loss W1D3 Tempo Burn",
+    "description": "Incorporating tempo segments for higher caloric expenditure.",
+    "durationMinutes": 50,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z3"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Tempo 1", "durationSeconds": 600, "targetFtpPercent": 80, "type": "work" },
+      { "name": "Recovery", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Tempo 2", "durationSeconds": 600, "targetFtpPercent": 80, "type": "work" },
+      { "name": "Base Finish", "durationSeconds": 600, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w2d1",
+    "planId": "plan-weight-loss",
+    "weekNumber": 2,
+    "dayNumber": 1,
+    "workoutType": "RECOVERY",
+    "name": "Weight Loss W2D1 Recovery Spin",
+    "description": "Very easy spin to recover between aerobic blocks.",
+    "durationMinutes": 30,
+    "difficulty": "Beginner",
+    "targetZones": ["Z1"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 300, "targetFtpPercent": 45, "type": "warmup" },
+      { "name": "Easy Spin", "durationSeconds": 1200, "targetFtpPercent": 50, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 300, "targetFtpPercent": 40, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w2d2",
+    "planId": "plan-weight-loss",
+    "weekNumber": 2,
+    "dayNumber": 2,
+    "workoutType": "ENDURANCE",
+    "name": "Weight Loss W2D2 Fat Oxidation Ride",
+    "description": "Eighty minutes of pure endurance work.",
+    "durationMinutes": 80,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Long Base", "durationSeconds": 3600, "targetFtpPercent": 68, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "weight-w2d3",
+    "planId": "plan-weight-loss",
+    "weekNumber": 2,
+    "dayNumber": 3,
+    "workoutType": "ENDURANCE",
+    "name": "Weight Loss W2D3 Longer Endurance",
+    "description": "Pushing the volume for aerobic foundation.",
+    "durationMinutes": 90,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Extended Base", "durationSeconds": 3600, "targetFtpPercent": 70, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 900, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w1d1",
+    "planId": "plan-race-prep",
+    "weekNumber": 1,
+    "dayNumber": 1,
+    "workoutType": "THRESHOLD",
+    "name": "Race Prep W1D1 Race Openers",
+    "description": "Short threshold bursts to open the legs.",
+    "durationMinutes": 45,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z4", "Z5"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Opener 1", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 120, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Opener 2", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 120, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Opener 3", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Settling Tempo", "durationSeconds": 900, "targetFtpPercent": 85, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 480, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w1d2",
+    "planId": "plan-race-prep",
+    "weekNumber": 1,
+    "dayNumber": 2,
+    "workoutType": "OVER_UNDER",
+    "name": "Race Prep W1D2 Over Under Race Efforts",
+    "description": "Over-unders with high-intensity surges.",
+    "durationMinutes": 60,
+    "difficulty": "Hard",
+    "targetZones": ["Z4", "Z5"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 65, "type": "warmup" },
+      { "name": "Under 1", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 1", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Under 2", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 2", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Under 3", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 3", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Under 4", "durationSeconds": 120, "targetFtpPercent": 95, "type": "work" },
+      { "name": "Over 4", "durationSeconds": 60, "targetFtpPercent": 110, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Steady Finish", "durationSeconds": 600, "targetFtpPercent": 80, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 780, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w1d3",
+    "planId": "plan-race-prep",
+    "weekNumber": 1,
+    "dayNumber": 3,
+    "workoutType": "ENDURANCE",
+    "name": "Race Prep W1D3 Endurance Support",
+    "description": "Laying the foundation for race-specific work.",
+    "durationMinutes": 75,
+    "difficulty": "Intermediate",
+    "targetZones": ["Z2"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 600, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Steady Endurance", "durationSeconds": 3300, "targetFtpPercent": 72, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 55, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w2d1",
+    "planId": "plan-race-prep",
+    "weekNumber": 2,
+    "dayNumber": 1,
+    "workoutType": "VO2_MAX",
+    "name": "Race Prep W2D1 VO2 Race Surges",
+    "description": "Short, sharp surges to simulate attacking.",
+    "durationMinutes": 50,
+    "difficulty": "Hard",
+    "targetZones": ["Z5", "Z6"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 65, "type": "warmup" },
+      { "name": "Surge 1", "durationSeconds": 45, "targetFtpPercent": 125, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 135, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "Surge 2", "durationSeconds": 45, "targetFtpPercent": 125, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 135, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "Surge 3", "durationSeconds": 45, "targetFtpPercent": 125, "type": "work" },
+      { "name": "Recovery 3", "durationSeconds": 135, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "Surge 4", "durationSeconds": 45, "targetFtpPercent": 125, "type": "work" },
+      { "name": "Recovery 4", "durationSeconds": 135, "targetFtpPercent": 55, "type": "recovery" },
+      { "name": "Surge 5", "durationSeconds": 45, "targetFtpPercent": 125, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 1335, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w2d2",
+    "planId": "plan-race-prep",
+    "weekNumber": 2,
+    "dayNumber": 2,
+    "workoutType": "THRESHOLD",
+    "name": "Race Prep W2D2 Threshold Endurance",
+    "description": "Pushing threshold power over longer intervals.",
+    "durationMinutes": 65,
+    "difficulty": "Hard",
+    "targetZones": ["Z4"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 65, "type": "warmup" },
+      { "name": "Threshold 1", "durationSeconds": 600, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Recovery 1", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 2", "durationSeconds": 600, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Recovery 2", "durationSeconds": 300, "targetFtpPercent": 60, "type": "recovery" },
+      { "name": "Threshold 3", "durationSeconds": 600, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 600, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  },
+  {
+    "id": "race-w2d3",
+    "planId": "plan-race-prep",
+    "weekNumber": 2,
+    "dayNumber": 3,
+    "workoutType": "RACE_SIMULATION",
+    "name": "Race Prep W2D3 Race Simulation",
+    "description": "Putting it all together in a mixed intensity race simulation.",
+    "durationMinutes": 60,
+    "difficulty": "Hard",
+    "targetZones": ["Z3", "Z4", "Z5", "Z6"],
+    "intervals": [
+      { "name": "Warmup", "durationSeconds": 900, "targetFtpPercent": 60, "type": "warmup" },
+      { "name": "Start Surge", "durationSeconds": 30, "targetFtpPercent": 140, "type": "work" },
+      { "name": "Settle In Tempo", "durationSeconds": 600, "targetFtpPercent": 88, "type": "work" },
+      { "name": "Breakaway Attempt", "durationSeconds": 120, "targetFtpPercent": 115, "type": "work" },
+      { "name": "Recovery", "durationSeconds": 180, "targetFtpPercent": 65, "type": "recovery" },
+      { "name": "Sustained Chase", "durationSeconds": 900, "targetFtpPercent": 100, "type": "work" },
+      { "name": "Final Sprint", "durationSeconds": 15, "targetFtpPercent": 180, "type": "work" },
+      { "name": "Cooldown", "durationSeconds": 855, "targetFtpPercent": 50, "type": "cooldown" }
+    ]
+  }
+]
