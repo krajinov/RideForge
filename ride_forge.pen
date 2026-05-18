@@ -7781,6 +7781,2382 @@
           "fill": "$--primary"
         }
       }
+    },
+    {
+      "type": "frame",
+      "id": "SlHsz",
+      "x": 0,
+      "y": 1695,
+      "name": "RideForge Logo System",
+      "width": 1600,
+      "height": 1100,
+      "fill": "$--background",
+      "cornerRadius": 8,
+      "gap": 32,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "CyYou",
+          "name": "Final Logo Suite",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#0D1424",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "$--border"
+          },
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 28,
+          "children": [
+            {
+              "type": "frame",
+              "id": "dQNtB",
+              "name": "Logo Suite Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KHeGn",
+                  "name": "h1",
+                  "fill": "$--foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "RideForge Brand System",
+                  "lineHeight": 1.05,
+                  "fontFamily": "$--font-primary",
+                  "fontSize": 34,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "KBNOr",
+                  "name": "h2",
+                  "fill": "$--muted-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Premium dark-mode mark set for an indoor cycling ERG training app: app icon, horizontal logo, monochrome, and background checks.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$--font-secondary",
+                  "fontSize": 15
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "UGv28",
+              "name": "Primary Applications",
+              "width": "fill_container",
+              "height": 430,
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "f369k4",
+                  "name": "App Icon Version",
+                  "width": 330,
+                  "height": "fill_container",
+                  "fill": "$--surface",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": 24,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Cxycu",
+                      "name": "RideForge App Icon",
+                      "width": 236,
+                      "height": 236,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "radial",
+                        "enabled": true,
+                        "rotation": 0,
+                        "size": {
+                          "width": 1.25,
+                          "height": 1.25
+                        },
+                        "colors": [
+                          {
+                            "color": "#123B5C",
+                            "position": 0
+                          },
+                          {
+                            "color": "$--background",
+                            "position": 0.56
+                          },
+                          {
+                            "color": "#050813",
+                            "position": 1
+                          }
+                        ],
+                        "center": {
+                          "x": 0.34,
+                          "y": 0.18
+                        }
+                      },
+                      "cornerRadius": 52,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#16445F"
+                      },
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00D4FF33",
+                        "offset": {
+                          "x": 0,
+                          "y": 20
+                        },
+                        "blur": 42
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "tqf2U",
+                          "x": 36,
+                          "y": 34,
+                          "name": "ring",
+                          "opacity": 0.95,
+                          "innerRadius": 0.79,
+                          "startAngle": 24,
+                          "sweepAngle": 304,
+                          "fill": "#00D4FF",
+                          "width": 164,
+                          "height": 164
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "U0Ys0x",
+                          "x": 61,
+                          "y": 59,
+                          "name": "ringCut",
+                          "opacity": 0.95,
+                          "innerRadius": 0.86,
+                          "startAngle": 220,
+                          "sweepAngle": 78,
+                          "fill": "$--accent-green",
+                          "width": 114,
+                          "height": 114
+                        },
+                        {
+                          "type": "path",
+                          "id": "JZyOk",
+                          "x": 58,
+                          "y": 50,
+                          "name": "markStroke",
+                          "geometry": "M18 118l0-102 46 0c24 0 38 13 38 33 0 20-15 33-38 33l-46 0m16-33l34 0m-2 33l44 36m-38-36l28-66",
+                          "viewBox": [
+                            0,
+                            0,
+                            128,
+                            130
+                          ],
+                          "width": 128,
+                          "height": 130,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 12,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "#F8FBFF"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "KRras",
+                          "x": 44,
+                          "y": 122,
+                          "name": "wave",
+                          "geometry": "M4 24l24 0 10-16 12 28 14-32 14 20 34 0 12-10 20 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            148,
+                            42
+                          ],
+                          "width": 148,
+                          "height": 42,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 7,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--accent-green"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "SHjAr",
+                      "name": "iconLabel",
+                      "fill": "$--foreground",
+                      "content": "App icon",
+                      "fontFamily": "$--font-primary",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "enFRD",
+                      "name": "iconNote",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Rounded-square dark icon with RF monogram, flywheel arc, and ERG power waveform.",
+                      "lineHeight": 1.35,
+                      "textAlign": "center",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PKLZs",
+                  "name": "Horizontal Logo Version",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xz6CA",
+                      "name": "Horizontal Logo Lockup",
+                      "width": "fill_container",
+                      "height": 210,
+                      "fill": "#080C16",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#1F2C45"
+                      },
+                      "gap": 22,
+                      "padding": 26,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "y1fI1",
+                          "name": "RF Mark",
+                          "width": 128,
+                          "height": 128,
+                          "fill": "#0C1322",
+                          "cornerRadius": 28,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#173B52"
+                          },
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "ewh1j",
+                              "x": 18,
+                              "y": 17,
+                              "name": "hRing",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "$--primary",
+                              "width": 91,
+                              "height": 91
+                            },
+                            {
+                              "type": "ellipse",
+                              "id": "DhGZO",
+                              "x": 32,
+                              "y": 31,
+                              "name": "hRingAccent",
+                              "innerRadius": 0.86,
+                              "startAngle": 220,
+                              "sweepAngle": 78,
+                              "fill": "$--accent-green",
+                              "width": 63,
+                              "height": 63
+                            },
+                            {
+                              "type": "path",
+                              "id": "jsEJM",
+                              "x": 31,
+                              "y": 27,
+                              "name": "hStroke",
+                              "geometry": "M10 66l0-58 26 0c13 0 21 7 21 18 0 12-8 19-21 19l-26 0m9-19l20 0m-2 19l25 21m-21-21l16-37",
+                              "viewBox": [
+                                0,
+                                0,
+                                69,
+                                72
+                              ],
+                              "width": 69,
+                              "height": 72,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 7,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#F8FBFF"
+                              }
+                            },
+                            {
+                              "type": "path",
+                              "id": "yH0TK",
+                              "x": 25,
+                              "y": 66,
+                              "name": "hWave",
+                              "geometry": "M2 14l14 0 6-9 7 16 8-18 8 11 18 0 7-5 8 0",
+                              "viewBox": [
+                                0,
+                                0,
+                                80,
+                                24
+                              ],
+                              "width": 80,
+                              "height": 24,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 4,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "$--accent-green"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QbZYL",
+                          "name": "Wordmark",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "m7GYW",
+                              "name": "word",
+                              "fill": "$--foreground",
+                              "content": "RideForge",
+                              "fontFamily": "$--font-primary",
+                              "fontSize": 58,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "G9yOv",
+                              "name": "tag",
+                              "fill": "$--primary",
+                              "content": "ERG TRAINING SYSTEM",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "600",
+                              "letterSpacing": 1.6
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "HGaun",
+                      "name": "logoNote",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Horizontal logo pairs the compact symbol with a strong tech-performance wordmark and mono-spaced system descriptor.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Nm0WA",
+              "name": "Logo Variants and Checks",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ivbWD",
+                  "name": "Monochrome Version",
+                  "width": 335,
+                  "height": "fill_container",
+                  "fill": "#0A0A0A",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#2A2A2A"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": 22,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J1wvNx",
+                      "name": "Mono Mark",
+                      "width": 178,
+                      "height": 178,
+                      "fill": "#111111",
+                      "cornerRadius": 38,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#303030"
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "J0Crv",
+                          "x": 28,
+                          "y": 27,
+                          "name": "monoRing",
+                          "innerRadius": 0.8,
+                          "startAngle": 24,
+                          "sweepAngle": 304,
+                          "fill": "#FFFFFF",
+                          "width": 122,
+                          "height": 122
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "W2BOI",
+                          "x": 48,
+                          "y": 47,
+                          "name": "monoRing2",
+                          "opacity": 0.58,
+                          "innerRadius": 0.86,
+                          "startAngle": 220,
+                          "sweepAngle": 78,
+                          "fill": "#FFFFFF",
+                          "width": 82,
+                          "height": 82
+                        },
+                        {
+                          "type": "path",
+                          "id": "ffNfb",
+                          "x": 44,
+                          "y": 38,
+                          "name": "monoStroke",
+                          "geometry": "M13 90l0-80 36 0c18 0 29 9 29 25 0 16-11 26-29 26l-36 0m13-26l27 0m-2 26l34 29m-29-29l22-51",
+                          "viewBox": [
+                            0,
+                            0,
+                            94,
+                            98
+                          ],
+                          "width": 94,
+                          "height": 98,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 9,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "#FFFFFF"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "sSdbs",
+                          "x": 36,
+                          "y": 92,
+                          "name": "monoWave",
+                          "geometry": "M3 18l18 0 8-12 9 21 11-23 11 14 25 0 9-7 16 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            113,
+                            31
+                          ],
+                          "width": 113,
+                          "height": 31,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 5,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "#FFFFFF"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "A1mzO3",
+                      "name": "monoWord",
+                      "fill": "#FFFFFF",
+                      "content": "RideForge",
+                      "fontFamily": "$--font-primary",
+                      "fontSize": 36,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Td8ig",
+                      "name": "monoNote",
+                      "fill": "#A8A8A8",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Single-color construction keeps the mark usable for embossing, merch, low-ink print, and notification glyphs.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "XmXQY",
+                  "name": "Background Contrast",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--surface",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 22,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "vVbWH",
+                      "name": "Light Background",
+                      "width": "fill_container",
+                      "height": 132,
+                      "fill": "#F7FAFC",
+                      "cornerRadius": 8,
+                      "gap": 20,
+                      "padding": 20,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "OMdo8",
+                          "name": "Mark on Light",
+                          "width": 88,
+                          "height": 88,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 20,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#DDE7EF"
+                          },
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "qVjDB",
+                              "x": 13,
+                              "y": 12,
+                              "name": "lightRing",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "#006B86",
+                              "width": 62,
+                              "height": 62
+                            },
+                            {
+                              "type": "ellipse",
+                              "id": "bSUg7",
+                              "x": 23,
+                              "y": 22,
+                              "name": "lightAccent",
+                              "innerRadius": 0.86,
+                              "startAngle": 220,
+                              "sweepAngle": 78,
+                              "fill": "#00A85D",
+                              "width": 42,
+                              "height": 42
+                            },
+                            {
+                              "type": "path",
+                              "id": "YhiYp",
+                              "x": 21,
+                              "y": 18,
+                              "name": "lightStroke",
+                              "geometry": "M7 48l0-43 19 0c10 0 16 5 16 14 0 9-6 14-16 14l-19 0m7-14l15 0m-1 14l17 15m-15-15l12-28",
+                              "viewBox": [
+                                0,
+                                0,
+                                49,
+                                52
+                              ],
+                              "width": 49,
+                              "height": 52,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 5,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#06111C"
+                              }
+                            },
+                            {
+                              "type": "path",
+                              "id": "oJ8vE",
+                              "x": 18,
+                              "y": 46,
+                              "name": "lightWave",
+                              "geometry": "M1 10l10 0 4-7 5 12 6-13 6 8 12 0 5-4 8 0",
+                              "viewBox": [
+                                0,
+                                0,
+                                58,
+                                17
+                              ],
+                              "width": 58,
+                              "height": 17,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 3,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#00A85D"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fEZhv",
+                          "name": "Light Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "V4j2k",
+                              "name": "lightWord",
+                              "fill": "#06111C",
+                              "content": "RideForge",
+                              "fontFamily": "$--font-primary",
+                              "fontSize": 32,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Xj5Kw",
+                              "name": "lightCaption",
+                              "fill": "#006B86",
+                              "content": "Light background lockup",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1.2
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M8q8hg",
+                      "name": "Dark Background",
+                      "width": "fill_container",
+                      "height": 132,
+                      "fill": "#050813",
+                      "cornerRadius": 8,
+                      "gap": 20,
+                      "padding": 20,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Mp9CX",
+                          "name": "Mark on Dark",
+                          "width": 88,
+                          "height": 88,
+                          "fill": "#0C1322",
+                          "cornerRadius": 20,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#173B52"
+                          },
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "Lc1TV",
+                              "x": 13,
+                              "y": 12,
+                              "name": "darkRing",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "$--primary",
+                              "width": 62,
+                              "height": 62
+                            },
+                            {
+                              "type": "ellipse",
+                              "id": "Uj3lc",
+                              "x": 23,
+                              "y": 22,
+                              "name": "darkAccent",
+                              "innerRadius": 0.86,
+                              "startAngle": 220,
+                              "sweepAngle": 78,
+                              "fill": "$--accent-green",
+                              "width": 42,
+                              "height": 42
+                            },
+                            {
+                              "type": "path",
+                              "id": "EqsxP",
+                              "x": 21,
+                              "y": 18,
+                              "name": "darkStroke",
+                              "geometry": "M7 48l0-43 19 0c10 0 16 5 16 14 0 9-6 14-16 14l-19 0m7-14l15 0m-1 14l17 15m-15-15l12-28",
+                              "viewBox": [
+                                0,
+                                0,
+                                49,
+                                52
+                              ],
+                              "width": 49,
+                              "height": 52,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 5,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#F8FBFF"
+                              }
+                            },
+                            {
+                              "type": "path",
+                              "id": "LESNV",
+                              "x": 18,
+                              "y": 46,
+                              "name": "darkWave",
+                              "geometry": "M1 10l10 0 4-7 5 12 6-13 6 8 12 0 5-4 8 0",
+                              "viewBox": [
+                                0,
+                                0,
+                                58,
+                                17
+                              ],
+                              "width": 58,
+                              "height": 17,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 3,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "$--accent-green"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "o5JlyL",
+                          "name": "Dark Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "G1IIR",
+                              "name": "darkWord",
+                              "fill": "$--foreground",
+                              "content": "RideForge",
+                              "fontFamily": "$--font-primary",
+                              "fontSize": 32,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "C7LAp",
+                              "name": "darkCaption",
+                              "fill": "$--primary",
+                              "content": "Dark background lockup",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "600",
+                              "letterSpacing": 1.2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "fTwCa",
+                  "name": "Small Size Recognition",
+                  "width": 260,
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": 22,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "J3uZt",
+                      "name": "smallTitle",
+                      "fill": "$--foreground",
+                      "content": "Small-size checks",
+                      "fontFamily": "$--font-primary",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Vb2KM",
+                      "name": "Icon Sizes",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "BBNEt",
+                          "name": "64 px",
+                          "width": 64,
+                          "height": 64,
+                          "fill": "#0C1322",
+                          "cornerRadius": 14,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "NRKpE",
+                              "x": 10,
+                              "y": 9,
+                              "name": "s64r",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "$--primary",
+                              "width": 45,
+                              "height": 45
+                            },
+                            {
+                              "type": "path",
+                              "id": "kU1xq",
+                              "x": 16,
+                              "y": 13,
+                              "name": "s64p",
+                              "geometry": "M5 35l0-31 13 0c8 0 12 4 12 10 0 7-4 10-12 10l-13 0m5-10l11 0m-1 10l12 11m-10-11l8-20",
+                              "viewBox": [
+                                0,
+                                0,
+                                35,
+                                38
+                              ],
+                              "width": 35,
+                              "height": 38,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 4,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#F8FBFF"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oU0nN",
+                          "name": "48 px",
+                          "width": 48,
+                          "height": 48,
+                          "fill": "#0C1322",
+                          "cornerRadius": 11,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "r5dOO",
+                              "x": 8,
+                              "y": 7,
+                              "name": "s48r",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "$--primary",
+                              "width": 34,
+                              "height": 34
+                            },
+                            {
+                              "type": "path",
+                              "id": "zBR1d",
+                              "x": 12,
+                              "y": 10,
+                              "name": "s48p",
+                              "geometry": "M4 27l0-24 10 0c6 0 9 3 9 8 0 5-3 8-9 8l-10 0m4-8l8 0m-1 8l9 8m-7-8l6-16",
+                              "viewBox": [
+                                0,
+                                0,
+                                26,
+                                29
+                              ],
+                              "width": 26,
+                              "height": 29,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 3,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#F8FBFF"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "phX90",
+                          "name": "32 px",
+                          "width": 32,
+                          "height": 32,
+                          "fill": "#0C1322",
+                          "cornerRadius": 7,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "MFRNc",
+                              "x": 5,
+                              "y": 5,
+                              "name": "s32r",
+                              "innerRadius": 0.8,
+                              "startAngle": 24,
+                              "sweepAngle": 304,
+                              "fill": "$--primary",
+                              "width": 22,
+                              "height": 22
+                            },
+                            {
+                              "type": "path",
+                              "id": "kiUeY",
+                              "x": 8,
+                              "y": 7,
+                              "name": "s32p",
+                              "geometry": "M3 18l0-16 6 0c4 0 6 2 6 5 0 4-2 5-6 5l-6 0m2-5l6 0m-1 5l6 6m-5-6l4-10",
+                              "viewBox": [
+                                0,
+                                0,
+                                17,
+                                19
+                              ],
+                              "width": 17,
+                              "height": 19,
+                              "stroke": {
+                                "align": "center",
+                                "thickness": 2,
+                                "join": "round",
+                                "cap": "round",
+                                "fill": "#F8FBFF"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "R33QQ",
+                      "name": "smallNote",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "At tiny sizes the waveform drops out and the simplified RF plus flywheel arc remains the identifying shape.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DcImH",
+          "name": "Parallel Mark Exploration",
+          "width": 420,
+          "height": "fill_container",
+          "fill": "$--surface",
+          "cornerRadius": 8,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "$--border"
+          },
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "fjmyn",
+              "name": "Exploration Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RMTaR",
+                  "name": "Eyebrow",
+                  "fill": "$--primary",
+                  "content": "ALTERNATE BRAND MARK",
+                  "fontFamily": "$--font-secondary",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.8
+                },
+                {
+                  "type": "text",
+                  "id": "lTxCF",
+                  "name": "Title",
+                  "fill": "$--foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "RF power monogram system",
+                  "lineHeight": 1.05,
+                  "fontFamily": "$--font-primary",
+                  "fontSize": 28,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "DbeG6",
+                  "name": "Subtitle",
+                  "fill": "$--muted-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Compact app-icon explorations for ERG control: waveform output, crank rotation, and small-size recognition without generic bike cues.",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$--font-secondary",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YUxjO",
+              "name": "Primary RF Flywheel Mark",
+              "width": "fill_container",
+              "height": 334,
+              "fill": "$--card",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border-light"
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Uctgj",
+                  "name": "Hero Mark Row",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "gap": 18,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "G9fwyz",
+                      "name": "App Icon Candidate",
+                      "clip": true,
+                      "width": 172,
+                      "height": 172,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "$--background",
+                            "position": 0
+                          },
+                          {
+                            "color": "$--card-elevated",
+                            "position": 0.58
+                          },
+                          {
+                            "color": "#071B24",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 38,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border-light"
+                      },
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#00000080",
+                        "offset": {
+                          "x": 0,
+                          "y": 18
+                        },
+                        "blur": 28,
+                        "spread": -8
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "XRwM1",
+                          "x": 25,
+                          "y": 24,
+                          "name": "flywheel energy ring",
+                          "innerRadius": 0.78,
+                          "startAngle": 214,
+                          "sweepAngle": 282,
+                          "fill": {
+                            "type": "gradient",
+                            "gradientType": "angular",
+                            "enabled": true,
+                            "rotation": 0,
+                            "size": {
+                              "width": 1,
+                              "height": 1
+                            },
+                            "colors": [
+                              {
+                                "color": "#00D4FF00",
+                                "position": 0
+                              },
+                              {
+                                "color": "$--primary",
+                                "position": 0.36
+                              },
+                              {
+                                "color": "$--accent-green",
+                                "position": 0.68
+                              },
+                              {
+                                "color": "#00D4FF00",
+                                "position": 1
+                              }
+                            ]
+                          },
+                          "width": 122,
+                          "height": 122
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "G1I4O",
+                          "x": 35,
+                          "y": 34,
+                          "name": "crank ring hairline",
+                          "innerRadius": 0.93,
+                          "fill": "#FFFFFF18",
+                          "width": 102,
+                          "height": 102
+                        },
+                        {
+                          "type": "line",
+                          "id": "d6Obj",
+                          "x": 86,
+                          "y": 86,
+                          "name": "crank arm",
+                          "width": 38,
+                          "height": -30,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 5,
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "E3H3u",
+                          "x": 78,
+                          "y": 78,
+                          "name": "axle",
+                          "fill": "$--foreground",
+                          "width": 18,
+                          "height": 18
+                        },
+                        {
+                          "type": "path",
+                          "id": "aCW7D",
+                          "x": 24,
+                          "y": 91,
+                          "name": "power waveform slash",
+                          "geometry": "M0 14l22 0 9-11 13 22 13-17 12 12 15-19 16 13 24 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            124,
+                            28
+                          ],
+                          "fill": "#00000000",
+                          "width": 124,
+                          "height": 28,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 6,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--accent-green"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "fI3f7",
+                          "x": 50,
+                          "y": 45,
+                          "name": "RF monogram R",
+                          "geometry": "M4 70v-66h20c10 0 13 6 13 16 0 11-6 16-16 16h-17m17 0l17 34",
+                          "viewBox": [
+                            0,
+                            0,
+                            40,
+                            74
+                          ],
+                          "fill": "#00000000",
+                          "width": 39,
+                          "height": 72,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 9,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "qLb4W",
+                          "x": 88,
+                          "y": 46,
+                          "name": "RF monogram F",
+                          "geometry": "M4 70v-66h31m-31 31h26",
+                          "viewBox": [
+                            0,
+                            0,
+                            38,
+                            74
+                          ],
+                          "fill": "#00000000",
+                          "width": 35,
+                          "height": 71,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 9,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "BqBfi",
+                      "name": "Hero Mark Notes",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "VAj4m",
+                          "name": "Hero Label",
+                          "fill": "$--accent-green",
+                          "content": "01 / crank-pulse RF",
+                          "fontFamily": "$--font-secondary",
+                          "fontSize": 12,
+                          "fontWeight": "800",
+                          "letterSpacing": 1.1
+                        },
+                        {
+                          "type": "text",
+                          "id": "amI9N",
+                          "name": "Hero Description",
+                          "fill": "$--foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "RF strokes lock to the flywheel ring; the crossbar becomes a power waveform. Keeps a circular silhouette at 24px.",
+                          "lineHeight": 1.28,
+                          "fontFamily": "$--font-secondary",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "TWOkV",
+                          "name": "Fit Metrics",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "X18Ns",
+                              "name": "24px",
+                              "width": "fill_container",
+                              "fill": "#0A0E1A",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$--border"
+                              },
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 10,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "JbLMa",
+                                  "name": "metricAT",
+                                  "fill": "$--muted-foreground",
+                                  "content": "24 PX",
+                                  "fontFamily": "$--font-secondary",
+                                  "fontSize": 9,
+                                  "fontWeight": "800",
+                                  "letterSpacing": 1
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "H6HC7V",
+                                  "name": "metricAV",
+                                  "fill": "$--foreground",
+                                  "content": "Clear",
+                                  "fontFamily": "$--font-primary",
+                                  "fontSize": 18,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gIeDJ",
+                              "name": "Motion",
+                              "width": "fill_container",
+                              "fill": "#0A0E1A",
+                              "cornerRadius": 6,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "$--border"
+                              },
+                              "layout": "vertical",
+                              "gap": 3,
+                              "padding": 10,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "R8OdAB",
+                                  "name": "metricBT",
+                                  "fill": "$--muted-foreground",
+                                  "content": "MOTION",
+                                  "fontFamily": "$--font-secondary",
+                                  "fontSize": 9,
+                                  "fontWeight": "800",
+                                  "letterSpacing": 1
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "vZdKb",
+                                  "name": "metricBV",
+                                  "fill": "$--primary",
+                                  "content": "ERG",
+                                  "fontFamily": "$--font-primary",
+                                  "fontSize": 18,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "KCjVa",
+                  "name": "Small Size Test",
+                  "width": "fill_container",
+                  "height": 58,
+                  "fill": "#0A0E1A",
+                  "cornerRadius": 6,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "gap": 14,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wwH9A",
+                      "name": "scaleLabel",
+                      "fill": "$--muted-foreground",
+                      "content": "small-size read",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UDnJJ",
+                      "name": "48px sample",
+                      "width": 48,
+                      "height": 48,
+                      "fill": "$--background",
+                      "cornerRadius": 12,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border-light"
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "utoWd",
+                          "x": 8,
+                          "y": 8,
+                          "name": "mini1Ring",
+                          "innerRadius": 0.82,
+                          "startAngle": 210,
+                          "sweepAngle": 285,
+                          "fill": "$--primary",
+                          "width": 32,
+                          "height": 32
+                        },
+                        {
+                          "type": "path",
+                          "id": "CSt3p",
+                          "x": 8,
+                          "y": 25,
+                          "name": "mini1Pulse",
+                          "geometry": "M0 4l8 0 4-4 5 7 5-5 4 2 6 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            32,
+                            7
+                          ],
+                          "fill": "#00000000",
+                          "width": 32,
+                          "height": 7,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 2,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--accent-green"
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "id": "vwUoO",
+                          "x": 15,
+                          "y": 15,
+                          "name": "mini1RF",
+                          "fill": "$--foreground",
+                          "content": "RF",
+                          "fontFamily": "$--font-primary",
+                          "fontSize": 13,
+                          "fontWeight": "900"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kdHTO",
+                      "name": "32px sample",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$--background",
+                      "cornerRadius": 8,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border-light"
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "hiwYC",
+                          "x": 5,
+                          "y": 5,
+                          "name": "mini2Ring",
+                          "innerRadius": 0.8,
+                          "startAngle": 220,
+                          "sweepAngle": 280,
+                          "fill": "$--primary",
+                          "width": 22,
+                          "height": 22
+                        },
+                        {
+                          "type": "text",
+                          "id": "G36Hh",
+                          "x": 9,
+                          "y": 9,
+                          "name": "mini2RF",
+                          "fill": "$--foreground",
+                          "content": "RF",
+                          "fontFamily": "$--font-primary",
+                          "fontSize": 9,
+                          "fontWeight": "900"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "m7o1O",
+              "name": "Variant Row 1",
+              "width": "fill_container",
+              "height": 172,
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h8Ew2S",
+                  "name": "Variant 02 Waveform Lockup",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "kYEH1",
+                      "name": "wave RF mark",
+                      "width": "fill_container",
+                      "height": 96,
+                      "fill": "#0A0E1A",
+                      "cornerRadius": 6,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "TUxL1",
+                          "x": 16,
+                          "y": 45,
+                          "name": "mark2Wave",
+                          "geometry": "M0 12l20 0 10-10 13 20 15-16 14 12 16-17 16 11 24 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            128,
+                            23
+                          ],
+                          "fill": "#00000000",
+                          "width": 128,
+                          "height": 23,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 5,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--primary"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "O7x24",
+                          "x": 29,
+                          "y": 20,
+                          "name": "mark2R",
+                          "geometry": "M4 58v-54h19c9 0 12 6 12 14 0 10-6 14-15 14h-16m16 0l16 26",
+                          "viewBox": [
+                            0,
+                            0,
+                            38,
+                            62
+                          ],
+                          "fill": "#00000000",
+                          "width": 36,
+                          "height": 60,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 7,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "fYeTD",
+                          "x": 67,
+                          "y": 20,
+                          "name": "mark2F",
+                          "geometry": "M4 58v-54h30m-30 26h24",
+                          "viewBox": [
+                            0,
+                            0,
+                            36,
+                            62
+                          ],
+                          "fill": "#00000000",
+                          "width": 34,
+                          "height": 60,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 7,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Hibhv",
+                      "name": "card2Text",
+                      "fill": "$--foreground",
+                      "content": "02 waveform bridge",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mGj2z",
+                      "name": "card2Sub",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Most literal ERG-output cue.",
+                      "lineHeight": 1.25,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Z7788",
+                  "name": "Variant 03 Flywheel Seal",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SArW5",
+                      "name": "flywheel seal mark",
+                      "width": "fill_container",
+                      "height": 96,
+                      "fill": "#0A0E1A",
+                      "cornerRadius": 6,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "CalI3",
+                          "x": 37,
+                          "y": 12,
+                          "name": "mark3Outer",
+                          "innerRadius": 0.86,
+                          "startAngle": 40,
+                          "sweepAngle": 300,
+                          "fill": "$--accent-green",
+                          "width": 72,
+                          "height": 72
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "sbmZq",
+                          "x": 49,
+                          "y": 24,
+                          "name": "mark3Inner",
+                          "innerRadius": 0.72,
+                          "fill": "#FFFFFF1F",
+                          "width": 48,
+                          "height": 48
+                        },
+                        {
+                          "type": "line",
+                          "id": "IL821",
+                          "x": 73,
+                          "y": 48,
+                          "name": "mark3Arm",
+                          "width": 22,
+                          "height": -18,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 4,
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "id": "fwKZE",
+                          "x": 58,
+                          "y": 35,
+                          "name": "mark3RF",
+                          "fill": "$--foreground",
+                          "content": "RF",
+                          "fontFamily": "$--font-primary",
+                          "fontSize": 24,
+                          "fontWeight": "900"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "oFjnl",
+                      "name": "card3Text",
+                      "fill": "$--foreground",
+                      "content": "03 flywheel seal",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "T3mcIi",
+                      "name": "card3Sub",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Launcher-ready circular seal.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "V0crc",
+              "name": "Variant Row 2",
+              "width": "fill_container",
+              "height": 172,
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "GdYBq",
+                  "name": "Variant 04 Split Stroke",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "D0hIaH",
+                      "name": "split stroke RF mark",
+                      "width": "fill_container",
+                      "height": 96,
+                      "fill": "#0A0E1A",
+                      "cornerRadius": 6,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "zC1y6",
+                          "x": 22,
+                          "y": 18,
+                          "name": "mark4Back",
+                          "geometry": "M0 30c20-27 48-27 68 0 11 15 25 22 36 19",
+                          "viewBox": [
+                            0,
+                            0,
+                            104,
+                            60
+                          ],
+                          "fill": "#00000000",
+                          "width": 104,
+                          "height": 60,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 5,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--primary"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "H8opgF",
+                          "x": 38,
+                          "y": 20,
+                          "name": "mark4R",
+                          "geometry": "M4 56v-52h18c8 0 11 5 11 13 0 9-6 13-14 13h-15m15 0l14 26",
+                          "viewBox": [
+                            0,
+                            0,
+                            35,
+                            60
+                          ],
+                          "fill": "#00000000",
+                          "width": 32,
+                          "height": 58,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 7,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        },
+                        {
+                          "type": "path",
+                          "id": "i53Lb",
+                          "x": 73,
+                          "y": 20,
+                          "name": "mark4F",
+                          "geometry": "M4 56v-52h27m-27 25h22",
+                          "viewBox": [
+                            0,
+                            0,
+                            33,
+                            60
+                          ],
+                          "fill": "#00000000",
+                          "width": 31,
+                          "height": 58,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 7,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--foreground"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ozj9h",
+                      "name": "card4Text",
+                      "fill": "$--foreground",
+                      "content": "04 split stroke",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NnFla",
+                      "name": "card4Sub",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Angular sports-tech read.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "T8cUe",
+                  "name": "Variant 05 Micro Tile",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$--card",
+                  "cornerRadius": 8,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "$--border"
+                  },
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n9Lp6k",
+                      "name": "micro tile mark",
+                      "width": "fill_container",
+                      "height": 96,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 145,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "$--background",
+                            "position": 0
+                          },
+                          {
+                            "color": "$--card-elevated",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 24,
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$--border-light"
+                      },
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "jNOAl",
+                          "x": 40,
+                          "y": 16,
+                          "name": "mark5Orb",
+                          "innerRadius": 0.76,
+                          "startAngle": 232,
+                          "sweepAngle": 252,
+                          "fill": "$--primary",
+                          "width": 66,
+                          "height": 66
+                        },
+                        {
+                          "type": "path",
+                          "id": "x4dju",
+                          "x": 34,
+                          "y": 50,
+                          "name": "mark5Pulse",
+                          "geometry": "M0 8l16 0 6-6 8 13 10-10 10 6 10-10 7 7 11 0",
+                          "viewBox": [
+                            0,
+                            0,
+                            78,
+                            16
+                          ],
+                          "fill": "#00000000",
+                          "width": 78,
+                          "height": 16,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 4,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "$--accent-green"
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "id": "G7paVc",
+                          "x": 53,
+                          "y": 32,
+                          "name": "mark5RF",
+                          "fill": "$--foreground",
+                          "content": "RF",
+                          "fontFamily": "$--font-primary",
+                          "fontSize": 24,
+                          "fontWeight": "900"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "jid13",
+                      "name": "card5Text",
+                      "fill": "$--foreground",
+                      "content": "05 micro tile",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 12,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vU0Pb",
+                      "name": "card5Sub",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Strongest at app-grid scale.",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jNzQB",
+              "name": "Direction Notes",
+              "width": "fill_container",
+              "height": 94,
+              "fill": "#0A0E1A",
+              "cornerRadius": 8,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "$--border"
+              },
+              "gap": 10,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KZJTy",
+                  "name": "noteA",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PiR4F",
+                      "name": "noteAT",
+                      "fill": "$--accent-green",
+                      "content": "KEEP",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 10,
+                      "fontWeight": "900",
+                      "letterSpacing": 1.2
+                    },
+                    {
+                      "type": "text",
+                      "id": "EmyPo",
+                      "name": "noteAB",
+                      "fill": "$--foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Circular motion, sharp RF strokes, one electric pulse accent.",
+                      "lineHeight": 1.25,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kEiE6",
+                  "name": "noteB",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "idsLQ",
+                      "name": "noteBT",
+                      "fill": "$--accent-red",
+                      "content": "AVOID",
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 10,
+                      "fontWeight": "900",
+                      "letterSpacing": 1.2
+                    },
+                    {
+                      "type": "text",
+                      "id": "wO3Pm",
+                      "name": "noteBB",
+                      "fill": "$--muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Bike silhouettes, rider figures, cartoon fitness symbols, soft lifestyle marks.",
+                      "lineHeight": 1.25,
+                      "fontFamily": "$--font-secondary",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "fbdp1",
+      "x": 5833,
+      "y": -1300,
+      "name": "Logo Exploration - RF Flywheel Waveform",
+      "width": 520,
+      "height": 520,
+      "fill": "$--background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "ellipse",
+          "id": "xOO7w",
+          "x": 120,
+          "y": 120,
+          "name": "coreGlow",
+          "fill": {
+            "type": "gradient",
+            "gradientType": "radial",
+            "enabled": true,
+            "opacity": 0.18,
+            "rotation": 0,
+            "size": {
+              "width": 1,
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "$--primary",
+                "position": 0
+              },
+              {
+                "color": "#0A0E1A00",
+                "position": 1
+              }
+            ]
+          },
+          "width": 280,
+          "height": 280
+        },
+        {
+          "type": "ellipse",
+          "id": "o3OZ77",
+          "x": 78,
+          "y": 78,
+          "name": "outerArc",
+          "innerRadius": 0.89,
+          "startAngle": 22,
+          "sweepAngle": 226,
+          "fill": {
+            "type": "gradient",
+            "gradientType": "angular",
+            "enabled": true,
+            "rotation": 0,
+            "size": {
+              "width": 1,
+              "height": 1
+            },
+            "colors": [
+              {
+                "color": "$--primary",
+                "position": 0
+              },
+              {
+                "color": "$--accent-green",
+                "position": 0.62
+              },
+              {
+                "color": "#00D4FF33",
+                "position": 1
+              }
+            ]
+          },
+          "width": 364,
+          "height": 364
+        },
+        {
+          "type": "ellipse",
+          "id": "o13Vo",
+          "x": 104,
+          "y": 104,
+          "name": "innerArc",
+          "innerRadius": 0.91,
+          "startAngle": 268,
+          "sweepAngle": 78,
+          "fill": "$--accent-orange",
+          "width": 312,
+          "height": 312
+        },
+        {
+          "type": "ellipse",
+          "id": "ZVHKo",
+          "x": 78,
+          "y": 78,
+          "name": "ghostArc",
+          "innerRadius": 0.945,
+          "startAngle": 285,
+          "sweepAngle": 58,
+          "fill": "#3A4565",
+          "width": 364,
+          "height": 364
+        },
+        {
+          "type": "path",
+          "id": "jdbo5",
+          "x": 138,
+          "y": 122,
+          "name": "RF monogram shared spine",
+          "geometry": "M155 365l0-220 117 0c50 0 75 28 75 65 0 39-29 64-74 64l-118 0m0-67l131 0m-13 67l77 91m-115-91l0 91",
+          "viewBox": [
+            120,
+            110,
+            260,
+            300
+          ],
+          "width": 232,
+          "height": 278,
+          "stroke": {
+            "thickness": 20,
+            "join": "round",
+            "cap": "round",
+            "fill": "$--foreground"
+          }
+        },
+        {
+          "type": "path",
+          "id": "N25qT",
+          "x": 103,
+          "y": 212,
+          "name": "Power waveform cutline",
+          "geometry": "M92 236l46 0 20-32 26 66 28-52 24 18 43 0 21-30 27 56 27-38 44 0",
+          "viewBox": [
+            80,
+            185,
+            360,
+            100
+          ],
+          "width": 314,
+          "height": 86,
+          "stroke": {
+            "thickness": 12,
+            "join": "round",
+            "cap": "round",
+            "fill": "$--accent-green"
+          }
+        },
+        {
+          "type": "ellipse",
+          "id": "VIiA5",
+          "x": 388,
+          "y": 232,
+          "name": "pulseDot",
+          "fill": "$--accent-green",
+          "width": 18,
+          "height": 18
+        },
+        {
+          "type": "polygon",
+          "polygonCount": 3,
+          "cornerRadius": 4,
+          "id": "IbBKC",
+          "x": 386,
+          "y": 108,
+          "name": "forwardNotch",
+          "rotation": 18,
+          "fill": "$--primary",
+          "width": 38,
+          "height": 38
+        },
+        {
+          "type": "ellipse",
+          "id": "ZIwUE",
+          "x": 134,
+          "y": 350,
+          "name": "anchorDot",
+          "fill": "$--primary",
+          "width": 30,
+          "height": 30
+        }
+      ]
     }
   ],
   "variables": {

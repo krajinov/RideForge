@@ -1,6 +1,10 @@
 package com.delminiusapps.rideforge.navigation
 
+import kotlin.random.Random
+import kotlin.time.Clock
+
 sealed interface AppRoute {
+    data object Splash : AppRoute
     data object Onboarding : AppRoute
     data object Login : AppRoute
     data object Register : AppRoute
@@ -10,11 +14,18 @@ sealed interface AppRoute {
     data object Workouts : AppRoute
     data class Workout(val id: String) : AppRoute
     data object Trainer : AppRoute
-    data class ActiveWorkout(val id: String = "") : AppRoute
+    data class ActiveWorkout(
+        val id: String = "",
+        val launchKey: String = newActiveWorkoutLaunchKey(),
+    ) : AppRoute
     data class WorkoutComplete(val id: String = "") : AppRoute
     data object History : AppRoute
     data class HistoryItem(val id: String) : AppRoute
     data object Profile : AppRoute
+}
+
+private fun newActiveWorkoutLaunchKey(): String {
+    return "${Clock.System.now().toEpochMilliseconds()}-${Random.nextLong()}"
 }
 
 val bottomRoutes = listOf(
@@ -26,6 +37,7 @@ val bottomRoutes = listOf(
 )
 
 fun AppRoute.label(): String = when (this) {
+    AppRoute.Splash -> "Splash"
     AppRoute.Onboarding -> "Onboarding"
     AppRoute.Login -> "Login"
     AppRoute.Register -> "Register"

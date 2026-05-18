@@ -872,6 +872,7 @@ private fun syncNotice(syncStatus: SyncStatus?, showSuccess: Boolean): SyncNotic
 }
 
 fun AppRoute.icon(): ImageVector = when (this) {
+    AppRoute.Splash -> Icons.Rounded.PlayCircle
     AppRoute.Home -> Icons.Rounded.Home
     AppRoute.Plans -> Icons.Rounded.CalendarMonth
     is AppRoute.PlanWorkouts -> Icons.Rounded.CalendarMonth

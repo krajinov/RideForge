@@ -39,6 +39,7 @@ import com.delminiusapps.rideforge.presentation.onboarding.OnboardingScreen
 import com.delminiusapps.rideforge.features.plans.presentation.PlansScreen
 import com.delminiusapps.rideforge.features.plans.presentation.PlanWorkoutsScreen
 import com.delminiusapps.rideforge.features.profile.presentation.ProfileScreen
+import com.delminiusapps.rideforge.features.splash.presentation.SplashScreen
 import com.delminiusapps.rideforge.features.trainer.presentation.TrainerScreen
 import com.delminiusapps.rideforge.features.workout.presentation.ActiveWorkoutScreen
 import com.delminiusapps.rideforge.features.workout.presentation.WorkoutCompleteScreen
@@ -76,6 +77,7 @@ fun App() {
                 com.delminiusapps.rideforge.features.trainer.di.trainerModule,
                 com.delminiusapps.rideforge.features.profile.di.profileModule,
                 com.delminiusapps.rideforge.features.history.di.historyModule,
+                com.delminiusapps.rideforge.features.splash.di.splashModule,
                 com.delminiusapps.rideforge.features.workout.di.workoutModule
             )
         }) {
@@ -94,11 +96,13 @@ fun App() {
             val latestSessionSyncStatus by rememberUpdatedState(sessionSyncStatus)
             var showForegroundSyncSuccess by remember { mutableStateOf(false) }
             var foregroundSyncSequence by remember { mutableStateOf(0) }
-            var route by remember { mutableStateOf<AppRoute>(AppRoute.Onboarding) }
+            var route by remember { mutableStateOf<AppRoute>(AppRoute.Splash) }
             var routeBackStack by remember { mutableStateOf<List<AppRoute>>(emptyList()) }
             var checkedForUnfinishedWorkout by remember { mutableStateOf(false) }
             val saveableStateHolder = rememberSaveableStateHolder()
-            val suppressGlobalDataBanners = route is AppRoute.ActiveWorkout || route == AppRoute.Trainer
+            val suppressGlobalDataBanners = route is AppRoute.ActiveWorkout ||
+                route == AppRoute.Trainer ||
+                route == AppRoute.Splash
             val bottomNavRoute = when (route) {
                 is AppRoute.PlanWorkouts -> AppRoute.Plans
                 is AppRoute.HistoryItem -> AppRoute.History
@@ -123,6 +127,9 @@ fun App() {
                 routeBackStack = emptyList()
                 route = nextRoute
             }
+            val replaceRoute: (AppRoute) -> Unit = { nextRoute ->
+                route = nextRoute
+            }
             val navigateBackOr: (AppRoute) -> Unit = { fallbackRoute ->
                 val previousRoute = routeBackStack.lastOrNull()
                 if (previousRoute != null) {
@@ -133,25 +140,17 @@ fun App() {
                 }
             }
 
-            LaunchedEffect(Unit) {
-                if (authManager.restoreSession()) {
-                    setRootRoute(AppRoute.Home)
-                }
-            }
-
-            LaunchedEffect(isAuthenticated) {
+            LaunchedEffect(isAuthenticated, route) {
                 if (!isAuthenticated) {
                     checkedForUnfinishedWorkout = false
                     return@LaunchedEffect
                 }
                 // Only redirect to unfinished workout if we are at the root (Home) 
                 // and haven't already checked during this session.
-                if (!checkedForUnfinishedWorkout) {
+                if (!checkedForUnfinishedWorkout && (route == AppRoute.Home || route == AppRoute.Onboarding)) {
                     checkedForUnfinishedWorkout = true
-                    if (route == AppRoute.Home || route == AppRoute.Onboarding) {
-                        workoutLocalStorage.getActiveWorkout()?.let { unfinishedWorkout ->
-                            setRootRoute(AppRoute.ActiveWorkout(id = unfinishedWorkout.workoutId))
-                        }
+                    workoutLocalStorage.getActiveWorkout()?.let { unfinishedWorkout ->
+                        setRootRoute(AppRoute.ActiveWorkout(id = unfinishedWorkout.workoutId))
                     }
                 }
             }
@@ -214,6 +213,10 @@ fun App() {
                 Box(Modifier.fillMaxSize()) {
                     saveableStateHolder.SaveableStateProvider(route.toString()) {
                         when (val currentRoute = route) {
+                            AppRoute.Splash -> SplashScreen(
+                                onAuthenticated = { setRootRoute(AppRoute.Home) },
+                                onUnauthenticated = { setRootRoute(AppRoute.Login) },
+                            )
                             AppRoute.Onboarding -> OnboardingScreen { setRootRoute(AppRoute.Login) }
                             AppRoute.Login -> LoginScreen(
                                 onLoginSuccess = { setRootRoute(AppRoute.Home) },
@@ -242,11 +245,18 @@ fun App() {
                             AppRoute.Trainer -> TrainerScreen(onNavigate = navigateTo, onBack = { navigateBackOr(AppRoute.Home) })
                             is AppRoute.ActiveWorkout -> ActiveWorkoutScreen(
                                 workoutId = currentRoute.id,
-                                onNavigate = navigateTo,
+                                launchKey = currentRoute.launchKey,
+                                onNavigate = replaceRoute,
                             )
                             is AppRoute.WorkoutComplete -> WorkoutCompleteScreen(
                                 sessionId = currentRoute.id,
-                                onNavigate = navigateTo,
+                                onNavigate = { destination ->
+                                    if (destination == AppRoute.Home) {
+                                        setRootRoute(destination)
+                                    } else {
+                                        navigateTo(destination)
+                                    }
+                                },
                             )
                             AppRoute.History -> HistoryScreen(onNavigate = navigateTo)
                             is AppRoute.HistoryItem -> HistoryDetailScreen(

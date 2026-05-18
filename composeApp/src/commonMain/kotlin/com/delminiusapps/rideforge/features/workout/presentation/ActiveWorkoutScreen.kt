@@ -81,8 +81,9 @@ import rideforge.composeapp.generated.resources.workout_watts
 @Composable
 fun ActiveWorkoutScreen(
     workoutId: String,
+    launchKey: String,
     onNavigate: (AppRoute) -> Unit,
-    viewModel: ActiveWorkoutViewModel = koinViewModel { parametersOf(workoutId) },
+    viewModel: ActiveWorkoutViewModel = koinViewModel(key = launchKey) { parametersOf(workoutId) },
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showEndConfirmation by remember { mutableStateOf(false) }
