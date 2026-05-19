@@ -61,7 +61,7 @@ class AuthService(
             unauthorized("Invalid refresh token")
         }
         val user = users.findById(userId) ?: unauthorized("Invalid refresh token")
-        refreshTokens.revoke(tokenHash)
+        if (!refreshTokens.revokeIfActive(tokenHash)) unauthorized("Invalid refresh token")
         return issueAuthResponse(user)
     }
 

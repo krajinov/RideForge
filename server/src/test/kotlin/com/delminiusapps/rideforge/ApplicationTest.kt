@@ -1,5 +1,8 @@
 package com.delminiusapps.rideforge
 
+import com.delminiusapps.rideforge.config.AppConfig
+import com.delminiusapps.rideforge.config.JwtConfig
+import com.delminiusapps.rideforge.config.PersistenceMode
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -16,7 +19,7 @@ import kotlin.test.assertTrue
 class ApplicationTest {
     @Test
     fun healthCheckReturnsJson() = testApplication {
-        application { module() }
+        application { module(testAppConfig()) }
         val response = client.get("/health")
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(response.bodyAsText().contains("rideforge-api"))
@@ -24,7 +27,7 @@ class ApplicationTest {
 
     @Test
     fun loginAndRecommendedWorkoutWork() = testApplication {
-        application { module() }
+        application { module(testAppConfig()) }
 
         val login = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
@@ -42,7 +45,7 @@ class ApplicationTest {
 
     @Test
     fun planWorkoutsAreScopedAndSorted() = testApplication {
-        application { module() }
+        application { module(testAppConfig()) }
 
         val login = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
@@ -73,7 +76,7 @@ class ApplicationTest {
 
     @Test
     fun refreshRotatesAndLogoutRevokesToken() = testApplication {
-        application { module() }
+        application { module(testAppConfig()) }
 
         val login = client.post("/auth/login") {
             contentType(ContentType.Application.Json)
@@ -115,3 +118,17 @@ class ApplicationTest {
 private fun String.extractToken(name: String): String {
     return """"$name":"([^"]+)"""".toRegex().find(this)!!.groupValues[1]
 }
+
+private fun testAppConfig(): AppConfig = AppConfig(
+    port = 0,
+    databaseUrl = "postgresql://localhost:5432/rideforge_test",
+    jwt = JwtConfig(
+        secret = "test-rideforge-secret",
+        issuer = "rideforge-test-api",
+        audience = "rideforge-test-client",
+        realm = "rideforge-test",
+        accessTokenMinutes = 60,
+        refreshTokenDays = 30,
+    ),
+    persistenceMode = PersistenceMode.IN_MEMORY,
+)

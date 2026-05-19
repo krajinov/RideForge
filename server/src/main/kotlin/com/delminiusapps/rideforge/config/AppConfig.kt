@@ -4,6 +4,12 @@ data class AppConfig(
     val port: Int,
     val databaseUrl: String,
     val jwt: JwtConfig,
+    val databaseUser: String? = null,
+    val databasePassword: String? = null,
+    val databaseMaxPoolSize: Int = 10,
+    val migrateDatabaseOnStart: Boolean = true,
+    val seedDatabaseOnStart: Boolean = true,
+    val persistenceMode: PersistenceMode = PersistenceMode.POSTGRES,
 )
 
 data class JwtConfig(
@@ -14,6 +20,11 @@ data class JwtConfig(
     val accessTokenMinutes: Long,
     val refreshTokenDays: Long,
 )
+
+enum class PersistenceMode {
+    POSTGRES,
+    IN_MEMORY,
+}
 
 fun loadAppConfig(): AppConfig {
     return AppConfig(
@@ -27,7 +38,24 @@ fun loadAppConfig(): AppConfig {
             accessTokenMinutes = env("JWT_ACCESS_MINUTES")?.toLongOrNull() ?: 60,
             refreshTokenDays = env("JWT_REFRESH_DAYS")?.toLongOrNull() ?: 30,
         ),
+        databaseUser = env("DATABASE_USER"),
+        databasePassword = env("DATABASE_PASSWORD"),
+        databaseMaxPoolSize = env("DATABASE_MAX_POOL_SIZE")?.toIntOrNull() ?: 10,
+        migrateDatabaseOnStart = envFlag("DATABASE_MIGRATE_ON_START", default = true),
+        seedDatabaseOnStart = envFlag("DATABASE_SEED_ON_START", default = true),
+        persistenceMode = when (env("PERSISTENCE_MODE")?.lowercase()) {
+            "memory", "in_memory", "in-memory", "test" -> PersistenceMode.IN_MEMORY
+            else -> PersistenceMode.POSTGRES
+        },
     )
 }
 
 private fun env(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
+
+private fun envFlag(name: String, default: Boolean): Boolean =
+    when (env(name)?.lowercase()) {
+        "1", "true", "yes", "y", "on" -> true
+        "0", "false", "no", "n", "off" -> false
+        null -> default
+        else -> default
+    }

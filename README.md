@@ -74,7 +74,7 @@ Validated with:
 
 ## Mobile Backend Integration
 
-Start the backend first:
+Start PostgreSQL, create a `rideforge` database, then start the backend:
 
 ```shell
 ./gradlew :server:run
@@ -104,7 +104,7 @@ Workout sessions remain local for real-time ERG timing. The app creates a backen
 
 ## Backend API
 
-The `server` module is a Ktor Netty backend foundation for RideForge. It uses in-memory repositories today, with repository interfaces shaped for PostgreSQL-backed implementations later.
+The `server` module is a Ktor Netty backend foundation for RideForge. It uses PostgreSQL-backed repositories by default and idempotently seeds the bundled demo data on startup.
 
 Implemented areas:
 
@@ -141,12 +141,26 @@ Environment variables:
 ```shell
 PORT=8080
 DATABASE_URL=postgresql://localhost:5432/rideforge
+DATABASE_USER=rideforge
+DATABASE_PASSWORD=rideforge
+DATABASE_MAX_POOL_SIZE=10
+DATABASE_MIGRATE_ON_START=true
+DATABASE_SEED_ON_START=true
+PERSISTENCE_MODE=postgres
 JWT_SECRET=replace-in-real-env
 JWT_ISSUER=rideforge-api
 JWT_AUDIENCE=rideforge-mobile
 JWT_REALM=rideforge
 JWT_ACCESS_MINUTES=60
 JWT_REFRESH_DAYS=30
+```
+
+For route tests without PostgreSQL, the test suite wires the server with in-memory repositories. To run the optional PostgreSQL restart-persistence test, set:
+
+```shell
+TEST_DATABASE_URL=postgresql://localhost:5432/rideforge_test
+TEST_DATABASE_USER=rideforge
+TEST_DATABASE_PASSWORD=rideforge
 ```
 
 Seeded login:
