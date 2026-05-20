@@ -6,6 +6,7 @@ import com.delminiusapps.rideforge.config.PersistenceMode
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -112,6 +113,35 @@ class ApplicationTest {
             setBody("""{"refreshToken":"$rotatedRefreshToken"}""")
         }
         assertEquals(HttpStatusCode.Unauthorized, afterLogoutRefresh.status)
+    }
+
+    @Test
+    fun completingSessionIgnoresNonPositiveElapsedSeconds() = testApplication {
+        application { module(testAppConfig()) }
+
+        val login = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"marko@example.com","password":"password"}""")
+        }
+        assertEquals(HttpStatusCode.OK, login.status)
+        val token = login.bodyAsText().extractToken("accessToken")
+
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"vo2-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":-42}""")
+        }
+
+        assertEquals(HttpStatusCode.OK, completed.status)
+        assertTrue(completed.bodyAsText().contains(""""elapsedSeconds":2700"""))
     }
 }
 
