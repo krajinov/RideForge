@@ -3,6 +3,7 @@ package com.delminiusapps.rideforge
 import com.delminiusapps.rideforge.config.AppConfig
 import com.delminiusapps.rideforge.config.JwtConfig
 import com.delminiusapps.rideforge.config.PersistenceMode
+import com.delminiusapps.rideforge.config.StravaConfig
 import com.delminiusapps.rideforge.dto.CompleteSessionRequest
 import com.delminiusapps.rideforge.dto.LoginRequest
 import com.delminiusapps.rideforge.dto.MetricSampleRequest
@@ -86,6 +87,11 @@ private fun postgresTestConfig(databaseUrl: String): AppConfig = AppConfig(
         realm = "rideforge-persistence-test",
         accessTokenMinutes = 60,
         refreshTokenDays = 30,
+    ),
+    strava = StravaConfig(
+        clientId = null,
+        clientSecret = null,
+        redirectUri = "http://localhost/integrations/strava/callback",
     ),
     databaseUser = System.getenv("TEST_DATABASE_USER"),
     databasePassword = System.getenv("TEST_DATABASE_PASSWORD"),

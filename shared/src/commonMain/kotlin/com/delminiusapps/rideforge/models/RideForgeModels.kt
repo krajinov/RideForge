@@ -101,6 +101,7 @@ data class WorkoutSession(
     val id: String = "",
     val workoutName: String = "",
     val completedAtEpochMillis: Long? = null,
+    val hasRealTrainerData: Boolean = false,
 )
 
 @Serializable
@@ -120,6 +121,30 @@ enum class SyncStatus {
     PendingSync,
     SyncFailed,
 }
+
+@Serializable
+data class StravaConnectionStatus(
+    val connected: Boolean,
+    val athleteId: String? = null,
+)
+
+@Serializable
+enum class StravaSyncState {
+    NotSynced,
+    Syncing,
+    Synced,
+    Failed,
+}
+
+@Serializable
+data class StravaSyncInfo(
+    val state: StravaSyncState,
+    val activityId: String? = null,
+    val activityUrl: String? = null,
+    val error: String? = null,
+    val canSync: Boolean = false,
+    val connected: Boolean = false,
+)
 
 @Serializable
 data class RideHistoryItem(

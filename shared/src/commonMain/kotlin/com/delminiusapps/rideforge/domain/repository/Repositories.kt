@@ -3,6 +3,8 @@ package com.delminiusapps.rideforge.domain.repository
 import com.delminiusapps.rideforge.models.AuthSession
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.RideHistoryItem
+import com.delminiusapps.rideforge.models.StravaConnectionStatus
+import com.delminiusapps.rideforge.models.StravaSyncInfo
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.UserProfile
@@ -48,10 +50,18 @@ interface WorkoutSessionRepository {
     suspend fun resumeSession(sessionId: String)
     suspend fun addMetric(sessionId: String, sample: MetricSample)
     suspend fun addMetrics(sessionId: String, samples: List<MetricSample>)
-    suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession
+    suspend fun completeSession(sessionId: String, elapsedSeconds: Int?, hasRealTrainerData: Boolean = false): WorkoutSession
     suspend fun getSessionMetrics(sessionId: String): List<MetricSample>
     suspend fun getSessionSummary(sessionId: String): WorkoutSession
     suspend fun syncPending()
 }
 
 typealias SessionRepository = WorkoutSessionRepository
+
+interface StravaRepository {
+    suspend fun getStatus(): StravaConnectionStatus
+    suspend fun getConnectUrl(): String
+    suspend fun disconnect(): StravaConnectionStatus
+    suspend fun syncWorkout(sessionId: String): StravaSyncInfo
+    suspend fun getSyncStatus(sessionId: String): StravaSyncInfo
+}

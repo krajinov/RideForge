@@ -85,6 +85,7 @@ data class WorkoutSession(
     val calories: Int? = null,
     val tss: Int? = null,
     val completionPercent: Int? = null,
+    val hasRealTrainerData: Boolean = false,
 )
 
 @Serializable
@@ -99,6 +100,7 @@ enum class SessionStatus {
 data class MetricSample(
     val sessionId: String,
     val timestamp: String,
+    val elapsedSeconds: Int? = null,
     val currentPower: Int,
     val targetPower: Int,
     val cadence: Int,
@@ -122,4 +124,37 @@ data class RefreshTokenRecord(
     val userId: String,
     val createdAt: String,
     val revokedAt: String? = null,
+)
+
+@Serializable
+data class StravaConnection(
+    val userId: String,
+    val athleteId: String?,
+    val accessToken: String,
+    val refreshToken: String,
+    val expiresAtEpochSeconds: Long,
+    val scope: String,
+    val connectedAt: String,
+    val updatedAt: String,
+)
+
+@Serializable
+enum class StravaSyncStatus {
+    not_synced,
+    syncing,
+    synced,
+    failed,
+}
+
+@Serializable
+data class StravaSync(
+    val sessionId: String,
+    val userId: String,
+    val status: StravaSyncStatus,
+    val uploadId: String? = null,
+    val activityId: String? = null,
+    val activityUrl: String? = null,
+    val error: String? = null,
+    val syncedAt: String? = null,
+    val updatedAt: String,
 )

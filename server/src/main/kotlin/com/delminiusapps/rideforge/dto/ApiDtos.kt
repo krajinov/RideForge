@@ -81,7 +81,10 @@ data class EnrollResponse(val plan: TrainingPlan, val user: UserResponse)
 data class StartSessionRequest(val workoutId: String)
 
 @Serializable
-data class CompleteSessionRequest(val elapsedSeconds: Int? = null)
+data class CompleteSessionRequest(
+    val elapsedSeconds: Int? = null,
+    val hasRealTrainerData: Boolean = false,
+)
 
 @Serializable
 data class SessionResponse(
@@ -92,6 +95,7 @@ data class SessionResponse(
 @Serializable
 data class MetricSampleRequest(
     val timestamp: String? = null,
+    val elapsedSeconds: Int? = null,
     val currentPower: Int,
     val targetPower: Int,
     val cadence: Int,
@@ -101,6 +105,25 @@ data class MetricSampleRequest(
 
 @Serializable
 data class MetricsAcceptedResponse(val accepted: Int, val latest: MetricSample)
+
+@Serializable
+data class StravaStatusResponse(
+    val connected: Boolean,
+    val athleteId: String? = null,
+)
+
+@Serializable
+data class StravaConnectUrlResponse(val url: String)
+
+@Serializable
+data class StravaSyncStatusResponse(
+    val status: String,
+    val activityId: String? = null,
+    val activityUrl: String? = null,
+    val error: String? = null,
+    val canSync: Boolean,
+    val connected: Boolean,
+)
 
 @Serializable
 data class ConnectDeviceRequest(

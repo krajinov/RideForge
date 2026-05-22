@@ -5,6 +5,9 @@ import com.delminiusapps.rideforge.models.IntervalType
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.RefreshTokenRecord
 import com.delminiusapps.rideforge.models.SessionStatus
+import com.delminiusapps.rideforge.models.StravaConnection
+import com.delminiusapps.rideforge.models.StravaSync
+import com.delminiusapps.rideforge.models.StravaSyncStatus
 import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.Workout
@@ -14,6 +17,8 @@ import com.delminiusapps.rideforge.models.WorkoutType
 import com.delminiusapps.rideforge.repositories.DeviceRepository
 import com.delminiusapps.rideforge.repositories.RefreshTokenRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
+import com.delminiusapps.rideforge.repositories.StravaConnectionRepository
+import com.delminiusapps.rideforge.repositories.StravaSyncRepository
 import com.delminiusapps.rideforge.repositories.TrainingPlanRepository
 import com.delminiusapps.rideforge.repositories.UserRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
@@ -167,8 +172,8 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             """
             INSERT INTO workout_sessions (
                 id, user_id, workout_id, status, started_at, completed_at, elapsed_seconds,
-                average_power, normalized_power, calories, tss, completion_percent
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
         ).use { statement ->
             statement.bindSession(session)
@@ -190,7 +195,7 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             UPDATE workout_sessions
             SET user_id = ?, workout_id = ?, status = ?, started_at = ?, completed_at = ?,
                 elapsed_seconds = ?, average_power = ?, normalized_power = ?, calories = ?,
-                tss = ?, completion_percent = ?
+                tss = ?, completion_percent = ?, has_real_trainer_data = ?
             WHERE id = ?
             """.trimIndent(),
         ).use { statement ->
@@ -205,7 +210,8 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             statement.setNullableInt(9, session.calories)
             statement.setNullableInt(10, session.tss)
             statement.setNullableInt(11, session.completionPercent)
-            statement.setString(12, session.id)
+            statement.setBoolean(12, session.hasRealTrainerData)
+            statement.setString(13, session.id)
             statement.executeUpdate()
         }
         session
@@ -215,17 +221,18 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
         connection.prepareStatement(
             """
             INSERT INTO metric_samples (
-                session_id, timestamp, current_power, target_power, cadence, heart_rate, speed_kmh
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                session_id, timestamp, elapsed_seconds, current_power, target_power, cadence, heart_rate, speed_kmh
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
         ).use { statement ->
             statement.setString(1, sample.sessionId)
             statement.setString(2, sample.timestamp)
-            statement.setInt(3, sample.currentPower)
-            statement.setInt(4, sample.targetPower)
-            statement.setInt(5, sample.cadence)
-            statement.setInt(6, sample.heartRate)
-            statement.setDouble(7, sample.speedKmh)
+            statement.setNullableInt(3, sample.elapsedSeconds)
+            statement.setInt(4, sample.currentPower)
+            statement.setInt(5, sample.targetPower)
+            statement.setInt(6, sample.cadence)
+            statement.setInt(7, sample.heartRate)
+            statement.setDouble(8, sample.speedKmh)
             statement.executeUpdate()
         }
         sample
@@ -385,6 +392,104 @@ class PostgresRefreshTokenRepository(private val database: PostgresDatabase) : R
     }
 }
 
+class PostgresStravaConnectionRepository(private val database: PostgresDatabase) : StravaConnectionRepository {
+    override suspend fun save(connection: StravaConnection): StravaConnection = database.query { db ->
+        db.prepareStatement(
+            """
+            INSERT INTO strava_connections (
+                user_id, athlete_id, access_token, refresh_token, expires_at_epoch_seconds,
+                scope, connected_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (user_id) DO UPDATE
+            SET athlete_id = EXCLUDED.athlete_id,
+                access_token = EXCLUDED.access_token,
+                refresh_token = EXCLUDED.refresh_token,
+                expires_at_epoch_seconds = EXCLUDED.expires_at_epoch_seconds,
+                scope = EXCLUDED.scope,
+                connected_at = EXCLUDED.connected_at,
+                updated_at = EXCLUDED.updated_at
+            """.trimIndent(),
+        ).use { statement ->
+            statement.setString(1, connection.userId)
+            statement.setNullableString(2, connection.athleteId)
+            statement.setString(3, connection.accessToken)
+            statement.setString(4, connection.refreshToken)
+            statement.setLong(5, connection.expiresAtEpochSeconds)
+            statement.setString(6, connection.scope)
+            statement.setString(7, connection.connectedAt)
+            statement.setString(8, connection.updatedAt)
+            statement.executeUpdate()
+        }
+        connection
+    }
+
+    override suspend fun findByUserId(userId: String): StravaConnection? = database.query { db ->
+        db.prepareStatement("SELECT * FROM strava_connections WHERE user_id = ?").use { statement ->
+            statement.setString(1, userId)
+            statement.executeQuery().use { results -> results.singleOrNull { it.toStravaConnection() } }
+        }
+    }
+
+    override suspend fun deleteByUserId(userId: String) {
+        database.query { db ->
+            db.prepareStatement("DELETE FROM strava_connections WHERE user_id = ?").use { statement ->
+                statement.setString(1, userId)
+                statement.executeUpdate()
+            }
+        }
+    }
+}
+
+class PostgresStravaSyncRepository(private val database: PostgresDatabase) : StravaSyncRepository {
+    override suspend fun upsert(sync: StravaSync): StravaSync = database.query { db ->
+        db.prepareStatement(
+            """
+            INSERT INTO strava_syncs (
+                session_id, user_id, status, upload_id, activity_id, activity_url,
+                error, synced_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (session_id) DO UPDATE
+            SET user_id = EXCLUDED.user_id,
+                status = EXCLUDED.status,
+                upload_id = EXCLUDED.upload_id,
+                activity_id = EXCLUDED.activity_id,
+                activity_url = EXCLUDED.activity_url,
+                error = EXCLUDED.error,
+                synced_at = EXCLUDED.synced_at,
+                updated_at = EXCLUDED.updated_at
+            """.trimIndent(),
+        ).use { statement ->
+            statement.setString(1, sync.sessionId)
+            statement.setString(2, sync.userId)
+            statement.setString(3, sync.status.name)
+            statement.setNullableString(4, sync.uploadId)
+            statement.setNullableString(5, sync.activityId)
+            statement.setNullableString(6, sync.activityUrl)
+            statement.setNullableString(7, sync.error)
+            statement.setNullableString(8, sync.syncedAt)
+            statement.setString(9, sync.updatedAt)
+            statement.executeUpdate()
+        }
+        sync
+    }
+
+    override suspend fun findBySessionId(sessionId: String): StravaSync? = database.query { db ->
+        db.prepareStatement("SELECT * FROM strava_syncs WHERE session_id = ?").use { statement ->
+            statement.setString(1, sessionId)
+            statement.executeQuery().use { results -> results.singleOrNull { it.toStravaSync() } }
+        }
+    }
+
+    override suspend fun deleteBySessionId(sessionId: String) {
+        database.query { db ->
+            db.prepareStatement("DELETE FROM strava_syncs WHERE session_id = ?").use { statement ->
+                statement.setString(1, sessionId)
+                statement.executeUpdate()
+            }
+        }
+    }
+}
+
 private val repositoryJson = Json { ignoreUnknownKeys = true }
 
 private fun PreparedStatement.bindUser(user: User) {
@@ -412,6 +517,7 @@ private fun PreparedStatement.bindSession(session: WorkoutSession) {
     setNullableInt(10, session.calories)
     setNullableInt(11, session.tss)
     setNullableInt(12, session.completionPercent)
+    setBoolean(13, session.hasRealTrainerData)
 }
 
 private fun Connection.currentDevice(userId: String): Device? =
@@ -510,11 +616,13 @@ private fun ResultSet.toWorkoutSession(): WorkoutSession = WorkoutSession(
     calories = getIntOrNull("calories"),
     tss = getIntOrNull("tss"),
     completionPercent = getIntOrNull("completion_percent"),
+    hasRealTrainerData = getBoolean("has_real_trainer_data"),
 )
 
 private fun ResultSet.toMetricSample(): MetricSample = MetricSample(
     sessionId = getString("session_id"),
     timestamp = getString("timestamp"),
+    elapsedSeconds = getIntOrNull("elapsed_seconds"),
     currentPower = getInt("current_power"),
     targetPower = getInt("target_power"),
     cadence = getInt("cadence"),
@@ -537,6 +645,29 @@ private fun ResultSet.toRefreshTokenRecord(): RefreshTokenRecord = RefreshTokenR
     userId = getString("user_id"),
     createdAt = getString("created_at"),
     revokedAt = getStringOrNull("revoked_at"),
+)
+
+private fun ResultSet.toStravaConnection(): StravaConnection = StravaConnection(
+    userId = getString("user_id"),
+    athleteId = getStringOrNull("athlete_id"),
+    accessToken = getString("access_token"),
+    refreshToken = getString("refresh_token"),
+    expiresAtEpochSeconds = getLong("expires_at_epoch_seconds"),
+    scope = getString("scope"),
+    connectedAt = getString("connected_at"),
+    updatedAt = getString("updated_at"),
+)
+
+private fun ResultSet.toStravaSync(): StravaSync = StravaSync(
+    sessionId = getString("session_id"),
+    userId = getString("user_id"),
+    status = StravaSyncStatus.valueOf(getString("status")),
+    uploadId = getStringOrNull("upload_id"),
+    activityId = getStringOrNull("activity_id"),
+    activityUrl = getStringOrNull("activity_url"),
+    error = getStringOrNull("error"),
+    syncedAt = getStringOrNull("synced_at"),
+    updatedAt = getString("updated_at"),
 )
 
 private fun PreparedStatement.setNullableString(index: Int, value: String?) {

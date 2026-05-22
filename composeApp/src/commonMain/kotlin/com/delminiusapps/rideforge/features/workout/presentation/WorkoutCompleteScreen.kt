@@ -13,11 +13,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import com.delminiusapps.rideforge.models.MetricSample
+import com.delminiusapps.rideforge.models.StravaSyncInfo
+import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.WorkoutSession
 import com.delminiusapps.rideforge.navigation.AppRoute
 import com.delminiusapps.rideforge.presentation.components.AppCard
@@ -32,6 +35,7 @@ import com.delminiusapps.rideforge.presentation.components.SecondaryButton
 import com.delminiusapps.rideforge.theme.ForgeGreen
 import com.delminiusapps.rideforge.theme.ForgeMuted
 import com.delminiusapps.rideforge.theme.ForgeOrange
+import com.delminiusapps.rideforge.theme.ForgeStrava
 import com.delminiusapps.rideforge.utils.formatDuration
 import org.jetbrains.compose.resources.stringResource
 import rideforge.composeapp.generated.resources.Res
@@ -61,11 +65,13 @@ fun WorkoutCompleteScreen(
     viewModel: WorkoutCompleteViewModel = koinViewModel(key = sessionId) { parametersOf(sessionId) },
 ) {
     val state by viewModel.state.collectAsState()
+    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 WorkoutCompleteEvent.NavigateHome -> onNavigate(AppRoute.Home)
+                is WorkoutCompleteEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
             }
         }
     }
@@ -144,6 +150,15 @@ fun WorkoutCompleteScreen(
                     }
                 }
                 item {
+                    StravaSyncCard(
+                        sync = uiState.stravaSync,
+                        hasRealTrainerData = loadedSummary.hasRealTrainerData,
+                        isSyncing = uiState.isStravaSyncing,
+                        onSync = { viewModel.onAction(WorkoutCompleteAction.SyncToStrava) },
+                        onView = { viewModel.onAction(WorkoutCompleteAction.ViewOnStrava) },
+                    )
+                }
+                item {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                         SecondaryButton(
                             text = if (uiState.isSaving) {
@@ -171,6 +186,52 @@ fun WorkoutCompleteScreen(
                         enabled = !uiState.isSaving,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StravaSyncCard(
+    sync: StravaSyncInfo?,
+    hasRealTrainerData: Boolean,
+    isSyncing: Boolean,
+    onSync: () -> Unit,
+    onView: () -> Unit,
+) {
+    val state = sync?.state ?: StravaSyncState.NotSynced
+    val connected = sync?.connected == true
+    val canSync = sync?.canSync ?: hasRealTrainerData
+    val isProcessing = isSyncing || state == StravaSyncState.Syncing
+    val statusText = when {
+        state == StravaSyncState.Synced -> "Synced to Strava"
+        isProcessing -> "Strava is processing this upload."
+        state == StravaSyncState.Failed -> sync?.error ?: "Strava sync failed."
+        !hasRealTrainerData -> "Only workouts recorded from a real trainer can be uploaded."
+        !connected -> "Connect Strava in Profile before syncing."
+        else -> "Ready to upload as an indoor virtual ride."
+    }
+    val buttonText = when {
+        state == StravaSyncState.Synced && sync?.activityUrl != null -> "View on Strava"
+        isProcessing -> "Syncing..."
+        !hasRealTrainerData -> "Trainer data required"
+        state == StravaSyncState.Failed -> "Retry Strava Sync"
+        else -> "Sync to Strava"
+    }
+    val enabled = when {
+        state == StravaSyncState.Synced -> sync?.activityUrl != null
+        isProcessing -> false
+        else -> connected && canSync
+    }
+
+    AppCard {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Strava", fontWeight = FontWeight.Bold, color = ForgeStrava)
+            Text(statusText, color = ForgeMuted)
+            if (state == StravaSyncState.Synced && sync?.activityUrl != null) {
+                PrimaryButton(buttonText, onView, Modifier.fillMaxWidth(), enabled = enabled)
+            } else {
+                SecondaryButton(buttonText, onSync, Modifier.fillMaxWidth(), enabled = enabled)
             }
         }
     }

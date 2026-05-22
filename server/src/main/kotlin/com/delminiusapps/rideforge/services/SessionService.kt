@@ -69,6 +69,7 @@ class SessionService(
                 calories = calories,
                 tss = tss,
                 completionPercent = completion,
+                hasRealTrainerData = request.hasRealTrainerData,
             ),
         )
     }
@@ -81,11 +82,13 @@ class SessionService(
         if (request.cadence !in 0..220) badRequest("Cadence must be between 0 and 220 rpm")
         if (request.heartRate !in 0..240) badRequest("Heart rate must be between 0 and 240 bpm")
         if (request.speedKmh !in 0.0..140.0) badRequest("Speed must be between 0 and 140 km/h")
+        if (request.elapsedSeconds != null && request.elapsedSeconds < 0) badRequest("Elapsed seconds cannot be negative")
 
         val sample = sessions.addMetric(
             MetricSample(
                 sessionId = sessionId,
                 timestamp = request.timestamp ?: nowIso(),
+                elapsedSeconds = request.elapsedSeconds,
                 currentPower = request.currentPower,
                 targetPower = request.targetPower,
                 cadence = request.cadence,

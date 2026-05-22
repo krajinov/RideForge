@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.data.auth.AuthSessionStore
 import com.delminiusapps.rideforge.domain.repository.AuthRepository
 import com.delminiusapps.rideforge.domain.repository.HistoryRepository
 import com.delminiusapps.rideforge.domain.repository.SessionRepository
+import com.delminiusapps.rideforge.domain.repository.StravaRepository
 import com.delminiusapps.rideforge.domain.repository.TrainerConnectionRepository
 import com.delminiusapps.rideforge.domain.repository.TrainingPlanRepository
 import com.delminiusapps.rideforge.domain.repository.WorkoutRepository
@@ -117,7 +118,8 @@ class ResumeWorkoutSessionUseCase(private val repository: SessionRepository) {
 }
 
 class CompleteWorkoutSessionUseCase(private val repository: SessionRepository) {
-    suspend operator fun invoke(sessionId: String, elapsedSeconds: Int?) = repository.completeSession(sessionId, elapsedSeconds)
+    suspend operator fun invoke(sessionId: String, elapsedSeconds: Int?, hasRealTrainerData: Boolean = false) =
+        repository.completeSession(sessionId, elapsedSeconds, hasRealTrainerData)
 }
 
 class UploadMetricBatchUseCase(private val repository: SessionRepository) {
@@ -138,6 +140,26 @@ class GetSessionSummaryUseCase(private val repository: SessionRepository) {
 
 class GetSessionMetricsUseCase(private val repository: SessionRepository) {
     suspend operator fun invoke(id: String) = repository.getSessionMetrics(id)
+}
+
+class GetStravaStatusUseCase(private val repository: StravaRepository) {
+    suspend operator fun invoke() = repository.getStatus()
+}
+
+class GetStravaConnectUrlUseCase(private val repository: StravaRepository) {
+    suspend operator fun invoke() = repository.getConnectUrl()
+}
+
+class DisconnectStravaUseCase(private val repository: StravaRepository) {
+    suspend operator fun invoke() = repository.disconnect()
+}
+
+class SyncWorkoutToStravaUseCase(private val repository: StravaRepository) {
+    suspend operator fun invoke(sessionId: String) = repository.syncWorkout(sessionId)
+}
+
+class GetStravaSyncStatusUseCase(private val repository: StravaRepository) {
+    suspend operator fun invoke(sessionId: String) = repository.getSyncStatus(sessionId)
 }
 
 data class HomeDashboard(

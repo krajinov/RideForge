@@ -4,6 +4,8 @@ import com.delminiusapps.rideforge.models.Device
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.RefreshTokenRecord
 import com.delminiusapps.rideforge.models.SessionStatus
+import com.delminiusapps.rideforge.models.StravaConnection
+import com.delminiusapps.rideforge.models.StravaSync
 import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.Workout
@@ -175,6 +177,46 @@ class InMemoryRefreshTokenRepository : RefreshTokenRepository {
                     record
                 }
             }
+        }
+    }
+}
+
+class InMemoryStravaConnectionRepository : StravaConnectionRepository {
+    private val mutex = Mutex()
+    private val connections = mutableMapOf<String, StravaConnection>()
+
+    override suspend fun save(connection: StravaConnection): StravaConnection = mutex.withLock {
+        connections[connection.userId] = connection
+        connection
+    }
+
+    override suspend fun findByUserId(userId: String): StravaConnection? = mutex.withLock {
+        connections[userId]
+    }
+
+    override suspend fun deleteByUserId(userId: String) {
+        mutex.withLock {
+            connections.remove(userId)
+        }
+    }
+}
+
+class InMemoryStravaSyncRepository : StravaSyncRepository {
+    private val mutex = Mutex()
+    private val syncs = mutableMapOf<String, StravaSync>()
+
+    override suspend fun upsert(sync: StravaSync): StravaSync = mutex.withLock {
+        syncs[sync.sessionId] = sync
+        sync
+    }
+
+    override suspend fun findBySessionId(sessionId: String): StravaSync? = mutex.withLock {
+        syncs[sessionId]
+    }
+
+    override suspend fun deleteBySessionId(sessionId: String) {
+        mutex.withLock {
+            syncs.remove(sessionId)
         }
     }
 }

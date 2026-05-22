@@ -28,3 +28,11 @@ fun notFound(resource: String): Nothing {
 fun conflict(message: String): Nothing {
     throw ApiException(HttpStatusCode.Conflict, "conflict", message)
 }
+
+fun serviceUnavailable(message: String): Nothing {
+    throw ApiException(HttpStatusCode.ServiceUnavailable, "service_unavailable", message)
+}
+
+fun badGateway(message: String): Nothing {
+    throw ApiException(HttpStatusCode.BadGateway, "bad_gateway", message)
+}

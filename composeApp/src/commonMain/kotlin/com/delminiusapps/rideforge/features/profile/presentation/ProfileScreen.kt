@@ -1,31 +1,52 @@
 package com.delminiusapps.rideforge.features.profile.presentation
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.LinkOff
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.koin.compose.viewmodel.koinViewModel
 import com.delminiusapps.rideforge.models.UserProfile
 import com.delminiusapps.rideforge.presentation.components.AppCard
@@ -35,8 +56,16 @@ import com.delminiusapps.rideforge.presentation.components.PrimaryButton
 import com.delminiusapps.rideforge.presentation.components.ScreenHeader
 import com.delminiusapps.rideforge.presentation.components.ScreenLazyColumn
 import com.delminiusapps.rideforge.presentation.components.SecondaryButton
+import com.delminiusapps.rideforge.presentation.components.AppButton
+import com.delminiusapps.rideforge.presentation.components.AppButtonVariant
+import com.delminiusapps.rideforge.theme.ForgeBorder
+import com.delminiusapps.rideforge.theme.ForgeCard
+import com.delminiusapps.rideforge.theme.ForgeGreen
 import com.delminiusapps.rideforge.theme.ForgeSurface
 import com.delminiusapps.rideforge.theme.ForgeMuted
+import com.delminiusapps.rideforge.theme.ForgeStrava
+import com.delminiusapps.rideforge.theme.ForgeText
+import com.delminiusapps.rideforge.theme.RideForgeRadius
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +75,15 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val readyState = state as? ProfileUiState.Ready
+    val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is ProfileEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
+            }
+        }
+    }
 
     if (readyState?.isEditorOpen == true) {
         EditProfileSheet(
@@ -93,6 +131,16 @@ fun ProfileScreen(
                     }
                 }
                 item {
+                    StravaIntegrationCard(
+                        isConnected = uiState.isStravaConnected,
+                        isBusy = uiState.isStravaBusy,
+                        hasPendingAuthorization = uiState.hasPendingStravaAuthorization,
+                        error = uiState.stravaError,
+                        onToggleConnection = { viewModel.onAction(ProfileAction.ToggleStravaConnection) },
+                        onSyncSettings = { viewModel.onAction(ProfileAction.StravaSync) },
+                    )
+                }
+                item {
                     SecondaryButton(
                         text = "Log out",
                         onClick = {
@@ -106,6 +154,152 @@ fun ProfileScreen(
             is ProfileUiState.LoggedOut -> {
                 // handled by the callback side effect typically, but we call onLogout synchronously
             }
+        }
+    }
+}
+
+@Composable
+private fun StravaIntegrationCard(
+    isConnected: Boolean,
+    isBusy: Boolean,
+    hasPendingAuthorization: Boolean,
+    error: String?,
+    onToggleConnection: () -> Unit,
+    onSyncSettings: () -> Unit,
+) {
+    AppCard {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text("Integrations", fontWeight = FontWeight.Bold)
+
+            // Strava row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Strava icon
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    color = ForgeStrava.copy(alpha = 0.14f),
+                    contentColor = ForgeStrava,
+                    shape = RoundedCornerShape(RideForgeRadius.Control),
+                    border = BorderStroke(1.dp, ForgeStrava.copy(alpha = 0.25f)),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = StravaIcon,
+                            contentDescription = "Strava",
+                            modifier = Modifier.size(22.dp),
+                            tint = ForgeStrava,
+                        )
+                    }
+                }
+
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Strava", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    StravaStatusBadge(isConnected)
+                }
+            }
+
+            // Action buttons
+            if (isConnected) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    AppButton(
+                        text = "Disconnect",
+                        onClick = onToggleConnection,
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Rounded.LinkOff,
+                        enabled = !isBusy,
+                        variant = AppButtonVariant.Secondary,
+                    )
+                    AppButton(
+                        text = "Refresh",
+                        onClick = onSyncSettings,
+                        modifier = Modifier.weight(1f),
+                        icon = Icons.Rounded.Sync,
+                        enabled = !isBusy,
+                        variant = AppButtonVariant.Quiet,
+                    )
+                }
+            } else {
+                StravaConnectButton(
+                    isBusy = isBusy,
+                    onClick = { if (!isBusy) onToggleConnection() },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (hasPendingAuthorization) {
+                    Text("After authorizing in Chrome, check the connection status here.", color = ForgeMuted)
+                }
+                AppButton(
+                    text = if (isBusy) "Checking..." else "Check connection",
+                    onClick = onSyncSettings,
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = Icons.Rounded.Sync,
+                    enabled = !isBusy,
+                    variant = AppButtonVariant.Quiet,
+                )
+            }
+
+            if (error != null) {
+                Text(error, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StravaStatusBadge(isConnected: Boolean) {
+    val color = if (isConnected) ForgeGreen else ForgeMuted
+    val label = if (isConnected) "Connected" else "Not connected"
+    Surface(
+        color = color.copy(alpha = 0.12f),
+        contentColor = color,
+        shape = RoundedCornerShape(99.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(7.dp)
+                    .background(color, CircleShape),
+            )
+            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun StravaConnectButton(isBusy: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        onClick = onClick,
+        color = ForgeStrava,
+        contentColor = ForgeText,
+        shape = RoundedCornerShape(RideForgeRadius.Button),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Icon(
+                imageVector = StravaIcon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = if (isBusy) "Opening Strava..." else "Connect Strava",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+            )
         }
     }
 }
@@ -234,4 +428,35 @@ private fun formatWeight(weightKg: Double): String {
     } else {
         weightKg.toString()
     }
+}
+
+private val StravaIcon: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "Strava",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 16f,
+        viewportHeight = 16f,
+    ).apply {
+        // Large upward chevron (left-ish)
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(6.731f, 0f)
+            lineTo(2f, 9.125f)
+            lineTo(4.788f, 9.125f)
+            lineTo(6.73f, 5.497f)
+            lineTo(8.66f, 9.125f)
+            lineTo(11.426f, 9.125f)
+            close()
+        }
+        // Small downward chevron (right-ish)
+        path(fill = SolidColor(Color.Black)) {
+            moveTo(11.425f, 9.125f)
+            lineTo(10.053f, 11.881f)
+            lineTo(8.66f, 9.125f)
+            lineTo(6.547f, 9.125f)
+            lineTo(10.053f, 16f)
+            lineTo(13.537f, 9.125f)
+            close()
+        }
+    }.build()
 }

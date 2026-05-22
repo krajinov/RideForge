@@ -3,6 +3,7 @@ package com.delminiusapps.rideforge
 import com.delminiusapps.rideforge.config.AppConfig
 import com.delminiusapps.rideforge.config.JwtConfig
 import com.delminiusapps.rideforge.config.PersistenceMode
+import com.delminiusapps.rideforge.config.StravaConfig
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -143,6 +144,55 @@ class ApplicationTest {
         assertEquals(HttpStatusCode.OK, completed.status)
         assertTrue(completed.bodyAsText().contains(""""elapsedSeconds":2700"""))
     }
+
+    @Test
+    fun stravaStatusStartsDisconnected() = testApplication {
+        application { module(testAppConfig()) }
+
+        val login = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"marko@example.com","password":"password"}""")
+        }
+        val token = login.bodyAsText().extractToken("accessToken")
+
+        val status = client.get("/integrations/strava/status") {
+            bearerAuth(token)
+        }
+
+        assertEquals(HttpStatusCode.OK, status.status)
+        assertTrue(status.bodyAsText().contains(""""connected":false"""))
+    }
+
+    @Test
+    fun stravaSyncRequiresRealTrainerData() = testApplication {
+        application { module(testAppConfig()) }
+
+        val login = client.post("/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"marko@example.com","password":"password"}""")
+        }
+        val token = login.bodyAsText().extractToken("accessToken")
+
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"vo2-w1d1"}""")
+        }
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":false}""")
+        }
+
+        val sync = client.post("/history/$sessionId/sync/strava") {
+            bearerAuth(token)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, sync.status)
+        assertTrue(sync.bodyAsText().contains("real trainer"))
+    }
 }
 
 private fun String.extractToken(name: String): String {
@@ -159,6 +209,11 @@ private fun testAppConfig(): AppConfig = AppConfig(
         realm = "rideforge-test",
         accessTokenMinutes = 60,
         refreshTokenDays = 30,
+    ),
+    strava = StravaConfig(
+        clientId = null,
+        clientSecret = null,
+        redirectUri = "http://localhost/integrations/strava/callback",
     ),
     persistenceMode = PersistenceMode.IN_MEMORY,
 )

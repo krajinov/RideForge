@@ -83,6 +83,7 @@ class ActiveWorkoutViewModel(
     private var ergControlEnabled = false
     private var ergCommandFailed = false
     private var autoPausedForStoppedPedaling = false
+    private var recordedRealTrainerData = false
     private var didFinalizeCompletion = false
     private var completionSessionId: String? = null
     private var resumedFromStorage = false
@@ -155,6 +156,8 @@ class ActiveWorkoutViewModel(
                     ?: if (latestTrainerConnectionState == ConnectionState.CONNECTED) WorkoutControlMode.TRAINER else WorkoutControlMode.SIMULATION
                 ergControlEnabled = matchingStoredWorkout?.ergEnabled ?: (selectedControlMode == WorkoutControlMode.TRAINER)
                 liveSamples = matchingStoredWorkout?.samples.orEmpty()
+                recordedRealTrainerData = matchingStoredWorkout?.controlMode == WorkoutControlMode.TRAINER &&
+                    liveSamples.any { it.hasTrainerSignal() }
                 phase = if (matchingStoredWorkout != null) ActiveWorkoutPhase.ACTIVE else ActiveWorkoutPhase.PRE_WORKOUT
                 session = matchingStoredWorkout?.let {
                     WorkoutSession(
@@ -383,6 +386,14 @@ class ActiveWorkoutViewModel(
     private fun onEngineState(engineState: ActiveWorkoutState) {
         val displaySample = sampleFor(engineState)
         appendLiveSample(displaySample)
+        if (
+            phase == ActiveWorkoutPhase.ACTIVE &&
+            selectedControlMode == WorkoutControlMode.TRAINER &&
+            latestTrainerConnectionState == ConnectionState.CONNECTED &&
+            displaySample.hasTrainerSignal()
+        ) {
+            recordedRealTrainerData = true
+        }
         evaluatePedalingPauseState(engineState)
         if (phase == ActiveWorkoutPhase.ACTIVE && !engineState.isPaused && !engineState.isComplete) {
             session?.id?.let { sessionId ->
@@ -518,7 +529,7 @@ class ActiveWorkoutViewModel(
         viewModelScope.launch {
             metricSampleBatchUploader.flush(sessionId)
             val completedSession = runCatching {
-                completeWorkoutSessionUseCase(sessionId, engineState.elapsedSeconds)
+                completeWorkoutSessionUseCase(sessionId, engineState.elapsedSeconds, recordedRealTrainerData)
             }.getOrElse {
                 session ?: return@launch
             }
@@ -791,6 +802,9 @@ private fun StoredActiveWorkout.persistenceKey(): ActiveWorkoutPersistenceKey {
         ergEnabled = ergEnabled,
     )
 }
+
+private fun MetricSample.hasTrainerSignal(): Boolean =
+    currentPowerWatts > 0 || cadenceRpm > 0 || heartRateBpm > 0 || speedKmh > 0.0
 
 enum class ActiveWorkoutPhase {
     PRE_WORKOUT,

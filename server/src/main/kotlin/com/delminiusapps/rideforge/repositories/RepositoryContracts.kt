@@ -2,8 +2,10 @@ package com.delminiusapps.rideforge.repositories
 
 import com.delminiusapps.rideforge.models.Device
 import com.delminiusapps.rideforge.models.MetricSample
-import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.RefreshTokenRecord
+import com.delminiusapps.rideforge.models.StravaConnection
+import com.delminiusapps.rideforge.models.StravaSync
+import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutInterval
@@ -54,4 +56,16 @@ interface RefreshTokenRepository {
     suspend fun revoke(tokenHash: String)
     suspend fun revokeIfActive(tokenHash: String): Boolean
     suspend fun revokeAllForUser(userId: String)
+}
+
+interface StravaConnectionRepository {
+    suspend fun save(connection: StravaConnection): StravaConnection
+    suspend fun findByUserId(userId: String): StravaConnection?
+    suspend fun deleteByUserId(userId: String)
+}
+
+interface StravaSyncRepository {
+    suspend fun upsert(sync: StravaSync): StravaSync
+    suspend fun findBySessionId(sessionId: String): StravaSync?
+    suspend fun deleteBySessionId(sessionId: String)
 }

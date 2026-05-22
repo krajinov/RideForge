@@ -6,11 +6,18 @@ import com.delminiusapps.rideforge.domain.usecase.GetCurrentUserUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetRideHistoryUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetSessionMetricsUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetSessionSummaryUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetWorkoutUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
 import com.delminiusapps.rideforge.models.RideHistoryItem
+import com.delminiusapps.rideforge.models.StravaSyncInfo
+import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutSession
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -22,13 +29,25 @@ class HistoryDetailViewModel(
     private val getWorkoutUseCase: GetWorkoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getRideHistoryUseCase: GetRideHistoryUseCase,
+    private val syncWorkoutToStravaUseCase: SyncWorkoutToStravaUseCase,
+    private val getStravaSyncStatusUseCase: GetStravaSyncStatusUseCase,
     private val sessionId: String,
 ) : ViewModel() {
     private val _state = MutableStateFlow<HistoryDetailUiState>(HistoryDetailUiState.Loading)
     val state: StateFlow<HistoryDetailUiState> = _state.asStateFlow()
 
+    private val _events = MutableSharedFlow<HistoryDetailEvent>()
+    val events: SharedFlow<HistoryDetailEvent> = _events.asSharedFlow()
+
     init {
         loadDetails()
+    }
+
+    fun onAction(action: HistoryDetailAction) {
+        when (action) {
+            HistoryDetailAction.SyncToStrava -> syncToStrava()
+            HistoryDetailAction.ViewOnStrava -> viewOnStrava()
+        }
     }
 
     private fun loadDetails() {
@@ -40,6 +59,7 @@ class HistoryDetailViewModel(
                 val userFtp = runCatching { getCurrentUserUseCase().ftpWatts }.getOrDefault(240)
                 val history = runCatching { getRideHistoryUseCase() }.getOrDefault(emptyList())
                 val historyItem = history.firstOrNull { it.id == sessionId }
+                val strava = runCatching { getStravaSyncStatusUseCase(sessionId) }.getOrNull()
                 val analysis = buildWorkoutAnalysis(
                     summary = summary,
                     workout = workout,
@@ -47,12 +67,58 @@ class HistoryDetailViewModel(
                     userFtp = userFtp,
                     history = history,
                 )
-                HistoryDetailUiState.Ready(summary, workout, historyItem, userFtp, analysis)
+                HistoryDetailUiState.Ready(summary, workout, historyItem, userFtp, analysis, strava)
             }.onSuccess { ready ->
                 _state.update { ready }
             }.onFailure {
                 _state.update { HistoryDetailUiState.Error }
             }
+        }
+    }
+
+    private fun syncToStrava() {
+        val ready = _state.value as? HistoryDetailUiState.Ready ?: return
+        if (ready.isStravaSyncing || ready.stravaSync?.state == StravaSyncState.Synced) return
+        _state.update { state ->
+            when (state) {
+                is HistoryDetailUiState.Ready -> state.copy(isStravaSyncing = true)
+                else -> state
+            }
+        }
+        viewModelScope.launch {
+            runCatching {
+                syncWorkoutToStravaUseCase(sessionId)
+            }.onSuccess { sync ->
+                _state.update { state ->
+                    when (state) {
+                        is HistoryDetailUiState.Ready -> state.copy(
+                            stravaSync = sync,
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+            }.onFailure {
+                _state.update { state ->
+                    when (state) {
+                        is HistoryDetailUiState.Ready -> state.copy(
+                            stravaSync = (state.stravaSync ?: StravaSyncInfo(StravaSyncState.Failed)).copy(
+                                state = StravaSyncState.Failed,
+                                error = "Could not sync this workout to Strava.",
+                            ),
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+
+    private fun viewOnStrava() {
+        val url = (_state.value as? HistoryDetailUiState.Ready)?.stravaSync?.activityUrl ?: return
+        viewModelScope.launch {
+            _events.emit(HistoryDetailEvent.OpenUrl(url))
         }
     }
 }
@@ -66,5 +132,16 @@ sealed interface HistoryDetailUiState {
         val historyItem: RideHistoryItem?,
         val userFtp: Int,
         val analysis: WorkoutAnalysis,
+        val stravaSync: StravaSyncInfo? = null,
+        val isStravaSyncing: Boolean = false,
     ) : HistoryDetailUiState
+}
+
+sealed interface HistoryDetailAction {
+    data object SyncToStrava : HistoryDetailAction
+    data object ViewOnStrava : HistoryDetailAction
+}
+
+sealed interface HistoryDetailEvent {
+    data class OpenUrl(val url: String) : HistoryDetailEvent
 }

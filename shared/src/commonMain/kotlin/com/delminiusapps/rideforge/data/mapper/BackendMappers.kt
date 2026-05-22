@@ -1,6 +1,8 @@
 package com.delminiusapps.rideforge.data.mapper
 
 import com.delminiusapps.rideforge.data.dto.TrainingPlanDto
+import com.delminiusapps.rideforge.data.dto.StravaStatusDto
+import com.delminiusapps.rideforge.data.dto.StravaSyncStatusDto
 import com.delminiusapps.rideforge.data.dto.UserDto
 import com.delminiusapps.rideforge.data.dto.WorkoutDto
 import com.delminiusapps.rideforge.data.dto.WorkoutIntervalDto
@@ -80,6 +82,26 @@ fun WorkoutSessionDto.toDomainSummary(workoutName: String): WorkoutSession = Wor
     id = id,
     workoutName = workoutName,
     completedAtEpochMillis = parseEpochMillis(completedAt),
+    hasRealTrainerData = hasRealTrainerData,
+)
+
+fun StravaStatusDto.toDomain(): StravaConnectionStatus = StravaConnectionStatus(
+    connected = connected,
+    athleteId = athleteId,
+)
+
+fun StravaSyncStatusDto.toDomain(): StravaSyncInfo = StravaSyncInfo(
+    state = when (status.lowercase()) {
+        "syncing" -> StravaSyncState.Syncing
+        "synced" -> StravaSyncState.Synced
+        "failed" -> StravaSyncState.Failed
+        else -> StravaSyncState.NotSynced
+    },
+    activityId = activityId,
+    activityUrl = activityUrl,
+    error = error,
+    canSync = canSync,
+    connected = connected,
 )
 
 fun powerZonesForFtp(ftp: Int): List<PowerZone> = listOf(

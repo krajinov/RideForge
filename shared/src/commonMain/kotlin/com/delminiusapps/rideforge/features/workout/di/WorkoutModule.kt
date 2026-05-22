@@ -36,6 +36,6 @@ val workoutModule = module {
         )
     }
     viewModel { parameters ->
-        WorkoutCompleteViewModel(get(), get(), get(), sessionId = parameters.get())
+        WorkoutCompleteViewModel(get(), get(), get(), get(), get(), sessionId = parameters.get())
     }
 }

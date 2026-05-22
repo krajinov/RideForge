@@ -3,8 +3,12 @@ package com.delminiusapps.rideforge.features.workout.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.delminiusapps.rideforge.domain.usecase.GetSessionSummaryUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.ObserveSessionSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
+import com.delminiusapps.rideforge.models.StravaSyncInfo
+import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,6 +24,8 @@ class WorkoutCompleteViewModel(
     private val getSessionSummaryUseCase: GetSessionSummaryUseCase,
     private val syncPendingSessionsUseCase: SyncPendingSessionsUseCase,
     private val observeSessionSyncStatusUseCase: ObserveSessionSyncStatusUseCase,
+    private val syncWorkoutToStravaUseCase: SyncWorkoutToStravaUseCase,
+    private val getStravaSyncStatusUseCase: GetStravaSyncStatusUseCase,
     private val sessionId: String,
 ) : ViewModel() {
     private val _state = MutableStateFlow<WorkoutCompleteUiState>(WorkoutCompleteUiState.Loading)
@@ -38,6 +44,8 @@ class WorkoutCompleteViewModel(
     fun onAction(action: WorkoutCompleteAction) {
         when (action) {
             WorkoutCompleteAction.Save -> saveWorkout()
+            WorkoutCompleteAction.SyncToStrava -> syncToStrava()
+            WorkoutCompleteAction.ViewOnStrava -> viewOnStrava()
         }
     }
 
@@ -58,9 +66,18 @@ class WorkoutCompleteViewModel(
     private fun loadSummary() {
         viewModelScope.launch {
             runCatching {
-                getSessionSummaryUseCase(sessionId)
-            }.onSuccess { summary ->
-                _state.update { WorkoutCompleteUiState.Ready(summary = summary, syncStatus = latestSyncStatus) }
+                val summary = getSessionSummaryUseCase(sessionId)
+                val stravaSessionId = summary.id.ifBlank { sessionId }
+                val strava = runCatching { getStravaSyncStatusUseCase(stravaSessionId) }.getOrNull()
+                summary to strava
+            }.onSuccess { (summary, strava) ->
+                _state.update {
+                    WorkoutCompleteUiState.Ready(
+                        summary = summary,
+                        syncStatus = latestSyncStatus,
+                        stravaSync = strava,
+                    )
+                }
             }.onFailure {
                 _state.update { WorkoutCompleteUiState.Error }
             }
@@ -84,12 +101,15 @@ class WorkoutCompleteViewModel(
                 getSessionSummaryUseCase(sessionId)
             }.onSuccess { summary ->
                 if (latestSyncStatus == SyncStatus.Synced) {
-                    _state.update {
-                        WorkoutCompleteUiState.Ready(
-                            summary = summary,
-                            syncStatus = latestSyncStatus,
-                            isSaving = false,
-                        )
+                    _state.update { state ->
+                        when (state) {
+                            is WorkoutCompleteUiState.Ready -> state.copy(
+                                summary = summary,
+                                syncStatus = latestSyncStatus,
+                                isSaving = false,
+                            )
+                            else -> state
+                        }
                     }
                     _events.emit(WorkoutCompleteEvent.NavigateHome)
                 } else {
@@ -119,6 +139,57 @@ class WorkoutCompleteViewModel(
             }
         }
     }
+
+    private fun syncToStrava() {
+        val ready = _state.value as? WorkoutCompleteUiState.Ready ?: return
+        if (ready.isStravaSyncing || ready.stravaSync?.state == StravaSyncState.Synced) return
+
+        _state.update { state ->
+            when (state) {
+                is WorkoutCompleteUiState.Ready -> state.copy(isStravaSyncing = true)
+                else -> state
+            }
+        }
+        viewModelScope.launch {
+            runCatching {
+                syncPendingSessionsUseCase()
+                val summary = getSessionSummaryUseCase(sessionId)
+                val stravaSessionId = summary.id.ifBlank { sessionId }
+                summary to syncWorkoutToStravaUseCase(stravaSessionId)
+            }.onSuccess { (summary, strava) ->
+                _state.update { state ->
+                    when (state) {
+                        is WorkoutCompleteUiState.Ready -> state.copy(
+                            summary = summary,
+                            stravaSync = strava,
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+            }.onFailure {
+                _state.update { state ->
+                    when (state) {
+                        is WorkoutCompleteUiState.Ready -> state.copy(
+                            stravaSync = (state.stravaSync ?: StravaSyncInfo(StravaSyncState.Failed)).copy(
+                                state = StravaSyncState.Failed,
+                                error = "Could not sync this workout to Strava.",
+                            ),
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+            }
+        }
+    }
+
+    private fun viewOnStrava() {
+        val url = (_state.value as? WorkoutCompleteUiState.Ready)?.stravaSync?.activityUrl ?: return
+        viewModelScope.launch {
+            _events.emit(WorkoutCompleteEvent.OpenUrl(url))
+        }
+    }
 }
 
 sealed interface WorkoutCompleteUiState {
@@ -129,13 +200,18 @@ sealed interface WorkoutCompleteUiState {
         val syncStatus: SyncStatus,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        val stravaSync: StravaSyncInfo? = null,
+        val isStravaSyncing: Boolean = false,
     ) : WorkoutCompleteUiState
 }
 
 sealed interface WorkoutCompleteAction {
     data object Save : WorkoutCompleteAction
+    data object SyncToStrava : WorkoutCompleteAction
+    data object ViewOnStrava : WorkoutCompleteAction
 }
 
 sealed interface WorkoutCompleteEvent {
     data object NavigateHome : WorkoutCompleteEvent
+    data class OpenUrl(val url: String) : WorkoutCompleteEvent
 }

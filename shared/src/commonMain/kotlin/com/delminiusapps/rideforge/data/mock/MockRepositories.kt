@@ -5,6 +5,7 @@ import com.delminiusapps.rideforge.data.auth.AuthSession
 import com.delminiusapps.rideforge.data.auth.AuthTokens
 import com.delminiusapps.rideforge.data.mapper.powerZonesForFtp
 import com.delminiusapps.rideforge.data.repository.HistoryRepository
+import com.delminiusapps.rideforge.data.repository.StravaRepository
 import com.delminiusapps.rideforge.data.repository.TrainerConnectionRepository
 import com.delminiusapps.rideforge.data.repository.TrainingPlanRepository
 import com.delminiusapps.rideforge.data.repository.WorkoutRepository
@@ -13,6 +14,9 @@ import com.delminiusapps.rideforge.domain.trainer.TrainerControlState
 import com.delminiusapps.rideforge.domain.trainer.TrainerError
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.SmartTrainerDevice
+import com.delminiusapps.rideforge.models.StravaConnectionStatus
+import com.delminiusapps.rideforge.models.StravaSyncInfo
+import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.TrainerMetrics
 import com.delminiusapps.rideforge.models.TrainingPlan
@@ -71,6 +75,43 @@ class MockHistoryRepository : HistoryRepository {
     override suspend fun getHistory(): List<RideHistoryItem> = MockData.history
     override suspend fun getWeeklyProgress(): WeeklyProgress = MockData.weeklyProgress
     override suspend fun getLatestWorkoutSummary() = MockData.latestWorkoutSummary
+}
+
+class MockStravaRepository : StravaRepository {
+    private var connected = false
+    private val syncs = mutableMapOf<String, StravaSyncInfo>()
+
+    override suspend fun getStatus(): StravaConnectionStatus =
+        StravaConnectionStatus(connected = connected, athleteId = if (connected) "mock-athlete" else null)
+
+    override suspend fun getConnectUrl(): String {
+        connected = true
+        return "https://www.strava.com/oauth/authorize"
+    }
+
+    override suspend fun disconnect(): StravaConnectionStatus {
+        connected = false
+        return StravaConnectionStatus(connected = false)
+    }
+
+    override suspend fun syncWorkout(sessionId: String): StravaSyncInfo {
+        val sync = StravaSyncInfo(
+            state = StravaSyncState.Synced,
+            activityId = "mock-$sessionId",
+            activityUrl = "https://www.strava.com/activities/mock-$sessionId",
+            canSync = true,
+            connected = connected,
+        )
+        syncs[sessionId] = sync
+        return sync
+    }
+
+    override suspend fun getSyncStatus(sessionId: String): StravaSyncInfo =
+        syncs[sessionId] ?: StravaSyncInfo(
+            state = StravaSyncState.NotSynced,
+            canSync = true,
+            connected = connected,
+        )
 }
 
 class MockTrainerConnectionRepository : TrainerConnectionRepository {
@@ -156,7 +197,11 @@ class MockSessionRepository : com.delminiusapps.rideforge.data.repository.Sessio
         metrics.addAll(samples)
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): com.delminiusapps.rideforge.models.WorkoutSession {
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): com.delminiusapps.rideforge.models.WorkoutSession {
         val resolvedElapsed = elapsedSeconds ?: metrics.maxOfOrNull { it.elapsedSeconds } ?: 0
         val average = metrics.map { it.currentPowerWatts }.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 214
         return MockData.latestWorkoutSummary.copy(
@@ -167,6 +212,7 @@ class MockSessionRepository : com.delminiusapps.rideforge.data.repository.Sessio
             calories = ((average * resolvedElapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120),
             tss = MockData.latestWorkoutSummary.tss,
             completionPercent = MockData.latestWorkoutSummary.completionPercent,
+            hasRealTrainerData = hasRealTrainerData,
         )
     }
 
