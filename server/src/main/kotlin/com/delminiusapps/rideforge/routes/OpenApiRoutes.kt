@@ -17,7 +17,7 @@ private val openApiJson = """
   "info": {
     "title": "RideForge API",
     "version": "1.0.0",
-    "description": "Mock-backed Ktor API foundation for the RideForge indoor cycling app."
+    "description": "PostgreSQL-backed Ktor API foundation for the RideForge indoor cycling app."
   },
   "servers": [{ "url": "http://localhost:8080" }],
   "security": [{ "bearerAuth": [] }],

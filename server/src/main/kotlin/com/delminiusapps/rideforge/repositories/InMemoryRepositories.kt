@@ -156,6 +156,16 @@ class InMemoryRefreshTokenRepository : RefreshTokenRepository {
         }
     }
 
+    override suspend fun revokeIfActive(tokenHash: String): Boolean = mutex.withLock {
+        val record = tokens[tokenHash]
+        if (record != null && record.revokedAt == null) {
+            tokens[tokenHash] = record.copy(revokedAt = com.delminiusapps.rideforge.utils.nowIso())
+            true
+        } else {
+            false
+        }
+    }
+
     override suspend fun revokeAllForUser(userId: String) {
         mutex.withLock {
             tokens.replaceAll { _, record ->

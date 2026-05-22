@@ -51,7 +51,9 @@ class SessionService(
         val session = requireOwned(userId, sessionId)
         val workout = workouts.findById(session.workoutId) ?: notFound("Workout")
         val metrics = sessions.metricsForSession(sessionId)
-        val elapsed = request.elapsedSeconds ?: session.elapsedSeconds.takeIf { it > 0 } ?: workout.durationMinutes * 60
+        val elapsed = request.elapsedSeconds?.takeIf { it > 0 }
+            ?: session.elapsedSeconds.takeIf { it > 0 }
+            ?: workout.durationMinutes * 60
         val averagePower = metrics.map { it.currentPower }.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 214
         val normalizedPower = (averagePower * 1.10).toInt().coerceAtLeast(averagePower)
         val calories = ((averagePower * elapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120)

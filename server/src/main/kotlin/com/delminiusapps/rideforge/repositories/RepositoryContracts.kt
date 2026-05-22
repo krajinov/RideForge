@@ -52,5 +52,6 @@ interface RefreshTokenRepository {
     suspend fun save(record: RefreshTokenRecord): RefreshTokenRecord
     suspend fun findByHash(tokenHash: String): RefreshTokenRecord?
     suspend fun revoke(tokenHash: String)
+    suspend fun revokeIfActive(tokenHash: String): Boolean
     suspend fun revokeAllForUser(userId: String)
 }

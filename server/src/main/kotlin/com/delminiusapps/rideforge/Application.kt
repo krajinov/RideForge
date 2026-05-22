@@ -9,6 +9,7 @@ import com.delminiusapps.rideforge.plugins.configureRouting
 import com.delminiusapps.rideforge.plugins.configureSecurity
 import com.delminiusapps.rideforge.plugins.configureSerialization
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
@@ -25,6 +26,9 @@ fun Application.module() {
 
 fun Application.module(config: com.delminiusapps.rideforge.config.AppConfig) {
     val registry = ServiceRegistry(config)
+    monitor.subscribe(ApplicationStopped) {
+        registry.close()
+    }
     configureMonitoring()
     configureCors()
     configureSerialization()
