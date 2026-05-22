@@ -18,6 +18,7 @@ import com.delminiusapps.rideforge.utils.forbidden
 import com.delminiusapps.rideforge.utils.notFound
 import com.delminiusapps.rideforge.utils.nowIso
 import com.delminiusapps.rideforge.utils.serviceUnavailable
+import kotlinx.coroutines.CancellationException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
@@ -90,6 +91,10 @@ class StravaService(
     }
 
     suspend fun disconnect(userId: String): StravaStatusResponse {
+        val connection = connections.findByUserId(userId)
+        if (connection != null) {
+            apiClient.deauthorize(connection.accessToken)
+        }
         connections.deleteByUserId(userId)
         return StravaStatusResponse(connected = false)
     }
@@ -97,16 +102,18 @@ class StravaService(
     suspend fun syncWorkout(userId: String, sessionId: String): StravaSyncStatusResponse {
         val session = requireCompletedSession(userId, sessionId)
         val existing = syncs.findBySessionId(sessionId)
-        if (existing?.status == StravaSyncStatus.synced) {
-            return existing.toResponse(session, connected = connections.findByUserId(userId) != null)
-        }
         if (!session.hasRealTrainerData) {
             badRequest("Only workouts recorded from a real trainer can be synced to Strava")
         }
 
         val connection = validConnection(userId)
-        if (existing?.status == StravaSyncStatus.syncing && existing.uploadId != null) {
-            return refreshUploadStatus(connection, existing).toResponse(session, connected = true)
+        val existingForAthlete = existing?.takeIf { it.athleteId == connection.athleteId }
+        if (existingForAthlete?.status == StravaSyncStatus.synced) {
+            return existingForAthlete.toResponse(session, connected = true)
+        }
+
+        if (existingForAthlete?.status == StravaSyncStatus.syncing && existingForAthlete.uploadId != null) {
+            return refreshUploadStatus(connection, existingForAthlete).toResponse(session, connected = true)
         }
 
         val workout = workouts.findById(session.workoutId) ?: notFound("Workout")
@@ -121,6 +128,7 @@ class StravaService(
                 sessionId = sessionId,
                 userId = userId,
                 status = StravaSyncStatus.syncing,
+                athleteId = connection.athleteId,
                 error = null,
                 updatedAt = now,
             ),
@@ -128,15 +136,30 @@ class StravaService(
 
         val tcx = tcxExporter.export(session, workout, metrics)
         val externalId = "rideforge-${session.id}.tcx"
-        val upload = apiClient.uploadTcx(
-            accessToken = connection.accessToken,
-            fileName = externalId,
-            tcx = tcx,
-            name = workout.name,
-            description = "Indoor cycling workout completed in RideForge.",
-            externalId = externalId,
-        )
-        val saved = syncFromUpload(session, upload)
+        val upload = try {
+            apiClient.uploadTcx(
+                accessToken = connection.accessToken,
+                fileName = externalId,
+                tcx = tcx,
+                name = workout.name,
+                description = "Indoor cycling workout completed in RideForge.",
+                externalId = externalId,
+            )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            val failed = StravaSync(
+                sessionId = sessionId,
+                userId = userId,
+                status = StravaSyncStatus.failed,
+                athleteId = connection.athleteId,
+                error = error.message ?: "Strava upload failed",
+                updatedAt = nowIso(),
+            )
+            syncs.upsert(failed)
+            throw error
+        }
+        val saved = syncFromUpload(session, upload, athleteId = connection.athleteId)
         val refreshed = if (saved.status == StravaSyncStatus.syncing && saved.uploadId != null) {
             refreshUploadStatus(connection, saved)
         } else {
@@ -149,14 +172,19 @@ class StravaService(
         val session = requireCompletedSession(userId, sessionId)
         val connection = connections.findByUserId(userId)
         val existing = syncs.findBySessionId(sessionId)
+        val existingForConnection = if (connection == null) {
+            existing
+        } else {
+            existing?.takeIf { it.athleteId == connection.athleteId }
+        }
         val sync = if (
             connection != null &&
-            existing?.status == StravaSyncStatus.syncing &&
-            existing.uploadId != null
+            existingForConnection?.status == StravaSyncStatus.syncing &&
+            existingForConnection.uploadId != null
         ) {
-            refreshUploadStatus(validConnection(userId), existing)
+            refreshUploadStatus(validConnection(userId), existingForConnection)
         } else {
-            existing
+            existingForConnection
         }
         return (sync ?: notSynced(session)).toResponse(session, connected = connection != null)
     }
@@ -194,6 +222,7 @@ class StravaService(
         session: WorkoutSession,
         upload: StravaUploadResult,
         existing: StravaSync? = null,
+        athleteId: String? = existing?.athleteId,
     ): StravaSync {
         val activityId = upload.activityId
         val now = nowIso()
@@ -207,6 +236,7 @@ class StravaService(
             sessionId = session.id,
             userId = session.userId,
             status = status,
+            athleteId = athleteId,
             uploadId = upload.uploadId ?: existing?.uploadId,
             activityId = activityId ?: existing?.activityId,
             activityUrl = activityId?.let { "${config.baseUrl.trimEnd('/')}/activities/$it" } ?: existing?.activityUrl,

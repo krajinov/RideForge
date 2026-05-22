@@ -445,12 +445,13 @@ class PostgresStravaSyncRepository(private val database: PostgresDatabase) : Str
         db.prepareStatement(
             """
             INSERT INTO strava_syncs (
-                session_id, user_id, status, upload_id, activity_id, activity_url,
+                session_id, user_id, status, athlete_id, upload_id, activity_id, activity_url,
                 error, synced_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (session_id) DO UPDATE
             SET user_id = EXCLUDED.user_id,
                 status = EXCLUDED.status,
+                athlete_id = EXCLUDED.athlete_id,
                 upload_id = EXCLUDED.upload_id,
                 activity_id = EXCLUDED.activity_id,
                 activity_url = EXCLUDED.activity_url,
@@ -462,12 +463,13 @@ class PostgresStravaSyncRepository(private val database: PostgresDatabase) : Str
             statement.setString(1, sync.sessionId)
             statement.setString(2, sync.userId)
             statement.setString(3, sync.status.name)
-            statement.setNullableString(4, sync.uploadId)
-            statement.setNullableString(5, sync.activityId)
-            statement.setNullableString(6, sync.activityUrl)
-            statement.setNullableString(7, sync.error)
-            statement.setNullableString(8, sync.syncedAt)
-            statement.setString(9, sync.updatedAt)
+            statement.setNullableString(4, sync.athleteId)
+            statement.setNullableString(5, sync.uploadId)
+            statement.setNullableString(6, sync.activityId)
+            statement.setNullableString(7, sync.activityUrl)
+            statement.setNullableString(8, sync.error)
+            statement.setNullableString(9, sync.syncedAt)
+            statement.setString(10, sync.updatedAt)
             statement.executeUpdate()
         }
         sync
@@ -662,6 +664,7 @@ private fun ResultSet.toStravaSync(): StravaSync = StravaSync(
     sessionId = getString("session_id"),
     userId = getString("user_id"),
     status = StravaSyncStatus.valueOf(getString("status")),
+    athleteId = getStringOrNull("athlete_id"),
     uploadId = getStringOrNull("upload_id"),
     activityId = getStringOrNull("activity_id"),
     activityUrl = getStringOrNull("activity_url"),

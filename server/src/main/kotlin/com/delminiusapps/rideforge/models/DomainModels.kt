@@ -151,6 +151,7 @@ data class StravaSync(
     val sessionId: String,
     val userId: String,
     val status: StravaSyncStatus,
+    val athleteId: String? = null,
     val uploadId: String? = null,
     val activityId: String? = null,
     val activityUrl: String? = null,

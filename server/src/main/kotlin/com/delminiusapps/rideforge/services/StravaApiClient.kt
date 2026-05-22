@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -93,6 +94,18 @@ class StravaApiClient(
         return sendAndDecodeUpload(request)
     }
 
+    suspend fun deauthorize(accessToken: String) {
+        val request = HttpRequest.newBuilder(apiUri("/oauth/deauthorize"))
+            .timeout(Duration.ofSeconds(30))
+            .header("Authorization", "Bearer $accessToken")
+            .POST(HttpRequest.BodyPublishers.noBody())
+            .build()
+        val response = send(request)
+        if (response.statusCode() !in 200..299) {
+            badGateway("Strava deauthorization failed with HTTP ${response.statusCode()}")
+        }
+    }
+
     private suspend inline fun <reified T> postForm(path: String, fields: Map<String, String>): T {
         val body = fields.entries.joinToString("&") { (key, value) ->
             "${encode(key)}=${encode(value)}"
@@ -118,7 +131,14 @@ class StravaApiClient(
     }
 
     private suspend fun send(request: HttpRequest): HttpResponse<String> = withContext(Dispatchers.IO) {
-        httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        try {
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString())
+        } catch (error: IOException) {
+            badGateway("Strava request failed: ${error.message ?: error.javaClass.simpleName}")
+        } catch (error: InterruptedException) {
+            Thread.currentThread().interrupt()
+            badGateway("Strava request was interrupted")
+        }
     }
 
     private fun apiUri(path: String): URI = URI.create("${config.baseUrl.trimEnd('/')}$path")
