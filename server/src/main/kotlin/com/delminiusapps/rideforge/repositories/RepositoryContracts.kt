@@ -66,6 +66,7 @@ interface StravaConnectionRepository {
 
 interface StravaSyncRepository {
     suspend fun upsert(sync: StravaSync): StravaSync
+    suspend fun tryStartSync(sync: StravaSync): Boolean
     suspend fun findBySessionId(sessionId: String): StravaSync?
     suspend fun deleteBySessionId(sessionId: String)
 }

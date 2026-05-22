@@ -222,7 +222,8 @@ class ApplicationTest {
                 assertTrue(disconnect.bodyAsText().contains(""""connected":false"""))
                 assertEquals(1, strava.count("POST", "/oauth/deauthorize"))
                 assertEquals("Bearer test-access-token", strava.authorizationFor("POST", "/oauth/deauthorize"))
-                assertEquals("access_token=test-access-token", strava.bodyFor("POST", "/oauth/deauthorize"))
+                assertEquals("access_token=test-access-token", strava.queryFor("POST", "/oauth/deauthorize"))
+                assertEquals("", strava.bodyFor("POST", "/oauth/deauthorize"))
             }
         }
     }
@@ -309,6 +310,38 @@ class ApplicationTest {
                     val firstResponse = firstSync.await()
                     assertEquals(HttpStatusCode.OK, firstResponse.status)
                     assertTrue(firstResponse.bodyAsText().contains(""""status":"synced""""))
+                    assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun stravaSyncConcurrentRequestsStartSingleUpload() {
+        MockStravaServer(uploadDelayMillis = 500).use { strava ->
+            testApplication {
+                application { module(strava.appConfig()) }
+
+                val token = loginToken()
+                connectStrava(token)
+                val sessionId = completedTrainerSession(token)
+
+                coroutineScope {
+                    val firstSync = async {
+                        client.post("/history/$sessionId/sync/strava") {
+                            bearerAuth(token)
+                        }
+                    }
+                    val secondSync = async {
+                        client.post("/history/$sessionId/sync/strava") {
+                            bearerAuth(token)
+                        }
+                    }
+
+                    val responses = listOf(firstSync.await(), secondSync.await())
+                    assertTrue(responses.all { it.status == HttpStatusCode.OK })
+                    assertEquals(1, responses.count { it.bodyAsText().contains(""""status":"synced"""") })
+                    assertEquals(1, responses.count { it.bodyAsText().contains(""""status":"syncing"""") })
                     assertEquals(1, strava.count("POST", "/api/v3/uploads"))
                 }
             }
@@ -569,6 +602,10 @@ private class MockStravaServer(
         requests.firstOrNull { it.method == method && it.path == path }?.body
     }
 
+    fun queryFor(method: String, path: String): String? = synchronized(requests) {
+        requests.firstOrNull { it.method == method && it.path == path }?.query
+    }
+
     suspend fun awaitCount(method: String, path: String, expected: Int, timeoutMillis: Long = 1_000) {
         val deadline = System.currentTimeMillis() + timeoutMillis
         while (System.currentTimeMillis() < deadline) {
@@ -587,6 +624,7 @@ private class MockStravaServer(
         requests += RecordedStravaRequest(
             method = exchange.requestMethod,
             path = exchange.requestURI.path,
+            query = exchange.requestURI.query,
             authorization = exchange.requestHeaders.getFirst("Authorization"),
             body = body,
         )
@@ -636,6 +674,7 @@ private class MockStravaServer(
 private data class RecordedStravaRequest(
     val method: String,
     val path: String,
+    val query: String?,
     val authorization: String?,
     val body: String,
 )

@@ -143,17 +143,25 @@ class StravaService(
             badRequest("Workout has no trainer metrics to upload")
         }
 
-        val now = nowIso()
-        syncs.upsert(
-            StravaSync(
-                sessionId = sessionId,
-                userId = userId,
-                status = StravaSyncStatus.syncing,
-                athleteId = connection.athleteId,
-                error = null,
-                updatedAt = now,
-            ),
+        val startingSync = StravaSync(
+            sessionId = sessionId,
+            userId = userId,
+            status = StravaSyncStatus.syncing,
+            athleteId = connection.athleteId,
+            error = null,
+            updatedAt = nowIso(),
         )
+        if (!syncs.tryStartSync(startingSync)) {
+            val current = syncs.findBySessionId(sessionId)
+                ?.takeIf { it.athleteId == connection.athleteId }
+                ?: notSynced(session)
+            val sync = if (current.status == StravaSyncStatus.syncing && current.uploadId != null) {
+                refreshUploadStatus(connection, current)
+            } else {
+                current
+            }
+            return sync.toResponse(session, connected = true)
+        }
 
         val tcx = tcxExporter.export(session, workout, metrics)
         val externalId = "rideforge-${session.id}.tcx"

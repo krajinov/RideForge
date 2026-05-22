@@ -6,6 +6,7 @@ import com.delminiusapps.rideforge.models.RefreshTokenRecord
 import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.StravaConnection
 import com.delminiusapps.rideforge.models.StravaSync
+import com.delminiusapps.rideforge.models.StravaSyncStatus
 import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.Workout
@@ -208,6 +209,17 @@ class InMemoryStravaSyncRepository : StravaSyncRepository {
     override suspend fun upsert(sync: StravaSync): StravaSync = mutex.withLock {
         syncs[sync.sessionId] = sync
         sync
+    }
+
+    override suspend fun tryStartSync(sync: StravaSync): Boolean = mutex.withLock {
+        val existing = syncs[sync.sessionId]
+        val canStart = existing == null ||
+            existing.athleteId != sync.athleteId ||
+            (existing.status != StravaSyncStatus.syncing && existing.status != StravaSyncStatus.synced)
+        if (canStart) {
+            syncs[sync.sessionId] = sync
+        }
+        canStart
     }
 
     override suspend fun findBySessionId(sessionId: String): StravaSync? = mutex.withLock {

@@ -475,6 +475,44 @@ class PostgresStravaSyncRepository(private val database: PostgresDatabase) : Str
         sync
     }
 
+    override suspend fun tryStartSync(sync: StravaSync): Boolean = database.query { db ->
+        db.prepareStatement(
+            """
+            INSERT INTO strava_syncs (
+                session_id, user_id, status, athlete_id, upload_id, activity_id, activity_url,
+                error, synced_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (session_id) DO UPDATE
+            SET user_id = EXCLUDED.user_id,
+                status = EXCLUDED.status,
+                athlete_id = EXCLUDED.athlete_id,
+                upload_id = EXCLUDED.upload_id,
+                activity_id = EXCLUDED.activity_id,
+                activity_url = EXCLUDED.activity_url,
+                error = EXCLUDED.error,
+                synced_at = EXCLUDED.synced_at,
+                updated_at = EXCLUDED.updated_at
+            WHERE strava_syncs.athlete_id IS DISTINCT FROM EXCLUDED.athlete_id
+                OR strava_syncs.status NOT IN (?, ?)
+            RETURNING session_id
+            """.trimIndent(),
+        ).use { statement ->
+            statement.setString(1, sync.sessionId)
+            statement.setString(2, sync.userId)
+            statement.setString(3, sync.status.name)
+            statement.setNullableString(4, sync.athleteId)
+            statement.setNullableString(5, sync.uploadId)
+            statement.setNullableString(6, sync.activityId)
+            statement.setNullableString(7, sync.activityUrl)
+            statement.setNullableString(8, sync.error)
+            statement.setNullableString(9, sync.syncedAt)
+            statement.setString(10, sync.updatedAt)
+            statement.setString(11, StravaSyncStatus.syncing.name)
+            statement.setString(12, StravaSyncStatus.synced.name)
+            statement.executeQuery().use { results -> results.next() }
+        }
+    }
+
     override suspend fun findBySessionId(sessionId: String): StravaSync? = database.query { db ->
         db.prepareStatement("SELECT * FROM strava_syncs WHERE session_id = ?").use { statement ->
             statement.setString(1, sessionId)
