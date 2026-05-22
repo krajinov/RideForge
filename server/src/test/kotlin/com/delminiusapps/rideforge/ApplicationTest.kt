@@ -219,6 +219,7 @@ class ApplicationTest {
                 assertTrue(disconnect.bodyAsText().contains(""""connected":false"""))
                 assertEquals(1, strava.count("POST", "/oauth/deauthorize"))
                 assertEquals("Bearer test-access-token", strava.authorizationFor("POST", "/oauth/deauthorize"))
+                assertEquals("access_token=test-access-token", strava.bodyFor("POST", "/oauth/deauthorize"))
             }
         }
     }
@@ -526,16 +527,21 @@ private class MockStravaServer(
         requests.firstOrNull { it.method == method && it.path == path }?.authorization
     }
 
+    fun bodyFor(method: String, path: String): String? = synchronized(requests) {
+        requests.firstOrNull { it.method == method && it.path == path }?.body
+    }
+
     override fun close() {
         server.stop(0)
     }
 
     private fun handle(exchange: HttpExchange) {
-        exchange.requestBody.use { it.readBytes() }
+        val body = exchange.requestBody.use { it.readBytes() }.toString(StandardCharsets.UTF_8)
         requests += RecordedStravaRequest(
             method = exchange.requestMethod,
             path = exchange.requestURI.path,
             authorization = exchange.requestHeaders.getFirst("Authorization"),
+            body = body,
         )
 
         when {
@@ -581,4 +587,5 @@ private data class RecordedStravaRequest(
     val method: String,
     val path: String,
     val authorization: String?,
+    val body: String,
 )

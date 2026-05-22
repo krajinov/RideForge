@@ -95,10 +95,12 @@ class StravaApiClient(
     }
 
     suspend fun deauthorize(accessToken: String) {
+        val body = "access_token=${encode(accessToken)}"
         val request = HttpRequest.newBuilder(apiUri("/oauth/deauthorize"))
             .timeout(Duration.ofSeconds(30))
             .header("Authorization", "Bearer $accessToken")
-            .POST(HttpRequest.BodyPublishers.noBody())
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
         val response = send(request)
         if (response.statusCode() !in 200..299) {
