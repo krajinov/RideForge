@@ -87,7 +87,7 @@ class HistoryDetailViewModel(
         }
         viewModelScope.launch {
             runCatching {
-                syncWorkoutToStravaUseCase(sessionId)
+                syncWorkoutToStravaUseCase(ready.summary.id)
             }.onSuccess { sync ->
                 _state.update { state ->
                     when (state) {

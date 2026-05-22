@@ -485,7 +485,11 @@ private class FakeSessionRepository : SessionRepository {
         addedMetrics += samples
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession {
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): WorkoutSession {
         _syncStatus.value = SyncStatus.PendingSync
         return emptySession(sessionId, TestWorkoutId).copy(elapsedSeconds = elapsedSeconds ?: 0)
     }
