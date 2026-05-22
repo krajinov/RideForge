@@ -92,10 +92,26 @@ class StravaService(
 
     suspend fun disconnect(userId: String): StravaStatusResponse {
         val connection = connections.findByUserId(userId)
-        if (connection != null) {
-            apiClient.deauthorize(connection.accessToken)
+        try {
+            if (connection != null) {
+                val accessToken = try {
+                    validConnection(userId).accessToken
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    connection.accessToken
+                }
+                try {
+                    apiClient.deauthorize(accessToken)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    // Do not let an expired/rejected Strava token keep the local account linked.
+                }
+            }
+        } finally {
+            connections.deleteByUserId(userId)
         }
-        connections.deleteByUserId(userId)
         return StravaStatusResponse(connected = false)
     }
 

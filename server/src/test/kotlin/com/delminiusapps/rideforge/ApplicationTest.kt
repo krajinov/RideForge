@@ -224,6 +224,32 @@ class ApplicationTest {
     }
 
     @Test
+    fun stravaDisconnectClearsLocalConnectionWhenRemoteDeauthorizeFails() {
+        MockStravaServer(deauthorizeStatusCode = 401).use { strava ->
+            testApplication {
+                application { module(strava.appConfig()) }
+
+                val token = loginToken()
+                connectStrava(token)
+
+                val disconnect = client.post("/integrations/strava/disconnect") {
+                    bearerAuth(token)
+                }
+
+                assertEquals(HttpStatusCode.OK, disconnect.status)
+                assertTrue(disconnect.bodyAsText().contains(""""connected":false"""))
+                assertEquals(1, strava.count("POST", "/oauth/deauthorize"))
+
+                val status = client.get("/integrations/strava/status") {
+                    bearerAuth(token)
+                }
+                assertEquals(HttpStatusCode.OK, status.status)
+                assertTrue(status.bodyAsText().contains(""""connected":false"""))
+            }
+        }
+    }
+
+    @Test
     fun stravaSyncStoresFailedStatusWhenUploadStartFails() {
         MockStravaServer(uploadStatusCode = 500).use { strava ->
             testApplication {
@@ -247,6 +273,56 @@ class ApplicationTest {
                 assertTrue(body.contains(""""status":"failed""""))
                 assertTrue(body.contains("Strava upload request failed with HTTP 500"))
                 assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+            }
+        }
+    }
+
+    @Test
+    fun stravaSyncIgnoresClientProvidedTrainerFlagWithoutConnectedDevice() {
+        MockStravaServer().use { strava ->
+            testApplication {
+                application { module(strava.appConfig()) }
+
+                val token = loginToken()
+                val deviceDisconnect = client.post("/devices/disconnect") {
+                    bearerAuth(token)
+                }
+                assertEquals(HttpStatusCode.OK, deviceDisconnect.status)
+                connectStrava(token)
+                val started = client.post("/sessions/start") {
+                    bearerAuth(token)
+                    contentType(ContentType.Application.Json)
+                    setBody("""{"workoutId":"vo2-w1d1"}""")
+                }
+                assertEquals(HttpStatusCode.OK, started.status)
+                val sessionId = started.bodyAsText().extractToken("id")
+
+                val metrics = client.post("/sessions/$sessionId/metrics") {
+                    bearerAuth(token)
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {"elapsedSeconds":30,"currentPower":215,"targetPower":220,"cadence":91,"heartRate":151,"speedKmh":32.5}
+                        """.trimIndent(),
+                    )
+                }
+                assertEquals(HttpStatusCode.OK, metrics.status)
+
+                val completed = client.put("/sessions/$sessionId/complete") {
+                    bearerAuth(token)
+                    contentType(ContentType.Application.Json)
+                    setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":true}""")
+                }
+                assertEquals(HttpStatusCode.OK, completed.status)
+                assertTrue(!completed.bodyAsText().contains(""""hasRealTrainerData":true"""))
+
+                val sync = client.post("/history/$sessionId/sync/strava") {
+                    bearerAuth(token)
+                }
+
+                assertEquals(HttpStatusCode.BadRequest, sync.status)
+                assertTrue(sync.bodyAsText().contains("real trainer"))
+                assertEquals(0, strava.count("POST", "/api/v3/uploads"))
             }
         }
     }
@@ -347,7 +423,18 @@ private suspend fun io.ktor.server.testing.ApplicationTestBuilder.connectStrava(
     assertTrue(callback.bodyAsText().contains("Strava is connected"))
 }
 
+private suspend fun io.ktor.server.testing.ApplicationTestBuilder.connectTrainerDevice(token: String) {
+    val response = client.post("/devices/connect") {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody("""{"name":"Test Smart Trainer","type":"smart_trainer","supportsErg":true}""")
+    }
+    assertEquals(HttpStatusCode.OK, response.status)
+}
+
 private suspend fun io.ktor.server.testing.ApplicationTestBuilder.completedTrainerSession(token: String): String {
+    connectTrainerDevice(token)
+
     val started = client.post("/sessions/start") {
         bearerAuth(token)
         contentType(ContentType.Application.Json)
@@ -370,9 +457,10 @@ private suspend fun io.ktor.server.testing.ApplicationTestBuilder.completedTrain
     val completed = client.put("/sessions/$sessionId/complete") {
         bearerAuth(token)
         contentType(ContentType.Application.Json)
-        setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":true}""")
+        setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":false}""")
     }
     assertEquals(HttpStatusCode.OK, completed.status)
+    assertTrue(completed.bodyAsText().contains(""""hasRealTrainerData":true"""))
 
     return sessionId
 }
@@ -419,6 +507,7 @@ private fun MockStravaServer.appConfig(): AppConfig = testAppConfig(
 
 private class MockStravaServer(
     private val uploadStatusCode: Int = 201,
+    private val deauthorizeStatusCode: Int = 200,
     var athleteId: Long = 12345,
 ) : Closeable {
     private val requests = Collections.synchronizedList(mutableListOf<RecordedStravaRequest>())
@@ -466,7 +555,7 @@ private class MockStravaServer(
             }
 
             exchange.requestMethod == "POST" && exchange.requestURI.path == "/oauth/deauthorize" -> {
-                exchange.respond(200, """{}""")
+                exchange.respond(deauthorizeStatusCode, """{}""")
             }
 
             exchange.requestMethod == "POST" && exchange.requestURI.path == "/api/v3/uploads" -> {
