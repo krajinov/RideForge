@@ -61,7 +61,9 @@ class SessionService(
         val calories = ((averagePower * elapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120)
         val tss = ((elapsed / 3600.0) * (normalizedPower / 240.0) * (normalizedPower / 240.0) * 100).toInt().coerceAtLeast(1)
         val completion = ((elapsed.toDouble() / (workout.durationMinutes * 60)) * 100).toInt().coerceIn(1, 100)
-        val hasRealTrainerData = hasServerVerifiedTrainerData(userId, metrics)
+        val hasRealTrainerData = session.hasRealTrainerData ||
+            hasServerVerifiedTrainerData(userId, metrics) ||
+            hasClientReportedTrainerData(request, metrics)
         return sessions.update(
             session.copy(
                 status = SessionStatus.completed,
@@ -137,4 +139,7 @@ class SessionService(
         val device = devices.current(userId) ?: return false
         return device.type.contains("trainer", ignoreCase = true) || device.supportsErg
     }
+
+    private fun hasClientReportedTrainerData(request: CompleteSessionRequest, metrics: List<MetricSample>): Boolean =
+        request.hasRealTrainerData && metrics.isNotEmpty()
 }

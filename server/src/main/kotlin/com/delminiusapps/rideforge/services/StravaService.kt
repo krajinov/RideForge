@@ -129,12 +129,20 @@ class StravaService(
         }
 
         if (existingForAthlete?.status == StravaSyncStatus.syncing) {
-            val sync = if (existingForAthlete.uploadId != null) {
-                refreshUploadStatus(connection, existingForAthlete)
-            } else {
-                existingForAthlete
+            if (existingForAthlete.uploadId != null) {
+                val sync = refreshUploadStatus(connection, existingForAthlete)
+                return sync.toResponse(session, connected = true)
             }
-            return sync.toResponse(session, connected = true)
+            if (!existingForAthlete.isRecoverableInitialUpload()) {
+                return existingForAthlete.toResponse(session, connected = true)
+            }
+            syncs.upsert(
+                existingForAthlete.copy(
+                    status = StravaSyncStatus.failed,
+                    error = InitialUploadRecoveryMessage,
+                    updatedAt = nowIso(),
+                ),
+            )
         }
 
         val workout = workouts.findById(session.workoutId) ?: notFound("Workout")
@@ -175,6 +183,13 @@ class StravaService(
                 externalId = externalId,
             )
         } catch (error: CancellationException) {
+            syncs.upsert(
+                startingSync.copy(
+                    status = StravaSyncStatus.failed,
+                    error = "Strava upload was cancelled",
+                    updatedAt = nowIso(),
+                ),
+            )
             throw error
         } catch (error: Exception) {
             val failed = StravaSync(
@@ -314,6 +329,12 @@ class StravaService(
             .map { it.trim() }
             .any { it == required }
 
+    private fun StravaSync.isRecoverableInitialUpload(): Boolean {
+        if (status != StravaSyncStatus.syncing || uploadId != null) return false
+        val updated = runCatching { Instant.parse(updatedAt) }.getOrNull() ?: return true
+        return updated.isBefore(Instant.now().minusSeconds(InitialUploadRecoverySeconds))
+    }
+
     private fun callbackPage(message: String): String =
         """
         <!doctype html>
@@ -330,5 +351,7 @@ class StravaService(
 
     private companion object {
         const val TokenRefreshBufferSeconds = 60L
+        const val InitialUploadRecoverySeconds = 300L
+        const val InitialUploadRecoveryMessage = "Strava upload did not start"
     }
 }

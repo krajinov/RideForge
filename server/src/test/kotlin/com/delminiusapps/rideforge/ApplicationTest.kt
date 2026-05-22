@@ -4,6 +4,21 @@ import com.delminiusapps.rideforge.config.AppConfig
 import com.delminiusapps.rideforge.config.JwtConfig
 import com.delminiusapps.rideforge.config.PersistenceMode
 import com.delminiusapps.rideforge.config.StravaConfig
+import com.delminiusapps.rideforge.models.MetricSample
+import com.delminiusapps.rideforge.models.SessionStatus
+import com.delminiusapps.rideforge.models.StravaConnection
+import com.delminiusapps.rideforge.models.StravaSync
+import com.delminiusapps.rideforge.models.StravaSyncStatus
+import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.repositories.InMemorySessionRepository
+import com.delminiusapps.rideforge.repositories.InMemoryStravaConnectionRepository
+import com.delminiusapps.rideforge.repositories.InMemoryStravaSyncRepository
+import com.delminiusapps.rideforge.repositories.InMemoryWorkoutRepository
+import com.delminiusapps.rideforge.services.StravaApiClient
+import com.delminiusapps.rideforge.services.StravaService
+import com.delminiusapps.rideforge.services.StravaStateService
+import com.delminiusapps.rideforge.services.TcxWorkoutExporter
+import com.delminiusapps.rideforge.utils.nowIso
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import io.ktor.client.request.bearerAuth
@@ -19,11 +34,13 @@ import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 import java.net.InetSocketAddress
 import java.net.URI
 import java.net.ServerSocket
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 import java.util.Collections
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -349,7 +366,82 @@ class ApplicationTest {
     }
 
     @Test
-    fun stravaSyncIgnoresClientProvidedTrainerFlagWithoutConnectedDevice() {
+    fun stravaSyncRetriesStaleInitialUploadWithoutUploadId() = runBlocking {
+        MockStravaServer().use { strava ->
+            val config = strava.appConfig()
+            val sessions = InMemorySessionRepository()
+            val workouts = InMemoryWorkoutRepository()
+            val connections = InMemoryStravaConnectionRepository()
+            val syncs = InMemoryStravaSyncRepository()
+            val service = StravaService(
+                config = config.strava,
+                connections = connections,
+                syncs = syncs,
+                sessions = sessions,
+                workouts = workouts,
+                stateService = StravaStateService(config.jwt.secret),
+                apiClient = StravaApiClient(config.strava),
+                tcxExporter = TcxWorkoutExporter(),
+            )
+            val userId = "user-marko"
+            val sessionId = "session-stale-upload"
+            val timestamp = nowIso()
+
+            sessions.create(
+                WorkoutSession(
+                    id = sessionId,
+                    userId = userId,
+                    workoutId = "vo2-w1d1",
+                    status = SessionStatus.completed,
+                    startedAt = timestamp,
+                    completedAt = timestamp,
+                    elapsedSeconds = 1200,
+                    hasRealTrainerData = true,
+                ),
+            )
+            sessions.addMetric(
+                MetricSample(
+                    sessionId = sessionId,
+                    timestamp = timestamp,
+                    elapsedSeconds = 30,
+                    currentPower = 215,
+                    targetPower = 220,
+                    cadence = 91,
+                    heartRate = 151,
+                    speedKmh = 32.5,
+                ),
+            )
+            connections.save(
+                StravaConnection(
+                    userId = userId,
+                    athleteId = "12345",
+                    accessToken = "test-access-token",
+                    refreshToken = "test-refresh-token",
+                    expiresAtEpochSeconds = 4_102_444_800,
+                    scope = "read,activity:write",
+                    connectedAt = timestamp,
+                    updatedAt = timestamp,
+                ),
+            )
+            syncs.upsert(
+                StravaSync(
+                    sessionId = sessionId,
+                    userId = userId,
+                    status = StravaSyncStatus.syncing,
+                    athleteId = "12345",
+                    updatedAt = Instant.EPOCH.toString(),
+                ),
+            )
+
+            val response = service.syncWorkout(userId, sessionId)
+
+            assertEquals("synced", response.status)
+            assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+        }
+    }
+
+    @Test
+    fun stravaSyncPreservesDeferredTrainerFlagWithoutConnectedDevice() {
         MockStravaServer().use { strava ->
             testApplication {
                 application { module(strava.appConfig()) }
@@ -385,15 +477,15 @@ class ApplicationTest {
                     setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":true}""")
                 }
                 assertEquals(HttpStatusCode.OK, completed.status)
-                assertTrue(!completed.bodyAsText().contains(""""hasRealTrainerData":true"""))
+                assertTrue(completed.bodyAsText().contains(""""hasRealTrainerData":true"""))
 
                 val sync = client.post("/history/$sessionId/sync/strava") {
                     bearerAuth(token)
                 }
 
-                assertEquals(HttpStatusCode.BadRequest, sync.status)
-                assertTrue(sync.bodyAsText().contains("real trainer"))
-                assertEquals(0, strava.count("POST", "/api/v3/uploads"))
+                assertEquals(HttpStatusCode.OK, sync.status)
+                assertTrue(sync.bodyAsText().contains(""""status":"synced""""))
+                assertEquals(1, strava.count("POST", "/api/v3/uploads"))
             }
         }
     }
