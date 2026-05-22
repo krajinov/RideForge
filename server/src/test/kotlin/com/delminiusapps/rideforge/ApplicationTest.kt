@@ -16,6 +16,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import java.io.Closeable
 import java.net.InetSocketAddress
 import java.net.URI
@@ -279,6 +282,40 @@ class ApplicationTest {
     }
 
     @Test
+    fun stravaSyncReturnsInProgressStatusForRetryDuringUploadStart() {
+        MockStravaServer(uploadDelayMillis = 500).use { strava ->
+            testApplication {
+                application { module(strava.appConfig()) }
+
+                val token = loginToken()
+                connectStrava(token)
+                val sessionId = completedTrainerSession(token)
+
+                coroutineScope {
+                    val firstSync = async {
+                        client.post("/history/$sessionId/sync/strava") {
+                            bearerAuth(token)
+                        }
+                    }
+                    strava.awaitCount("POST", "/api/v3/uploads", expected = 1)
+
+                    val retry = client.post("/history/$sessionId/sync/strava") {
+                        bearerAuth(token)
+                    }
+                    assertEquals(HttpStatusCode.OK, retry.status)
+                    assertTrue(retry.bodyAsText().contains(""""status":"syncing""""))
+                    assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+
+                    val firstResponse = firstSync.await()
+                    assertEquals(HttpStatusCode.OK, firstResponse.status)
+                    assertTrue(firstResponse.bodyAsText().contains(""""status":"synced""""))
+                    assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+                }
+            }
+        }
+    }
+
+    @Test
     fun stravaSyncIgnoresClientProvidedTrainerFlagWithoutConnectedDevice() {
         MockStravaServer().use { strava ->
             testApplication {
@@ -509,6 +546,7 @@ private fun MockStravaServer.appConfig(): AppConfig = testAppConfig(
 private class MockStravaServer(
     private val uploadStatusCode: Int = 201,
     private val deauthorizeStatusCode: Int = 200,
+    private val uploadDelayMillis: Long = 0,
     var athleteId: Long = 12345,
 ) : Closeable {
     private val requests = Collections.synchronizedList(mutableListOf<RecordedStravaRequest>())
@@ -529,6 +567,15 @@ private class MockStravaServer(
 
     fun bodyFor(method: String, path: String): String? = synchronized(requests) {
         requests.firstOrNull { it.method == method && it.path == path }?.body
+    }
+
+    suspend fun awaitCount(method: String, path: String, expected: Int, timeoutMillis: Long = 1_000) {
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            if (count(method, path) >= expected) return
+            delay(10)
+        }
+        assertTrue(count(method, path) >= expected)
     }
 
     override fun close() {
@@ -565,6 +612,9 @@ private class MockStravaServer(
             }
 
             exchange.requestMethod == "POST" && exchange.requestURI.path == "/api/v3/uploads" -> {
+                if (uploadDelayMillis > 0) {
+                    Thread.sleep(uploadDelayMillis)
+                }
                 exchange.respond(
                     uploadStatusCode,
                     """{"id":98765,"id_str":"98765","activity_id":55555,"status":"Your activity is ready."}""",

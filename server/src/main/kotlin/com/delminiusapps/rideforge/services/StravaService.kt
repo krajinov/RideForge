@@ -128,8 +128,13 @@ class StravaService(
             return existingForAthlete.toResponse(session, connected = true)
         }
 
-        if (existingForAthlete?.status == StravaSyncStatus.syncing && existingForAthlete.uploadId != null) {
-            return refreshUploadStatus(connection, existingForAthlete).toResponse(session, connected = true)
+        if (existingForAthlete?.status == StravaSyncStatus.syncing) {
+            val sync = if (existingForAthlete.uploadId != null) {
+                refreshUploadStatus(connection, existingForAthlete)
+            } else {
+                existingForAthlete
+            }
+            return sync.toResponse(session, connected = true)
         }
 
         val workout = workouts.findById(session.workoutId) ?: notFound("Workout")

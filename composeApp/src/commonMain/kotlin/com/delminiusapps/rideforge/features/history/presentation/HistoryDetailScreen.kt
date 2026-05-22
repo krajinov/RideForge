@@ -1071,8 +1071,8 @@ private fun twoDecimals(value: Double): String {
 
 private fun signed(value: Int, suffix: String): String {
     return when {
-        value > 0 -> "-$value$suffix"
-        value < 0 -> "+${abs(value)}$suffix"
+        value > 0 -> "+$value$suffix"
+        value < 0 -> "-${abs(value)}$suffix"
         else -> "0$suffix"
     }
 }
