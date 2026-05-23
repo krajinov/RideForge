@@ -5,6 +5,9 @@ import com.delminiusapps.rideforge.core.network.ApiClientException
 import com.delminiusapps.rideforge.core.network.DataSourceMonitor
 import com.delminiusapps.rideforge.data.auth.AuthSession
 import com.delminiusapps.rideforge.data.dto.PageDto
+import com.delminiusapps.rideforge.data.dto.StravaConnectUrlDto
+import com.delminiusapps.rideforge.data.dto.StravaStatusDto
+import com.delminiusapps.rideforge.data.dto.StravaSyncStatusDto
 import com.delminiusapps.rideforge.data.dto.TrainingPlanDto
 import com.delminiusapps.rideforge.data.dto.UpdateProfileRequestDto
 import com.delminiusapps.rideforge.data.dto.UserDto
@@ -17,10 +20,13 @@ import com.delminiusapps.rideforge.data.mapper.toDomainSummary
 import com.delminiusapps.rideforge.data.mapper.toHistoryItem
 import com.delminiusapps.rideforge.data.repository.AuthRepository
 import com.delminiusapps.rideforge.data.repository.HistoryRepository
+import com.delminiusapps.rideforge.data.repository.StravaRepository
 import com.delminiusapps.rideforge.data.repository.TrainingPlanRepository
 import com.delminiusapps.rideforge.data.repository.WorkoutRepository
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.MetricSample
+import com.delminiusapps.rideforge.models.StravaConnectionStatus
+import com.delminiusapps.rideforge.models.StravaSyncInfo
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.TrainingPlan
 import com.delminiusapps.rideforge.models.UserProfile
@@ -264,6 +270,7 @@ class RemoteWorkoutSessionRepository(
         api.post<com.delminiusapps.rideforge.data.dto.MetricSampleRequestDto, com.delminiusapps.rideforge.data.dto.MetricsAcceptedResponseDto>(
             "/sessions/$sessionId/metrics",
             com.delminiusapps.rideforge.data.dto.MetricSampleRequestDto(
+                elapsedSeconds = sample.elapsedSeconds,
                 currentPower = sample.currentPowerWatts,
                 targetPower = sample.targetPowerWatts,
                 cadence = sample.cadenceRpm,
@@ -273,10 +280,17 @@ class RemoteWorkoutSessionRepository(
         )
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession = remoteCall {
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): WorkoutSession = remoteCall {
         val response = api.put<com.delminiusapps.rideforge.data.dto.CompleteSessionRequestDto, WorkoutSessionDto>(
             "/sessions/$sessionId/complete",
-            com.delminiusapps.rideforge.data.dto.CompleteSessionRequestDto(elapsedSeconds)
+            com.delminiusapps.rideforge.data.dto.CompleteSessionRequestDto(
+                elapsedSeconds = elapsedSeconds,
+                hasRealTrainerData = hasRealTrainerData,
+            )
         )
         val workoutName = runCatching { api.get<WorkoutDto>("/workouts/${response.workoutId}").name }
             .getOrDefault(response.workoutId)
@@ -287,7 +301,7 @@ class RemoteWorkoutSessionRepository(
         val response = api.get<List<com.delminiusapps.rideforge.data.dto.MetricSampleDto>>("/sessions/$sessionId/metrics")
         response.mapIndexed { index, sample ->
             MetricSample(
-                elapsedSeconds = index,
+                elapsedSeconds = sample.elapsedSeconds ?: index,
                 currentPowerWatts = sample.currentPower,
                 targetPowerWatts = sample.targetPower,
                 cadenceRpm = sample.cadence,
@@ -317,6 +331,45 @@ class RemoteWorkoutSessionRepository(
                 _syncStatus.value = SyncStatus.SyncFailed
                 monitor.markFallback(it)
             }
+            .getOrThrow()
+    }
+}
+
+class RemoteStravaRepository(
+    private val api: ApiClient,
+    private val fallback: StravaRepository,
+    private val monitor: DataSourceMonitor,
+) : StravaRepository {
+    override suspend fun getStatus(): StravaConnectionStatus = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.getStatus() },
+    ) {
+        api.get<StravaStatusDto>("/integrations/strava/status").toDomain()
+    }
+
+    override suspend fun getConnectUrl(): String = remoteRequired {
+        api.get<StravaConnectUrlDto>("/integrations/strava/connect-url").url
+    }
+
+    override suspend fun disconnect(): StravaConnectionStatus = remoteRequired {
+        api.post<Unit, StravaStatusDto>("/integrations/strava/disconnect", Unit).toDomain()
+    }
+
+    override suspend fun syncWorkout(sessionId: String): StravaSyncInfo = remoteRequired {
+        api.post<Unit, StravaSyncStatusDto>("/history/$sessionId/sync/strava", Unit).toDomain()
+    }
+
+    override suspend fun getSyncStatus(sessionId: String): StravaSyncInfo = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.getSyncStatus(sessionId) },
+    ) {
+        api.get<StravaSyncStatusDto>("/history/$sessionId/sync-status").toDomain()
+    }
+
+    private suspend fun <T> remoteRequired(block: suspend () -> T): T {
+        return runCatching { block() }
+            .onSuccess { monitor.markRemote() }
+            .onFailure { monitor.markFallback(it) }
             .getOrThrow()
     }
 }

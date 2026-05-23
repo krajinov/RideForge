@@ -2,6 +2,7 @@ package com.delminiusapps.rideforge.core.di
 
 import com.delminiusapps.rideforge.data.mock.MockAuthRepository
 import com.delminiusapps.rideforge.data.mock.MockHistoryRepository
+import com.delminiusapps.rideforge.data.mock.MockStravaRepository
 import com.delminiusapps.rideforge.data.mock.MockTrainingPlanRepository
 import com.delminiusapps.rideforge.data.mock.MockWorkoutRepository
 import com.delminiusapps.rideforge.core.network.ApiClient
@@ -21,6 +22,7 @@ import com.delminiusapps.rideforge.data.remote.MockApiClient
 import com.delminiusapps.rideforge.domain.repository.AuthRepository
 import com.delminiusapps.rideforge.domain.repository.HistoryRepository
 import com.delminiusapps.rideforge.domain.repository.SessionRepository
+import com.delminiusapps.rideforge.domain.repository.StravaRepository
 import com.delminiusapps.rideforge.domain.repository.TrainingPlanRepository
 import com.delminiusapps.rideforge.domain.repository.WorkoutRepository
 import com.delminiusapps.rideforge.data.trainer.DefaultTrainerConnectionRepository
@@ -31,16 +33,21 @@ import com.delminiusapps.rideforge.domain.trainer.TrainerConnectionRepository
 import com.delminiusapps.rideforge.domain.trainer.TrainerControlService
 import com.delminiusapps.rideforge.data.repository.remote.RemoteHistoryRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteProfileRepository
+import com.delminiusapps.rideforge.data.repository.remote.RemoteStravaRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteTrainingPlanRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteWorkoutSessionRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteWorkoutRepository
 import com.delminiusapps.rideforge.domain.usecase.CompleteWorkoutSessionUseCase
+import com.delminiusapps.rideforge.domain.usecase.DisconnectStravaUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetHomeDashboardUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetCurrentUserUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetLatestWorkoutSummaryUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetRecommendedWorkoutUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetRideHistoryUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetSessionMetricsUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetStravaConnectUrlUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetStravaStatusUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetTrainingPlansUseCase
 import com.delminiusapps.rideforge.domain.usecase.LoginUseCase
 import com.delminiusapps.rideforge.domain.usecase.LogoutUseCase
@@ -50,6 +57,7 @@ import com.delminiusapps.rideforge.domain.usecase.RegisterUseCase
 import com.delminiusapps.rideforge.domain.usecase.RestoreAuthSessionUseCase
 import com.delminiusapps.rideforge.domain.usecase.ResumeWorkoutSessionUseCase
 import com.delminiusapps.rideforge.domain.usecase.StartWorkoutSessionUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
 import com.delminiusapps.rideforge.domain.usecase.UpdateProfileUseCase
 import com.delminiusapps.rideforge.domain.usecase.UploadMetricBatchUseCase
@@ -70,10 +78,12 @@ val rideForgeModule = module {
     single { MockWorkoutRepository() }
     single { MockTrainingPlanRepository() }
     single { MockHistoryRepository() }
+    single { MockStravaRepository() }
     single<AuthRepository> { RemoteProfileRepository(get(), get<MockAuthRepository>(), get()) }
     single<WorkoutRepository> { RemoteWorkoutRepository(get(), get<MockWorkoutRepository>(), get()) }
     single<TrainingPlanRepository> { RemoteTrainingPlanRepository(get(), get<MockTrainingPlanRepository>(), get()) }
     single<HistoryRepository> { com.delminiusapps.rideforge.data.repository.remote.RemoteHistoryRepository(get(), get<MockHistoryRepository>(), get()) }
+    single<StravaRepository> { RemoteStravaRepository(get(), get<MockStravaRepository>(), get()) }
     single { LocalWorkoutSessionRepository(get()) }
     single { RemoteWorkoutSessionRepository(get(), get()) }
     single { LocalPendingSyncQueue(get()) }
@@ -105,5 +115,10 @@ val rideForgeModule = module {
     factory { SyncPendingSessionsUseCase(get()) }
     factory { ObserveSessionSyncStatusUseCase(get()) }
     factory { GetSessionMetricsUseCase(get()) }
+    factory { GetStravaStatusUseCase(get()) }
+    factory { GetStravaConnectUrlUseCase(get()) }
+    factory { DisconnectStravaUseCase(get()) }
+    factory { SyncWorkoutToStravaUseCase(get()) }
+    factory { GetStravaSyncStatusUseCase(get()) }
     factory { MetricSampleBatchUploader(get(), get()) }
 }

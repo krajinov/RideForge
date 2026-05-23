@@ -14,6 +14,8 @@ val historyModule = module {
             getWorkoutUseCase = get(),
             getCurrentUserUseCase = get(),
             getRideHistoryUseCase = get(),
+            syncWorkoutToStravaUseCase = get(),
+            getStravaSyncStatusUseCase = get(),
             sessionId = parameters.get(),
         )
     }

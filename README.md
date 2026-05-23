@@ -114,6 +114,7 @@ Implemented areas:
 - Workouts, recommended workout, and FTP-adjusted workout intervals
 - Workout sessions: start, pause, resume, complete, and metric samples
 - Workout history list/detail/delete
+- Strava OAuth connection, token refresh, disconnect, upload status, and workout sync endpoints
 - Smart trainer placeholder devices
 - Structured error responses
 - Pagination-ready list responses
@@ -153,6 +154,10 @@ JWT_AUDIENCE=rideforge-mobile
 JWT_REALM=rideforge
 JWT_ACCESS_MINUTES=60
 JWT_REFRESH_DAYS=30
+STRAVA_CLIENT_ID=your-strava-client-id
+STRAVA_CLIENT_SECRET=your-strava-client-secret
+STRAVA_REDIRECT_URI=http://localhost:8080/integrations/strava/callback
+STRAVA_BASE_URL=https://www.strava.com
 ```
 
 For route tests without PostgreSQL, the test suite wires the server with in-memory repositories. To run the optional PostgreSQL restart-persistence test, set:

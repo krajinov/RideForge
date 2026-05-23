@@ -7,6 +7,8 @@ import com.delminiusapps.rideforge.routes.openApiRoutes
 import com.delminiusapps.rideforge.routes.planRoutes
 import com.delminiusapps.rideforge.routes.profileRoutes
 import com.delminiusapps.rideforge.routes.sessionRoutes
+import com.delminiusapps.rideforge.routes.stravaCallbackRoutes
+import com.delminiusapps.rideforge.routes.stravaIntegrationRoutes
 import com.delminiusapps.rideforge.routes.workoutRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
@@ -28,6 +30,7 @@ fun Application.configureRouting(registry: ServiceRegistry) {
         }
         openApiRoutes()
         authRoutes(registry)
+        stravaCallbackRoutes(registry)
         authenticate(JwtAuthName) {
             profileRoutes(registry)
             planRoutes(registry)
@@ -35,6 +38,7 @@ fun Application.configureRouting(registry: ServiceRegistry) {
             sessionRoutes(registry)
             historyRoutes(registry)
             deviceRoutes(registry)
+            stravaIntegrationRoutes(registry)
         }
     }
 }

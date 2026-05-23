@@ -51,7 +51,11 @@ class LocalWorkoutSessionRepository(
         }
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession = mutex.withLock {
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): WorkoutSession = mutex.withLock {
         val metrics = storage.getLocalSessionMetrics(sessionId)
         val existing = storage.getLocalSession(sessionId)
         val elapsed = elapsedSeconds
@@ -94,6 +98,7 @@ class LocalWorkoutSessionRepository(
             tss = tssFor(normalized, elapsed, impliedFtp),
             completionPercent = if (elapsed > 0) 100 else 0,
             completedAtEpochMillis = existing?.completedAtEpochMillis ?: Clock.System.now().toEpochMilliseconds(),
+            hasRealTrainerData = hasRealTrainerData || existing?.hasRealTrainerData == true,
         )
         storage.upsertLocalSession(summary)
         summary

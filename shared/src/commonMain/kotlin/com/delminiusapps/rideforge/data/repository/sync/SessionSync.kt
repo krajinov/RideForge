@@ -55,6 +55,7 @@ sealed interface PendingSessionEvent {
         override val id: Long,
         override val sessionId: String,
         val elapsedSeconds: Int?,
+        val hasRealTrainerData: Boolean = false,
     ) : PendingSessionEvent
 }
 
@@ -85,8 +86,8 @@ class LocalPendingSyncQueue(
         }
     }
 
-    suspend fun enqueueComplete(sessionId: String, elapsedSeconds: Int?) {
-        enqueue { id -> PendingSessionEvent.Complete(id, sessionId, elapsedSeconds) }
+    suspend fun enqueueComplete(sessionId: String, elapsedSeconds: Int?, hasRealTrainerData: Boolean) {
+        enqueue { id -> PendingSessionEvent.Complete(id, sessionId, elapsedSeconds, hasRealTrainerData) }
     }
 
     suspend fun bindRemoteSessionId(localSessionId: String, remoteSessionId: String) {
@@ -185,9 +186,13 @@ class SessionSyncManager(
         _syncStatus.value = SyncStatus.PendingSync
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession {
-        val localSummary = fallback.completeSession(sessionId, elapsedSeconds)
-        queue.enqueueComplete(sessionId, elapsedSeconds)
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): WorkoutSession {
+        val localSummary = fallback.completeSession(sessionId, elapsedSeconds, hasRealTrainerData)
+        queue.enqueueComplete(sessionId, elapsedSeconds, hasRealTrainerData)
         _syncStatus.value = SyncStatus.PendingSync
         return localSummary
     }
@@ -257,7 +262,7 @@ class SessionSyncManager(
                 remote.addMetrics(requireRemoteId(event.sessionId), event.samples)
             }
             is PendingSessionEvent.Complete -> {
-                remote.completeSession(requireRemoteId(event.sessionId), event.elapsedSeconds)
+                remote.completeSession(requireRemoteId(event.sessionId), event.elapsedSeconds, event.hasRealTrainerData)
             }
         }
     }

@@ -3,6 +3,7 @@ package com.delminiusapps.rideforge.data.repository
 typealias AuthRepository = com.delminiusapps.rideforge.domain.repository.AuthRepository
 typealias HistoryRepository = com.delminiusapps.rideforge.domain.repository.HistoryRepository
 typealias SessionRepository = com.delminiusapps.rideforge.domain.repository.SessionRepository
+typealias StravaRepository = com.delminiusapps.rideforge.domain.repository.StravaRepository
 typealias TrainerConnectionRepository = com.delminiusapps.rideforge.domain.trainer.TrainerConnectionRepository
 typealias TrainingPlanRepository = com.delminiusapps.rideforge.domain.repository.TrainingPlanRepository
 typealias WorkoutRepository = com.delminiusapps.rideforge.domain.repository.WorkoutRepository

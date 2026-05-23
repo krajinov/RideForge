@@ -220,7 +220,11 @@ private class FakeSessionRepository : SessionRepository {
         metricsBySessionId[sessionId] = metricsBySessionId[sessionId].orEmpty() + samples
     }
 
-    override suspend fun completeSession(sessionId: String, elapsedSeconds: Int?): WorkoutSession {
+    override suspend fun completeSession(
+        sessionId: String,
+        elapsedSeconds: Int?,
+        hasRealTrainerData: Boolean,
+    ): WorkoutSession {
         failIfNeeded()
         missingSessionIds.throwIfMissing(sessionId)
         return emptySession(id = sessionId, workoutId = "workout-a").copy(elapsedSeconds = elapsedSeconds ?: 0)

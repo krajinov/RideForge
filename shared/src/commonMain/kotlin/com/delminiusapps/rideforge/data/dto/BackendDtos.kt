@@ -102,17 +102,22 @@ data class WorkoutSessionDto(
     val calories: Int? = null,
     val tss: Int? = null,
     val completionPercent: Int? = null,
+    val hasRealTrainerData: Boolean = false,
 )
 
 @Serializable
 data class StartSessionRequestDto(val workoutId: String)
 
 @Serializable
-data class CompleteSessionRequestDto(val elapsedSeconds: Int? = null)
+data class CompleteSessionRequestDto(
+    val elapsedSeconds: Int? = null,
+    val hasRealTrainerData: Boolean = false,
+)
 
 @Serializable
 data class MetricSampleRequestDto(
     val timestamp: String? = null,
+    val elapsedSeconds: Int? = null,
     val currentPower: Int,
     val targetPower: Int,
     val cadence: Int,
@@ -124,6 +129,7 @@ data class MetricSampleRequestDto(
 data class MetricSampleDto(
     val sessionId: String,
     val timestamp: String,
+    val elapsedSeconds: Int? = null,
     val currentPower: Int,
     val targetPower: Int,
     val cadence: Int,
@@ -141,4 +147,23 @@ data class MetricsAcceptedResponseDto(
 data class SessionResponseDto(
     val session: WorkoutSessionDto,
     val workout: WorkoutDto
+)
+
+@Serializable
+data class StravaStatusDto(
+    val connected: Boolean,
+    val athleteId: String? = null,
+)
+
+@Serializable
+data class StravaConnectUrlDto(val url: String)
+
+@Serializable
+data class StravaSyncStatusDto(
+    val status: String,
+    val activityId: String? = null,
+    val activityUrl: String? = null,
+    val error: String? = null,
+    val canSync: Boolean = false,
+    val connected: Boolean = false,
 )

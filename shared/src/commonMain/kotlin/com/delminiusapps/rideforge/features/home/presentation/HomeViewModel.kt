@@ -27,11 +27,14 @@ class HomeViewModel(
     fun onAction(action: HomeAction) {
         when (action) {
             HomeAction.Refresh -> loadDashboard()
+            HomeAction.ScreenVisible -> loadDashboard(showLoading = _state.value !is HomeUiState.Ready)
         }
     }
 
-    private fun loadDashboard() {
-        _state.update { HomeUiState.Loading }
+    private fun loadDashboard(showLoading: Boolean = true) {
+        if (showLoading) {
+            _state.update { HomeUiState.Loading }
+        }
         viewModelScope.launch {
             runCatching {
                 getHomeDashboardUseCase()
@@ -74,6 +77,7 @@ class HomeViewModel(
 
 sealed interface HomeAction {
     data object Refresh : HomeAction
+    data object ScreenVisible : HomeAction
 }
 
 sealed interface HomeUiState {

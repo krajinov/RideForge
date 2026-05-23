@@ -4,6 +4,7 @@ data class AppConfig(
     val port: Int,
     val databaseUrl: String,
     val jwt: JwtConfig,
+    val strava: StravaConfig,
     val databaseUser: String? = null,
     val databasePassword: String? = null,
     val databaseMaxPoolSize: Int = 10,
@@ -19,6 +20,13 @@ data class JwtConfig(
     val realm: String,
     val accessTokenMinutes: Long,
     val refreshTokenDays: Long,
+)
+
+data class StravaConfig(
+    val clientId: String?,
+    val clientSecret: String?,
+    val redirectUri: String,
+    val baseUrl: String = "https://www.strava.com",
 )
 
 enum class PersistenceMode {
@@ -37,6 +45,12 @@ fun loadAppConfig(): AppConfig {
             realm = env("JWT_REALM") ?: "rideforge",
             accessTokenMinutes = env("JWT_ACCESS_MINUTES")?.toLongOrNull() ?: 60,
             refreshTokenDays = env("JWT_REFRESH_DAYS")?.toLongOrNull() ?: 30,
+        ),
+        strava = StravaConfig(
+            clientId = env("STRAVA_CLIENT_ID"),
+            clientSecret = env("STRAVA_CLIENT_SECRET"),
+            redirectUri = env("STRAVA_REDIRECT_URI") ?: "http://localhost:8080/integrations/strava/callback",
+            baseUrl = env("STRAVA_BASE_URL") ?: "https://www.strava.com",
         ),
         databaseUser = env("DATABASE_USER"),
         databasePassword = env("DATABASE_PASSWORD"),

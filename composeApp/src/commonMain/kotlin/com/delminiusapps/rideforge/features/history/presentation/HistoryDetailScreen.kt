@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,11 +47,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.delminiusapps.rideforge.models.RideHistoryItem
+import com.delminiusapps.rideforge.models.StravaSyncInfo
+import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutSession
 import com.delminiusapps.rideforge.navigation.AppRoute
@@ -60,6 +64,7 @@ import com.delminiusapps.rideforge.presentation.components.LoadingState
 import com.delminiusapps.rideforge.presentation.components.PrimaryButton
 import com.delminiusapps.rideforge.presentation.components.ScreenHeader
 import com.delminiusapps.rideforge.presentation.components.ScreenLazyColumn
+import com.delminiusapps.rideforge.presentation.components.SecondaryButton
 import com.delminiusapps.rideforge.presentation.components.SmallPill
 import com.delminiusapps.rideforge.theme.ForgeBlue
 import com.delminiusapps.rideforge.theme.ForgeBorder
@@ -71,6 +76,7 @@ import com.delminiusapps.rideforge.theme.ForgePurple
 import com.delminiusapps.rideforge.theme.ForgeRed
 import com.delminiusapps.rideforge.theme.ForgeSurface
 import com.delminiusapps.rideforge.theme.ForgeSurfaceHigh
+import com.delminiusapps.rideforge.theme.ForgeStrava
 import com.delminiusapps.rideforge.theme.ForgeText
 import com.delminiusapps.rideforge.theme.ForgeYellow
 import com.delminiusapps.rideforge.theme.ForgeZone1
@@ -98,6 +104,15 @@ fun HistoryDetailScreen(
     viewModel: HistoryDetailViewModel = koinViewModel(key = sessionId) { parametersOf(sessionId) },
 ) {
     val state by viewModel.state.collectAsState()
+    val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is HistoryDetailEvent.OpenUrl -> runCatching { uriHandler.openUri(event.url) }
+            }
+        }
+    }
 
     ScreenLazyColumn {
         when (val uiState = state) {
@@ -134,6 +149,16 @@ fun HistoryDetailScreen(
                         workout = workout,
                         historyItem = uiState.historyItem,
                         analysis = analysis,
+                    )
+                }
+
+                item {
+                    StravaSyncDetailCard(
+                        sync = uiState.stravaSync,
+                        hasRealTrainerData = summary.hasRealTrainerData,
+                        isSyncing = uiState.isStravaSyncing,
+                        onSync = { viewModel.onAction(HistoryDetailAction.SyncToStrava) },
+                        onView = { viewModel.onAction(HistoryDetailAction.ViewOnStrava) },
                     )
                 }
 
@@ -194,6 +219,52 @@ fun HistoryDetailScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StravaSyncDetailCard(
+    sync: StravaSyncInfo?,
+    hasRealTrainerData: Boolean,
+    isSyncing: Boolean,
+    onSync: () -> Unit,
+    onView: () -> Unit,
+) {
+    val state = sync?.state ?: StravaSyncState.NotSynced
+    val connected = sync?.connected == true
+    val canSync = sync?.canSync ?: hasRealTrainerData
+    val isProcessing = isSyncing || state == StravaSyncState.Syncing
+    val statusText = when {
+        state == StravaSyncState.Synced -> "Synced to Strava"
+        isProcessing -> "Strava is processing this upload."
+        state == StravaSyncState.Failed -> sync?.error ?: "Strava sync failed."
+        !hasRealTrainerData -> "Only real trainer workouts can be uploaded."
+        !connected -> "Connect Strava in Profile before syncing."
+        else -> "Ready to upload as an indoor virtual ride."
+    }
+    val buttonText = when {
+        state == StravaSyncState.Synced && sync?.activityUrl != null -> "View on Strava"
+        isProcessing -> "Syncing..."
+        !hasRealTrainerData -> "Trainer data required"
+        state == StravaSyncState.Failed -> "Retry Strava Sync"
+        else -> "Sync to Strava"
+    }
+    val enabled = when {
+        state == StravaSyncState.Synced -> sync?.activityUrl != null
+        isProcessing -> false
+        else -> connected && canSync
+    }
+
+    AppCard {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Strava", fontWeight = FontWeight.Bold, color = ForgeStrava)
+            Text(statusText, color = ForgeMuted)
+            if (state == StravaSyncState.Synced && sync?.activityUrl != null) {
+                PrimaryButton(buttonText, onView, Modifier.fillMaxWidth(), enabled = enabled)
+            } else {
+                SecondaryButton(buttonText, onSync, Modifier.fillMaxWidth(), enabled = enabled)
             }
         }
     }
@@ -1000,8 +1071,8 @@ private fun twoDecimals(value: Double): String {
 
 private fun signed(value: Int, suffix: String): String {
     return when {
-        value > 0 -> "-$value$suffix"
-        value < 0 -> "+${abs(value)}$suffix"
+        value > 0 -> "+$value$suffix"
+        value < 0 -> "-${abs(value)}$suffix"
         else -> "0$suffix"
     }
 }

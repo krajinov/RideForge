@@ -9,6 +9,7 @@ import com.delminiusapps.rideforge.dto.StartSessionRequest
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.repositories.DeviceRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.utils.badRequest
@@ -20,6 +21,7 @@ import com.delminiusapps.rideforge.utils.nowIso
 class SessionService(
     private val sessions: SessionRepository,
     private val workouts: WorkoutRepository,
+    private val devices: DeviceRepository,
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
         val workout = workouts.findById(request.workoutId) ?: notFound("Workout")
@@ -59,6 +61,9 @@ class SessionService(
         val calories = ((averagePower * elapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120)
         val tss = ((elapsed / 3600.0) * (normalizedPower / 240.0) * (normalizedPower / 240.0) * 100).toInt().coerceAtLeast(1)
         val completion = ((elapsed.toDouble() / (workout.durationMinutes * 60)) * 100).toInt().coerceIn(1, 100)
+        val hasRealTrainerData = session.hasRealTrainerData ||
+            hasServerVerifiedTrainerData(userId, metrics) ||
+            hasClientReportedTrainerData(request, metrics)
         return sessions.update(
             session.copy(
                 status = SessionStatus.completed,
@@ -69,6 +74,7 @@ class SessionService(
                 calories = calories,
                 tss = tss,
                 completionPercent = completion,
+                hasRealTrainerData = hasRealTrainerData,
             ),
         )
     }
@@ -81,11 +87,13 @@ class SessionService(
         if (request.cadence !in 0..220) badRequest("Cadence must be between 0 and 220 rpm")
         if (request.heartRate !in 0..240) badRequest("Heart rate must be between 0 and 240 bpm")
         if (request.speedKmh !in 0.0..140.0) badRequest("Speed must be between 0 and 140 km/h")
+        if (request.elapsedSeconds != null && request.elapsedSeconds < 0) badRequest("Elapsed seconds cannot be negative")
 
         val sample = sessions.addMetric(
             MetricSample(
                 sessionId = sessionId,
                 timestamp = request.timestamp ?: nowIso(),
+                elapsedSeconds = request.elapsedSeconds,
                 currentPower = request.currentPower,
                 targetPower = request.targetPower,
                 cadence = request.cadence,
@@ -125,4 +133,13 @@ class SessionService(
         if (session.userId != userId) forbidden()
         return session
     }
+
+    private suspend fun hasServerVerifiedTrainerData(userId: String, metrics: List<MetricSample>): Boolean {
+        if (metrics.isEmpty()) return false
+        val device = devices.current(userId) ?: return false
+        return device.type.contains("trainer", ignoreCase = true) || device.supportsErg
+    }
+
+    private fun hasClientReportedTrainerData(request: CompleteSessionRequest, metrics: List<MetricSample>): Boolean =
+        request.hasRealTrainerData && metrics.isNotEmpty()
 }
