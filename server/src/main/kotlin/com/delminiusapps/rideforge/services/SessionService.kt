@@ -11,6 +11,7 @@ import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
 import com.delminiusapps.rideforge.repositories.DeviceRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
+import com.delminiusapps.rideforge.repositories.UserRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.utils.badRequest
 import com.delminiusapps.rideforge.utils.forbidden
@@ -22,9 +23,11 @@ class SessionService(
     private val sessions: SessionRepository,
     private val workouts: WorkoutRepository,
     private val devices: DeviceRepository,
+    private val users: UserRepository,
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
         val workout = workouts.findById(request.workoutId) ?: notFound("Workout")
+        val riderWeightKg = users.findById(userId)?.weightKg ?: RideMetricCalculator.DefaultRiderWeightKg
         val session = sessions.create(
             WorkoutSession(
                 id = newId("session"),
@@ -32,6 +35,7 @@ class SessionService(
                 workoutId = workout.id,
                 status = SessionStatus.active,
                 startedAt = nowIso(),
+                riderWeightKg = riderWeightKg,
             ),
         )
         return SessionResponse(session, workout)
@@ -61,6 +65,7 @@ class SessionService(
         val calories = ((averagePower * elapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120)
         val tss = ((elapsed / 3600.0) * (normalizedPower / 240.0) * (normalizedPower / 240.0) * 100).toInt().coerceAtLeast(1)
         val completion = ((elapsed.toDouble() / (workout.durationMinutes * 60)) * 100).toInt().coerceIn(1, 100)
+        val distanceKm = RideMetricCalculator.distanceKm(metrics)
         val hasRealTrainerData = session.hasRealTrainerData ||
             hasServerVerifiedTrainerData(userId, metrics) ||
             hasClientReportedTrainerData(request, metrics)
@@ -75,6 +80,8 @@ class SessionService(
                 tss = tss,
                 completionPercent = completion,
                 hasRealTrainerData = hasRealTrainerData,
+                averageSpeedKmh = RideMetricCalculator.averageSpeedKmh(distanceKm, elapsed),
+                totalDistanceKm = distanceKm,
             ),
         )
     }
@@ -98,7 +105,7 @@ class SessionService(
                 targetPower = request.targetPower,
                 cadence = request.cadence,
                 heartRate = request.heartRate,
-                speedKmh = request.speedKmh,
+                speedKmh = RideMetricCalculator.speedKmh(request.currentPower, session.riderWeightKg),
             ),
         )
         return MetricsAcceptedResponse(sessions.metricsForSession(sessionId).size, sample)

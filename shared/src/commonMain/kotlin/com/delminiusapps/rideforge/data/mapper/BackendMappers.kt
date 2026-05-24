@@ -83,6 +83,8 @@ fun WorkoutSessionDto.toDomainSummary(workoutName: String): WorkoutSession = Wor
     workoutName = workoutName,
     completedAtEpochMillis = parseEpochMillis(completedAt),
     hasRealTrainerData = hasRealTrainerData,
+    averageSpeedKmh = averageSpeedKmh,
+    totalDistanceKm = totalDistanceKm,
 )
 
 fun StravaStatusDto.toDomain(): StravaConnectionStatus = StravaConnectionStatus(

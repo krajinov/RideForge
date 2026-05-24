@@ -144,8 +144,9 @@ private fun Connection.seedWorkoutSessions(sessions: List<WorkoutSession>) {
         """
         INSERT INTO workout_sessions (
             id, user_id, workout_id, status, started_at, completed_at, elapsed_seconds,
-            average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data,
+            average_speed_kmh, total_distance_km, rider_weight_kg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (id) DO NOTHING
         """.trimIndent(),
     ).use { statement ->
@@ -163,6 +164,9 @@ private fun Connection.seedWorkoutSessions(sessions: List<WorkoutSession>) {
             statement.setNullableInt(11, session.tss)
             statement.setNullableInt(12, session.completionPercent)
             statement.setBoolean(13, session.hasRealTrainerData)
+            statement.setNullableDouble(14, session.averageSpeedKmh)
+            statement.setNullableDouble(15, session.totalDistanceKm)
+            statement.setDouble(16, session.riderWeightKg)
             statement.addBatch()
         }
         statement.executeBatch()
@@ -205,5 +209,13 @@ private fun PreparedStatement.setNullableInt(index: Int, value: Int?) {
         setNull(index, java.sql.Types.INTEGER)
     } else {
         setInt(index, value)
+    }
+}
+
+private fun PreparedStatement.setNullableDouble(index: Int, value: Double?) {
+    if (value == null) {
+        setNull(index, java.sql.Types.DOUBLE)
+    } else {
+        setDouble(index, value)
     }
 }

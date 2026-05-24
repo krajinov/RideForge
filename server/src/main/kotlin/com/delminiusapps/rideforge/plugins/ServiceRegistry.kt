@@ -91,7 +91,7 @@ class ServiceRegistry(config: AppConfig) : AutoCloseable {
     val profileService = ProfileService(userRepository)
     val trainingPlanService = TrainingPlanService(planRepository, workoutRepository, userRepository)
     val workoutService = WorkoutService(workoutRepository, userRepository)
-    val sessionService = SessionService(sessionRepository, workoutRepository, deviceRepository)
+    val sessionService = SessionService(sessionRepository, workoutRepository, deviceRepository, userRepository)
     val deviceService = DeviceService(deviceRepository)
     val stravaService = StravaService(
         config = config.strava,

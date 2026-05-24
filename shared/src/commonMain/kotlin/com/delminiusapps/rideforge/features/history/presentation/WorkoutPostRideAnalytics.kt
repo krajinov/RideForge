@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.utils.RideMetricCalculator
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -118,9 +119,10 @@ fun buildWorkoutAnalysis(
     val averagePower = powerValues.takeIf { it.isNotEmpty() }?.average()?.roundToInt()
         ?: summary.averagePowerWatts
     val normalizedPower = normalizedPower(samples) ?: summary.normalizedPowerWatts.coerceAtLeast(averagePower)
-    val distance = distanceKm(samples)
+    val distance = RideMetricCalculator.distanceKm(samples) ?: summary.totalDistanceKm
     val speedValues = samples.map { it.speedKmh }.filter { it > 0.0 }
     val averageSpeed = distance?.takeIf { elapsedSeconds > 0 }?.let { it / (elapsedSeconds / 3600.0) }
+        ?: summary.averageSpeedKmh
         ?: speedValues.takeIf { it.isNotEmpty() }?.average()
     val maxSpeed = speedValues.maxOrNull()
     val cadenceValues = samples.map { it.cadenceRpm }.filter { it > 0 }
@@ -213,20 +215,6 @@ private fun normalizedPower(samples: List<MetricSample>): Int? {
     if (rolling.isEmpty()) return null
     val fourthPowerAverage = rolling.map { it.pow(4.0) }.average()
     return fourthPowerAverage.pow(0.25).roundToInt()
-}
-
-private fun distanceKm(samples: List<MetricSample>): Double? {
-    if (samples.none { it.speedKmh > 0.0 } || samples.size < 2) return null
-    val distance = samples.zipWithNext().sumOf { (sample, next) ->
-        val seconds = (next.elapsedSeconds - sample.elapsedSeconds).coerceIn(0, 10)
-        val speed = when {
-            sample.speedKmh > 0.0 -> sample.speedKmh
-            next.speedKmh > 0.0 -> next.speedKmh
-            else -> 0.0
-        }
-        speed * (seconds / 3600.0)
-    }
-    return distance.takeIf { it > 0.0 }
 }
 
 private fun peakAveragePower(samples: List<MetricSample>, windowSeconds: Int): Int? {

@@ -27,6 +27,7 @@ import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.utils.RideMetricCalculator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,8 +76,11 @@ class ActiveWorkoutViewModel(
     private var lastKnownTrainerDeviceId: String? = null
     private var lastSentTargetPower: Int? = null
     private var liveSamples: List<MetricSample> = emptyList()
+    private var riderWeightKg = RideMetricCalculator.DefaultRiderWeightKg
+    private var totalDistanceKm = 0.0
     private var phase = ActiveWorkoutPhase.PRE_WORKOUT
     private var selectedControlMode = WorkoutControlMode.SIMULATION
+    private var controlModeSelectedByUser = false
     private var countdownSeconds: Int? = null
     private var isCheckingDevice = false
     private var isReconnectingTrainer = false
@@ -126,6 +130,7 @@ class ActiveWorkoutViewModel(
                 if (snapshot.connectedDevice != null) {
                     lastKnownTrainerDeviceId = snapshot.connectedDevice.id
                 }
+                maybeDefaultToTrainerMode(snapshot)
                 if (snapshot.error?.type == TrainerErrorType.PERMISSION_DENIED) {
                     selectedControlMode = WorkoutControlMode.SIMULATION
                     ergControlEnabled = false
@@ -147,15 +152,22 @@ class ActiveWorkoutViewModel(
                 val matchingStoredWorkout = storedWorkout?.takeIf { it.workoutId == workout.id }
                 val user = runCatching { getCurrentUserUseCase() }.getOrNull()
                 val ftp = matchingStoredWorkout?.ftpWatts ?: user?.ftpWatts ?: 240
+                riderWeightKg = matchingStoredWorkout?.riderWeightKg
+                    ?: user?.weightKg
+                    ?: RideMetricCalculator.DefaultRiderWeightKg
                 val restoredElapsedSeconds = matchingStoredWorkout
                     ?.let { restoredElapsedSeconds(it, workout.intervals.sumOf { interval -> interval.durationSeconds }) }
                     ?: 0
 
                 resumedFromStorage = matchingStoredWorkout != null
+                controlModeSelectedByUser = matchingStoredWorkout != null
                 selectedControlMode = matchingStoredWorkout?.controlMode
                     ?: if (latestTrainerConnectionState == ConnectionState.CONNECTED) WorkoutControlMode.TRAINER else WorkoutControlMode.SIMULATION
                 ergControlEnabled = matchingStoredWorkout?.ergEnabled ?: (selectedControlMode == WorkoutControlMode.TRAINER)
                 liveSamples = matchingStoredWorkout?.samples.orEmpty()
+                totalDistanceKm = matchingStoredWorkout?.distanceKm
+                    ?: RideMetricCalculator.distanceKm(liveSamples)
+                    ?: 0.0
                 recordedRealTrainerData = matchingStoredWorkout?.controlMode == WorkoutControlMode.TRAINER &&
                     liveSamples.any { it.hasTrainerSignal() }
                 phase = if (matchingStoredWorkout != null) ActiveWorkoutPhase.ACTIVE else ActiveWorkoutPhase.PRE_WORKOUT
@@ -233,6 +245,7 @@ class ActiveWorkoutViewModel(
     }
 
     private fun selectControlMode(mode: WorkoutControlMode) {
+        controlModeSelectedByUser = true
         selectedControlMode = mode
         ergControlEnabled = mode == WorkoutControlMode.TRAINER
         ergCommandFailed = false
@@ -261,8 +274,33 @@ class ActiveWorkoutViewModel(
             if (latestTrainerConnectionState != ConnectionState.CONNECTED) {
                 selectedControlMode = WorkoutControlMode.SIMULATION
                 ergControlEnabled = false
+            } else {
+                maybeDefaultToTrainerMode(
+                    TrainerSnapshot(
+                        connectionState = latestTrainerConnectionState,
+                        metrics = latestTrainerMetrics,
+                        controlState = latestTrainerControlState,
+                        connectedDevice = latestConnectedDevice,
+                        error = latestTrainerError,
+                    ),
+                )
             }
             updateReadyState()
+        }
+    }
+
+    private fun maybeDefaultToTrainerMode(snapshot: TrainerSnapshot) {
+        if (
+            phase == ActiveWorkoutPhase.PRE_WORKOUT &&
+            !resumedFromStorage &&
+            !controlModeSelectedByUser &&
+            snapshot.connectionState == ConnectionState.CONNECTED &&
+            snapshot.connectedDevice != null &&
+            snapshot.error?.type != TrainerErrorType.PERMISSION_DENIED
+        ) {
+            selectedControlMode = WorkoutControlMode.TRAINER
+            ergControlEnabled = true
+            ergCommandFailed = false
         }
     }
 
@@ -561,6 +599,8 @@ class ActiveWorkoutViewModel(
             isPaused = engineState.isPaused,
             ergEnabled = ergControlEnabled,
             updatedAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
+            riderWeightKg = riderWeightKg,
+            distanceKm = totalDistanceKm,
         )
         val key = workout.persistenceKey()
         if (!force && key == lastQueuedActiveWorkoutKey) return
@@ -622,6 +662,7 @@ class ActiveWorkoutViewModel(
                     banners = currentBanners(),
                     completionSessionId = completionSessionId,
                     resumedFromStorage = resumedFromStorage,
+                    distanceKm = totalDistanceKm,
                 )
             }
         }
@@ -633,7 +674,7 @@ class ActiveWorkoutViewModel(
             selectedControlMode == WorkoutControlMode.SIMULATION ||
             latestTrainerConnectionState != ConnectionState.CONNECTED
         ) {
-            return engineState.sample
+            return engineState.sample.withCalculatedSpeed()
         }
 
         return MetricSample(
@@ -642,7 +683,7 @@ class ActiveWorkoutViewModel(
             targetPowerWatts = engineState.sample.targetPowerWatts,
             cadenceRpm = trainerMetrics.cadence,
             heartRateBpm = trainerMetrics.heartRate,
-            speedKmh = trainerMetrics.speedKmh,
+            speedKmh = RideMetricCalculator.speedKmh(trainerMetrics.powerWatts, riderWeightKg),
         )
     }
 
@@ -651,17 +692,30 @@ class ActiveWorkoutViewModel(
         if (liveSamples.lastOrNull()?.elapsedSeconds == sample.elapsedSeconds) {
             liveSamples = liveSamples.dropLast(1) + sample
         } else {
+            totalDistanceKm += distanceDeltaForNextSample(sample)
             liveSamples = liveSamples + sample
         }
         liveSamples = liveSamples.takeLast(96)
     }
 
     private fun resolvedSamples(engineState: ActiveWorkoutState): List<MetricSample> {
-        return if (selectedControlMode == WorkoutControlMode.TRAINER && liveSamples.isNotEmpty()) {
-            liveSamples
-        } else {
-            engineState.samples
-        }
+        return liveSamples.takeIf { it.isNotEmpty() }
+            ?: engineState.samples.map { it.withCalculatedSpeed() }
+    }
+
+    private fun MetricSample.withCalculatedSpeed(): MetricSample =
+        copy(speedKmh = RideMetricCalculator.speedKmh(currentPowerWatts, riderWeightKg))
+
+    private fun distanceDeltaForNextSample(sample: MetricSample): Double {
+        val previous = liveSamples.lastOrNull() ?: MetricSample(
+            elapsedSeconds = 0,
+            currentPowerWatts = 0,
+            targetPowerWatts = sample.targetPowerWatts,
+            cadenceRpm = 0,
+            heartRateBpm = 0,
+            speedKmh = sample.speedKmh,
+        )
+        return RideMetricCalculator.distanceDeltaKm(previous, sample)
     }
 
     private fun currentBanners(): List<ActiveWorkoutBanner> = buildList {
@@ -788,6 +842,8 @@ private data class ActiveWorkoutPersistenceKey(
     val controlMode: WorkoutControlMode,
     val isPaused: Boolean,
     val ergEnabled: Boolean,
+    val riderWeightKg: Double,
+    val distanceKm: Double,
 )
 
 private fun StoredActiveWorkout.persistenceKey(): ActiveWorkoutPersistenceKey {
@@ -800,6 +856,8 @@ private fun StoredActiveWorkout.persistenceKey(): ActiveWorkoutPersistenceKey {
         controlMode = controlMode,
         isPaused = isPaused,
         ergEnabled = ergEnabled,
+        riderWeightKg = riderWeightKg,
+        distanceKm = distanceKm,
     )
 }
 
@@ -842,6 +900,7 @@ sealed interface ActiveWorkoutUiState {
         val banners: List<ActiveWorkoutBanner>,
         val completionSessionId: String?,
         val resumedFromStorage: Boolean,
+        val distanceKm: Double,
     ) : ActiveWorkoutUiState
     data object Error : ActiveWorkoutUiState
 }

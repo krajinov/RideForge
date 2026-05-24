@@ -53,6 +53,7 @@ import com.delminiusapps.rideforge.theme.ForgeOrange
 import com.delminiusapps.rideforge.theme.ForgeRed
 import com.delminiusapps.rideforge.theme.ForgeSurfaceHigh
 import com.delminiusapps.rideforge.utils.formatDuration
+import com.delminiusapps.rideforge.utils.formatOneDecimal
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -70,11 +71,13 @@ import rideforge.composeapp.generated.resources.workout_pause
 import rideforge.composeapp.generated.resources.workout_remaining
 import rideforge.composeapp.generated.resources.workout_resume
 import rideforge.composeapp.generated.resources.workout_skip_interval
+import rideforge.composeapp.generated.resources.workout_speed
 import rideforge.composeapp.generated.resources.workout_sync_failed
 import rideforge.composeapp.generated.resources.workout_sync_pending
 import rideforge.composeapp.generated.resources.workout_sync_synced
 import rideforge.composeapp.generated.resources.workout_sync_syncing
 import rideforge.composeapp.generated.resources.workout_target
+import rideforge.composeapp.generated.resources.workout_distance
 import rideforge.composeapp.generated.resources.workout_total_progress
 import rideforge.composeapp.generated.resources.workout_watts
 
@@ -235,6 +238,12 @@ fun ActiveWorkoutScreen(
                     BigMetric(stringResource(Res.string.workout_target), "${sample.targetPowerWatts} W", ForgeBlue, Modifier.weight(1f))
                     BigMetric(stringResource(Res.string.workout_cadence), "${sample.cadenceRpm} rpm", ForgeGreen, Modifier.weight(1f))
                     BigMetric(stringResource(Res.string.workout_heart_rate), "${sample.heartRateBpm}", ForgeRed, Modifier.weight(1f))
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    BigMetric(stringResource(Res.string.workout_speed), "${formatOneDecimal(sample.speedKmh)} km/h", ForgeBlue, Modifier.weight(1f))
+                    BigMetric(stringResource(Res.string.workout_distance), "${formatOneDecimal(readyState.distanceKm)} km", ForgeGreen, Modifier.weight(1f))
                 }
             }
             item {

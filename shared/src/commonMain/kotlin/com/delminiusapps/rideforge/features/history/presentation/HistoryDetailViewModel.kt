@@ -8,12 +8,15 @@ import com.delminiusapps.rideforge.domain.usecase.GetSessionMetricsUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetSessionSummaryUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetWorkoutUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.StravaSyncInfo
 import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutSession
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,6 +32,7 @@ class HistoryDetailViewModel(
     private val getWorkoutUseCase: GetWorkoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getRideHistoryUseCase: GetRideHistoryUseCase,
+    private val syncPendingSessionsUseCase: SyncPendingSessionsUseCase,
     private val syncWorkoutToStravaUseCase: SyncWorkoutToStravaUseCase,
     private val getStravaSyncStatusUseCase: GetStravaSyncStatusUseCase,
     private val sessionId: String,
@@ -38,6 +42,8 @@ class HistoryDetailViewModel(
 
     private val _events = MutableSharedFlow<HistoryDetailEvent>()
     val events: SharedFlow<HistoryDetailEvent> = _events.asSharedFlow()
+
+    private var stravaStatusPollingJob: Job? = null
 
     init {
         loadDetails()
@@ -59,7 +65,8 @@ class HistoryDetailViewModel(
                 val userFtp = runCatching { getCurrentUserUseCase().ftpWatts }.getOrDefault(240)
                 val history = runCatching { getRideHistoryUseCase() }.getOrDefault(emptyList())
                 val historyItem = history.firstOrNull { it.id == sessionId }
-                val strava = runCatching { getStravaSyncStatusUseCase(sessionId) }.getOrNull()
+                val stravaSessionId = summary.id.ifBlank { sessionId }
+                val strava = runCatching { getStravaSyncStatusUseCase(stravaSessionId) }.getOrNull()
                 val analysis = buildWorkoutAnalysis(
                     summary = summary,
                     workout = workout,
@@ -70,6 +77,7 @@ class HistoryDetailViewModel(
                 HistoryDetailUiState.Ready(summary, workout, historyItem, userFtp, analysis, strava)
             }.onSuccess { ready ->
                 _state.update { ready }
+                maybePollStravaStatus(ready.summary.id.ifBlank { sessionId }, ready.stravaSync)
             }.onFailure {
                 _state.update { HistoryDetailUiState.Error }
             }
@@ -87,17 +95,22 @@ class HistoryDetailViewModel(
         }
         viewModelScope.launch {
             runCatching {
-                syncWorkoutToStravaUseCase(ready.summary.id)
-            }.onSuccess { sync ->
+                syncPendingSessionsUseCase()
+                val summary = getSessionSummaryUseCase(sessionId)
+                val stravaSessionId = summary.id.ifBlank { sessionId }
+                StravaSyncResult(summary, stravaSessionId, syncWorkoutToStravaUseCase(stravaSessionId))
+            }.onSuccess { result ->
                 _state.update { state ->
                     when (state) {
                         is HistoryDetailUiState.Ready -> state.copy(
-                            stravaSync = sync,
+                            summary = result.summary,
+                            stravaSync = result.sync,
                             isStravaSyncing = false,
                         )
                         else -> state
                     }
                 }
+                maybePollStravaStatus(result.sessionId, result.sync)
             }.onFailure {
                 _state.update { state ->
                     when (state) {
@@ -121,7 +134,42 @@ class HistoryDetailViewModel(
             _events.emit(HistoryDetailEvent.OpenUrl(url))
         }
     }
+
+    private fun maybePollStravaStatus(sessionId: String, sync: StravaSyncInfo?) {
+        stravaStatusPollingJob?.cancel()
+        stravaStatusPollingJob = null
+        if (sync?.state != StravaSyncState.Syncing) return
+        stravaStatusPollingJob = viewModelScope.launch {
+            while (true) {
+                delay(StravaStatusPollIntervalMillis)
+                val latest = runCatching { getStravaSyncStatusUseCase(sessionId) }.getOrNull() ?: continue
+                _state.update { state ->
+                    when (state) {
+                        is HistoryDetailUiState.Ready -> state.copy(
+                            stravaSync = latest,
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+                if (latest.state != StravaSyncState.Syncing) {
+                    stravaStatusPollingJob = null
+                    return@launch
+                }
+            }
+        }
+    }
+
+    private companion object {
+        const val StravaStatusPollIntervalMillis = 5_000L
+    }
 }
+
+private data class StravaSyncResult(
+    val summary: WorkoutSession,
+    val sessionId: String,
+    val sync: StravaSyncInfo,
+)
 
 sealed interface HistoryDetailUiState {
     data object Loading : HistoryDetailUiState

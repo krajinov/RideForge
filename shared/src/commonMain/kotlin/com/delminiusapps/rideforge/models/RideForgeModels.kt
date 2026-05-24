@@ -102,6 +102,8 @@ data class WorkoutSession(
     val workoutName: String = "",
     val completedAtEpochMillis: Long? = null,
     val hasRealTrainerData: Boolean = false,
+    val averageSpeedKmh: Double? = null,
+    val totalDistanceKm: Double? = null,
 )
 
 @Serializable

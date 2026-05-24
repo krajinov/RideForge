@@ -174,7 +174,7 @@ class SqlDelightRideForgeKeyValueStore(
     }
 
     override suspend fun getLocalSessions(): LocalWorkoutSessionSnapshot = mutex.withLock {
-        val sessions = database.rideForgeDatabaseQueries.selectLocalWorkoutSessions { id, workoutId, workoutName, elapsedSeconds, averagePowerWatts, normalizedPowerWatts, calories, tss, completionPercent, completedAtEpochMillis ->
+        val sessions = database.rideForgeDatabaseQueries.selectLocalWorkoutSessions { id, workoutId, workoutName, elapsedSeconds, averagePowerWatts, normalizedPowerWatts, calories, tss, completionPercent, completedAtEpochMillis, averageSpeedKmh, totalDistanceKm ->
             workoutSession(
                 id = id,
                 workoutId = workoutId,
@@ -186,6 +186,8 @@ class SqlDelightRideForgeKeyValueStore(
                 tss = tss,
                 completionPercent = completionPercent,
                 completedAtEpochMillis = completedAtEpochMillis,
+                averageSpeedKmh = averageSpeedKmh,
+                totalDistanceKm = totalDistanceKm,
             )
         }.executeAsList()
         val metricRows = database.rideForgeDatabaseQueries.selectLocalWorkoutMetricSamples { sessionId, elapsedSeconds, currentPowerWatts, targetPowerWatts, cadenceRpm, heartRateBpm, speedKmh ->
@@ -225,7 +227,7 @@ class SqlDelightRideForgeKeyValueStore(
     }
 
     override suspend fun getLocalSession(sessionId: String): WorkoutSession? = mutex.withLock {
-        database.rideForgeDatabaseQueries.selectLocalWorkoutSession(sessionId) { id, workoutId, workoutName, elapsedSeconds, averagePowerWatts, normalizedPowerWatts, calories, tss, completionPercent, completedAtEpochMillis ->
+        database.rideForgeDatabaseQueries.selectLocalWorkoutSession(sessionId) { id, workoutId, workoutName, elapsedSeconds, averagePowerWatts, normalizedPowerWatts, calories, tss, completionPercent, completedAtEpochMillis, averageSpeedKmh, totalDistanceKm ->
             workoutSession(
                 id = id,
                 workoutId = workoutId,
@@ -237,6 +239,8 @@ class SqlDelightRideForgeKeyValueStore(
                 tss = tss,
                 completionPercent = completionPercent,
                 completedAtEpochMillis = completedAtEpochMillis,
+                averageSpeedKmh = averageSpeedKmh,
+                totalDistanceKm = totalDistanceKm,
             )
         }.executeAsOneOrNull()
     }
@@ -284,7 +288,7 @@ class SqlDelightRideForgeKeyValueStore(
     }
 
     override suspend fun getActiveWorkout(): StoredActiveWorkout? = mutex.withLock {
-        val row = database.rideForgeDatabaseQueries.selectActiveWorkout { workoutId, sessionId, ftpWatts, elapsedSeconds, controlMode, isPaused, ergEnabled, updatedAtEpochMillis ->
+        val row = database.rideForgeDatabaseQueries.selectActiveWorkout { workoutId, sessionId, ftpWatts, elapsedSeconds, controlMode, isPaused, ergEnabled, updatedAtEpochMillis, riderWeightKg, distanceKm ->
             ActiveWorkoutRow(
                 workoutId = workoutId,
                 sessionId = sessionId,
@@ -294,6 +298,8 @@ class SqlDelightRideForgeKeyValueStore(
                 isPaused = isPaused,
                 ergEnabled = ergEnabled,
                 updatedAtEpochMillis = updatedAtEpochMillis,
+                riderWeightKg = riderWeightKg,
+                distanceKm = distanceKm,
             )
         }.executeAsOneOrNull() ?: return@withLock null
         activeWorkout(row)
@@ -311,6 +317,8 @@ class SqlDelightRideForgeKeyValueStore(
                     is_paused = workout.isPaused.toLong(),
                     erg_enabled = workout.ergEnabled.toLong(),
                     updated_at_epoch_millis = workout.updatedAtEpochMillis,
+                    rider_weight_kg = workout.riderWeightKg,
+                    distance_km = workout.distanceKm,
                 )
                 syncActiveWorkoutSamples(workout.samples)
             }
@@ -391,6 +399,8 @@ class SqlDelightRideForgeKeyValueStore(
             isPaused = row.isPaused != 0L,
             ergEnabled = row.ergEnabled != 0L,
             updatedAtEpochMillis = row.updatedAtEpochMillis,
+            riderWeightKg = row.riderWeightKg,
+            distanceKm = row.distanceKm,
         )
     }
 
@@ -492,6 +502,8 @@ class SqlDelightRideForgeKeyValueStore(
             tss = session.tss.toLong(),
             completion_percent = session.completionPercent.toLong(),
             completed_at_epoch_millis = session.completedAtEpochMillis,
+            average_speed_kmh = session.averageSpeedKmh,
+            total_distance_km = session.totalDistanceKm,
         )
     }
 
@@ -518,6 +530,8 @@ class SqlDelightRideForgeKeyValueStore(
         tss: Long,
         completionPercent: Long,
         completedAtEpochMillis: Long?,
+        averageSpeedKmh: Double?,
+        totalDistanceKm: Double?,
     ): WorkoutSession {
         return WorkoutSession(
             id = id,
@@ -530,6 +544,8 @@ class SqlDelightRideForgeKeyValueStore(
             tss = tss.toInt(),
             completionPercent = completionPercent.toInt(),
             completedAtEpochMillis = completedAtEpochMillis,
+            averageSpeedKmh = averageSpeedKmh,
+            totalDistanceKm = totalDistanceKm,
         )
     }
 
@@ -624,6 +640,8 @@ class SqlDelightRideForgeKeyValueStore(
         val isPaused: Long,
         val ergEnabled: Long,
         val updatedAtEpochMillis: Long,
+        val riderWeightKg: Double,
+        val distanceKm: Double,
     )
 
     private data class ActiveWorkoutSampleRow(
