@@ -5,6 +5,7 @@ import com.delminiusapps.rideforge.domain.repository.SessionRepository
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.utils.RideMetricCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -80,6 +81,7 @@ class LocalWorkoutSessionRepository(
             ?.average()
             ?.roundToInt()
             ?: 240
+        val distanceKm = RideMetricCalculator.distanceKm(metrics) ?: existing?.totalDistanceKm
         val summary = (existing ?: WorkoutSession(
             id = sessionId,
             workoutId = sessionId.removePrefix("local-").substringBeforeLast("-"),
@@ -99,6 +101,8 @@ class LocalWorkoutSessionRepository(
             completionPercent = if (elapsed > 0) 100 else 0,
             completedAtEpochMillis = existing?.completedAtEpochMillis ?: Clock.System.now().toEpochMilliseconds(),
             hasRealTrainerData = hasRealTrainerData || existing?.hasRealTrainerData == true,
+            averageSpeedKmh = RideMetricCalculator.averageSpeedKmh(distanceKm, elapsed),
+            totalDistanceKm = distanceKm,
         )
         storage.upsertLocalSession(summary)
         summary
@@ -127,6 +131,7 @@ class LocalWorkoutSessionRepository(
             ?.average()
             ?.roundToInt()
             ?: 240
+        val distanceKm = RideMetricCalculator.distanceKm(metrics)
         return WorkoutSession(
             id = sessionId,
             workoutId = sessionId.removePrefix("local-").substringBeforeLast("-"),
@@ -137,6 +142,8 @@ class LocalWorkoutSessionRepository(
             calories = caloriesFor(average, elapsed),
             tss = tssFor(normalized, elapsed, impliedFtp),
             completionPercent = if (elapsed > 0) 100 else 0,
+            averageSpeedKmh = RideMetricCalculator.averageSpeedKmh(distanceKm, elapsed),
+            totalDistanceKm = distanceKm,
         )
     }
 

@@ -32,16 +32,20 @@ import com.delminiusapps.rideforge.presentation.components.ProgressGraph
 import com.delminiusapps.rideforge.presentation.components.ScreenHeader
 import com.delminiusapps.rideforge.presentation.components.ScreenLazyColumn
 import com.delminiusapps.rideforge.presentation.components.SecondaryButton
+import com.delminiusapps.rideforge.theme.ForgeBlue
 import com.delminiusapps.rideforge.theme.ForgeGreen
 import com.delminiusapps.rideforge.theme.ForgeMuted
 import com.delminiusapps.rideforge.theme.ForgeOrange
 import com.delminiusapps.rideforge.theme.ForgeStrava
 import com.delminiusapps.rideforge.utils.formatDuration
+import com.delminiusapps.rideforge.utils.formatOneDecimal
 import org.jetbrains.compose.resources.stringResource
 import rideforge.composeapp.generated.resources.Res
+import rideforge.composeapp.generated.resources.workout_complete_average_speed
 import rideforge.composeapp.generated.resources.workout_complete_average_power
 import rideforge.composeapp.generated.resources.workout_complete_calories
 import rideforge.composeapp.generated.resources.workout_complete_completion
+import rideforge.composeapp.generated.resources.workout_complete_distance
 import rideforge.composeapp.generated.resources.workout_complete_duration
 import rideforge.composeapp.generated.resources.workout_complete_load_error
 import rideforge.composeapp.generated.resources.workout_complete_loading_summary
@@ -127,6 +131,21 @@ fun WorkoutCompleteScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                         MetricCard(stringResource(Res.string.workout_complete_duration), formatDuration(loadedSummary.elapsedSeconds), modifier = Modifier.weight(1f))
                         MetricCard(stringResource(Res.string.workout_complete_average_power), "${loadedSummary.averagePowerWatts} W", ForgeGreen, Modifier.weight(1f))
+                    }
+                }
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        MetricCard(
+                            stringResource(Res.string.workout_complete_distance),
+                            loadedSummary.totalDistanceKm?.let { "${formatOneDecimal(it)} km" } ?: "N/A",
+                            modifier = Modifier.weight(1f),
+                        )
+                        MetricCard(
+                            stringResource(Res.string.workout_complete_average_speed),
+                            loadedSummary.averageSpeedKmh?.let { "${formatOneDecimal(it)} km/h" } ?: "N/A",
+                            ForgeBlue,
+                            Modifier.weight(1f),
+                        )
                     }
                 }
                 item {

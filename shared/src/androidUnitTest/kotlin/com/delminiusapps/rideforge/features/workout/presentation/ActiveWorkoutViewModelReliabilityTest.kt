@@ -37,6 +37,7 @@ import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutInterval
 import com.delminiusapps.rideforge.models.WorkoutSession
 import com.delminiusapps.rideforge.models.WorkoutType
+import com.delminiusapps.rideforge.utils.RideMetricCalculator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.math.abs
 import kotlin.time.Clock
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -150,6 +152,33 @@ class ActiveWorkoutViewModelReliabilityTest {
             assertEquals(0, ready.displaySample.cadenceRpm)
             assertEquals(0.0, ready.displaySample.speedKmh)
             assertEquals(119, ready.displaySample.heartRateBpm)
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
+    fun trainerModeUsesCalculatedSpeedInsteadOfTrainerReportedSpeed() = runTest(dispatcher) {
+        val environment = TestEnvironment(dispatcher)
+        environment.trainer.setConnected()
+        val viewModel = environment.createViewModel()
+        try {
+            runCurrent()
+
+            viewModel.onAction(ActiveWorkoutAction.SelectControlMode(WorkoutControlMode.TRAINER))
+            viewModel.onAction(ActiveWorkoutAction.Start)
+            advanceTimeBy(3_100)
+            runCurrent()
+
+            environment.trainer.setMetrics(TrainerMetrics(powerWatts = 190, cadence = 88, speedKmh = 55.0, heartRate = 130))
+            advanceTimeBy(1_100)
+            runCurrent()
+
+            val ready = viewModel.readyState()
+            val expectedSpeed = RideMetricCalculator.speedKmh(190, riderWeightKg = 75.0)
+            assertTrue(abs(ready.displaySample.speedKmh - expectedSpeed) < 0.0001)
+            assertTrue(ready.distanceKm > 0.0)
+            assertTrue(abs(ready.displaySample.speedKmh - 55.0) > 0.1)
         } finally {
             viewModel.clearForTest()
         }

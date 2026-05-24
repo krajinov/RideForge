@@ -103,6 +103,8 @@ data class WorkoutSessionDto(
     val tss: Int? = null,
     val completionPercent: Int? = null,
     val hasRealTrainerData: Boolean = false,
+    val averageSpeedKmh: Double? = null,
+    val totalDistanceKm: Double? = null,
 )
 
 @Serializable

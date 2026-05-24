@@ -92,6 +92,34 @@ class WorkoutPostRideAnalyticsTest {
         assertTrue(analysis.speedSeries.isEmpty())
     }
 
+    @Test
+    fun usesSummarySpeedAndDistanceWhenSampleSpeedIsUnavailable() {
+        val summary = WorkoutSession(
+            id = "session-c",
+            workoutId = "workout-a",
+            workoutName = "Endurance",
+            elapsedSeconds = 1_800,
+            averagePowerWatts = 180,
+            normalizedPowerWatts = 190,
+            calories = 360,
+            tss = 42,
+            completionPercent = 100,
+            averageSpeedKmh = 30.0,
+            totalDistanceKm = 15.0,
+        )
+
+        val analysis = buildWorkoutAnalysis(
+            summary = summary,
+            workout = workout(),
+            metrics = emptyList(),
+            userFtp = 250,
+            history = emptyList(),
+        )
+
+        assertEquals(15.0, analysis.distanceKm)
+        assertEquals(30.0, analysis.averageSpeedKmh)
+    }
+
     private fun workout(): Workout = Workout(
         id = "workout-a",
         name = "Threshold Builder",

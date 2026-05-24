@@ -356,6 +356,8 @@ class SqlDelightRideForgeKeyValueStoreTest {
         assertEquals(listOf(first, second), repository.getSessionMetrics(session.id))
         assertEquals(200, summary.averagePowerWatts)
         assertEquals(216, summary.normalizedPowerWatts)
+        assertNotNull(summary.averageSpeedKmh)
+        assertNotNull(summary.totalDistanceKm)
         assertNotNull(summary.completedAtEpochMillis)
         assertEquals(summary, repository.getSessionSummary(session.id))
         assertEquals(null, store.readString("local_workout_sessions"))

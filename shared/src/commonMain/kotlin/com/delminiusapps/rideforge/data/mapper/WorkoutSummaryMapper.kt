@@ -2,6 +2,7 @@ package com.delminiusapps.rideforge.data.mapper
 
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.utils.RideMetricCalculator
 
 class WorkoutSummaryMapper {
     fun fromMetrics(
@@ -18,6 +19,7 @@ class WorkoutSummaryMapper {
             ?: 0
         val normalizedPower = (averagePower * 1.10).toInt().coerceAtLeast(averagePower)
         val calories = ((averagePower * elapsedSeconds) / 1000.0 * 3.6).toInt().coerceAtLeast(0)
+        val distanceKm = RideMetricCalculator.distanceKm(samples)
         return WorkoutSession(
             id = sessionId,
             workoutId = workoutId,
@@ -28,6 +30,8 @@ class WorkoutSummaryMapper {
             calories = calories,
             tss = 68,
             completionPercent = 96,
+            averageSpeedKmh = RideMetricCalculator.averageSpeedKmh(distanceKm, elapsedSeconds),
+            totalDistanceKm = distanceKm,
         )
     }
 }

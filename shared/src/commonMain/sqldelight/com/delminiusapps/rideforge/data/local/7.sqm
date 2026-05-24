@@ -1,0 +1,7 @@
+ALTER TABLE local_workout_session ADD COLUMN average_speed_kmh REAL;
+
+ALTER TABLE local_workout_session ADD COLUMN total_distance_km REAL;
+
+ALTER TABLE active_workout ADD COLUMN rider_weight_kg REAL NOT NULL DEFAULT 78.0;
+
+ALTER TABLE active_workout ADD COLUMN distance_km REAL NOT NULL DEFAULT 0.0;

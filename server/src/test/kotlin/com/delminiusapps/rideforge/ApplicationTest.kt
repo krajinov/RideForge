@@ -174,6 +174,45 @@ class ApplicationTest {
     }
 
     @Test
+    fun sessionMetricsUseCalculatedSpeedAndCompletionReturnsDistance() = testApplication {
+        application { module(testAppConfig()) }
+
+        val token = loginToken()
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"vo2-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        val firstMetric = client.post("/sessions/$sessionId/metrics") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":10,"currentPower":200,"targetPower":200,"cadence":88,"heartRate":130,"speedKmh":99.0}""")
+        }
+        val secondMetric = client.post("/sessions/$sessionId/metrics") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":20,"currentPower":220,"targetPower":220,"cadence":90,"heartRate":134,"speedKmh":99.0}""")
+        }
+        assertEquals(HttpStatusCode.OK, firstMetric.status)
+        assertEquals(HttpStatusCode.OK, secondMetric.status)
+        assertTrue(!firstMetric.bodyAsText().contains(""""speedKmh":99.0"""))
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":20,"hasRealTrainerData":true}""")
+        }
+
+        assertEquals(HttpStatusCode.OK, completed.status)
+        val body = completed.bodyAsText()
+        assertTrue(body.contains(""""averageSpeedKmh":"""))
+        assertTrue(body.contains(""""totalDistanceKm":"""))
+    }
+
+    @Test
     fun stravaStatusStartsDisconnected() = testApplication {
         application { module(testAppConfig()) }
 
@@ -486,6 +525,9 @@ class ApplicationTest {
                 assertEquals(HttpStatusCode.OK, sync.status)
                 assertTrue(sync.bodyAsText().contains(""""status":"synced""""))
                 assertEquals(1, strava.count("POST", "/api/v3/uploads"))
+                val uploadBody = strava.bodyFor("POST", "/api/v3/uploads").orEmpty()
+                assertTrue(uploadBody.contains("<DistanceMeters>"))
+                assertTrue(uploadBody.contains("<ns3:Speed>"))
             }
         }
     }

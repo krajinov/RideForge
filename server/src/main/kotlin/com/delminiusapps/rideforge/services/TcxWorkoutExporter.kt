@@ -107,13 +107,16 @@ class TcxWorkoutExporter {
     private fun distanceMetersByElapsed(points: List<ResolvedTrackpoint>): List<Pair<Int, Double>> {
         if (points.isEmpty()) return emptyList()
         var distance = 0.0
-        var previousElapsed = points.first().elapsedSeconds
-        return points.mapIndexed { index, point ->
-            if (index > 0) {
-                val deltaSeconds = max(0, point.elapsedSeconds - previousElapsed)
-                distance += (point.sample.speedKmh / 3.6) * deltaSeconds
-                previousElapsed = point.elapsedSeconds
+        var previousElapsed = 0
+        var previousSpeedKmh = points.first().sample.speedKmh
+        return points.map { point ->
+            val deltaSeconds = max(0, point.elapsedSeconds - previousElapsed)
+            if (deltaSeconds > 0) {
+                val speedKmh = previousSpeedKmh.takeIf { it > 0.0 } ?: point.sample.speedKmh
+                distance += (speedKmh / 3.6) * deltaSeconds
             }
+            previousElapsed = point.elapsedSeconds
+            previousSpeedKmh = point.sample.speedKmh
             point.elapsedSeconds to distance
         }
     }

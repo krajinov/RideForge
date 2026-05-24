@@ -25,6 +25,8 @@ data class StoredActiveWorkout(
     val isPaused: Boolean,
     val ergEnabled: Boolean,
     val updatedAtEpochMillis: Long,
+    val riderWeightKg: Double = 78.0,
+    val distanceKm: Double = 0.0,
 )
 
 @Serializable

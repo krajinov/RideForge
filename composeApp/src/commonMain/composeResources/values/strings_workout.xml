@@ -7,6 +7,8 @@
     <string name="workout_target">Target</string>
     <string name="workout_cadence">Cadence</string>
     <string name="workout_heart_rate">Heart rate</string>
+    <string name="workout_speed">Speed</string>
+    <string name="workout_distance">Distance</string>
     <string name="workout_remaining">Remaining</string>
     <string name="workout_next">Next</string>
     <string name="workout_finish">Finish</string>
@@ -26,6 +28,8 @@
     <string name="workout_complete_load_error">Unable to load completed workout.</string>
     <string name="workout_complete_summary_format">%1$s summary</string>
     <string name="workout_complete_duration">Duration</string>
+    <string name="workout_complete_distance">Distance</string>
+    <string name="workout_complete_average_speed">Avg Speed</string>
     <string name="workout_complete_average_power">Avg Power</string>
     <string name="workout_complete_normalized_power">Normalized</string>
     <string name="workout_complete_calories">Calories</string>

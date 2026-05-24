@@ -172,8 +172,9 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             """
             INSERT INTO workout_sessions (
                 id, user_id, workout_id, status, started_at, completed_at, elapsed_seconds,
-                average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data,
+                average_speed_kmh, total_distance_km
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
         ).use { statement ->
             statement.bindSession(session)
@@ -195,7 +196,8 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             UPDATE workout_sessions
             SET user_id = ?, workout_id = ?, status = ?, started_at = ?, completed_at = ?,
                 elapsed_seconds = ?, average_power = ?, normalized_power = ?, calories = ?,
-                tss = ?, completion_percent = ?, has_real_trainer_data = ?
+                tss = ?, completion_percent = ?, has_real_trainer_data = ?,
+                average_speed_kmh = ?, total_distance_km = ?
             WHERE id = ?
             """.trimIndent(),
         ).use { statement ->
@@ -211,7 +213,9 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             statement.setNullableInt(10, session.tss)
             statement.setNullableInt(11, session.completionPercent)
             statement.setBoolean(12, session.hasRealTrainerData)
-            statement.setString(13, session.id)
+            statement.setNullableDouble(13, session.averageSpeedKmh)
+            statement.setNullableDouble(14, session.totalDistanceKm)
+            statement.setString(15, session.id)
             statement.executeUpdate()
         }
         session
@@ -558,6 +562,8 @@ private fun PreparedStatement.bindSession(session: WorkoutSession) {
     setNullableInt(11, session.tss)
     setNullableInt(12, session.completionPercent)
     setBoolean(13, session.hasRealTrainerData)
+    setNullableDouble(14, session.averageSpeedKmh)
+    setNullableDouble(15, session.totalDistanceKm)
 }
 
 private fun Connection.currentDevice(userId: String): Device? =
@@ -657,6 +663,8 @@ private fun ResultSet.toWorkoutSession(): WorkoutSession = WorkoutSession(
     tss = getIntOrNull("tss"),
     completionPercent = getIntOrNull("completion_percent"),
     hasRealTrainerData = getBoolean("has_real_trainer_data"),
+    averageSpeedKmh = getDoubleOrNull("average_speed_kmh"),
+    totalDistanceKm = getDoubleOrNull("total_distance_km"),
 )
 
 private fun ResultSet.toMetricSample(): MetricSample = MetricSample(
@@ -727,11 +735,24 @@ private fun PreparedStatement.setNullableInt(index: Int, value: Int?) {
     }
 }
 
+private fun PreparedStatement.setNullableDouble(index: Int, value: Double?) {
+    if (value == null) {
+        setNull(index, java.sql.Types.DOUBLE)
+    } else {
+        setDouble(index, value)
+    }
+}
+
 private fun ResultSet.getStringOrNull(column: String): String? =
     getString(column).takeUnless { wasNull() }
 
 private fun ResultSet.getIntOrNull(column: String): Int? {
     val value = getInt(column)
+    return value.takeUnless { wasNull() }
+}
+
+private fun ResultSet.getDoubleOrNull(column: String): Double? {
+    val value = getDouble(column)
     return value.takeUnless { wasNull() }
 }
 
