@@ -80,6 +80,7 @@ class ActiveWorkoutViewModel(
     private var totalDistanceKm = 0.0
     private var phase = ActiveWorkoutPhase.PRE_WORKOUT
     private var selectedControlMode = WorkoutControlMode.SIMULATION
+    private var controlModeSelectedByUser = false
     private var countdownSeconds: Int? = null
     private var isCheckingDevice = false
     private var isReconnectingTrainer = false
@@ -129,6 +130,7 @@ class ActiveWorkoutViewModel(
                 if (snapshot.connectedDevice != null) {
                     lastKnownTrainerDeviceId = snapshot.connectedDevice.id
                 }
+                maybeDefaultToTrainerMode(snapshot)
                 if (snapshot.error?.type == TrainerErrorType.PERMISSION_DENIED) {
                     selectedControlMode = WorkoutControlMode.SIMULATION
                     ergControlEnabled = false
@@ -158,6 +160,7 @@ class ActiveWorkoutViewModel(
                     ?: 0
 
                 resumedFromStorage = matchingStoredWorkout != null
+                controlModeSelectedByUser = matchingStoredWorkout != null
                 selectedControlMode = matchingStoredWorkout?.controlMode
                     ?: if (latestTrainerConnectionState == ConnectionState.CONNECTED) WorkoutControlMode.TRAINER else WorkoutControlMode.SIMULATION
                 ergControlEnabled = matchingStoredWorkout?.ergEnabled ?: (selectedControlMode == WorkoutControlMode.TRAINER)
@@ -242,6 +245,7 @@ class ActiveWorkoutViewModel(
     }
 
     private fun selectControlMode(mode: WorkoutControlMode) {
+        controlModeSelectedByUser = true
         selectedControlMode = mode
         ergControlEnabled = mode == WorkoutControlMode.TRAINER
         ergCommandFailed = false
@@ -270,8 +274,33 @@ class ActiveWorkoutViewModel(
             if (latestTrainerConnectionState != ConnectionState.CONNECTED) {
                 selectedControlMode = WorkoutControlMode.SIMULATION
                 ergControlEnabled = false
+            } else {
+                maybeDefaultToTrainerMode(
+                    TrainerSnapshot(
+                        connectionState = latestTrainerConnectionState,
+                        metrics = latestTrainerMetrics,
+                        controlState = latestTrainerControlState,
+                        connectedDevice = latestConnectedDevice,
+                        error = latestTrainerError,
+                    ),
+                )
             }
             updateReadyState()
+        }
+    }
+
+    private fun maybeDefaultToTrainerMode(snapshot: TrainerSnapshot) {
+        if (
+            phase == ActiveWorkoutPhase.PRE_WORKOUT &&
+            !resumedFromStorage &&
+            !controlModeSelectedByUser &&
+            snapshot.connectionState == ConnectionState.CONNECTED &&
+            snapshot.connectedDevice != null &&
+            snapshot.error?.type != TrainerErrorType.PERMISSION_DENIED
+        ) {
+            selectedControlMode = WorkoutControlMode.TRAINER
+            ergControlEnabled = true
+            ergCommandFailed = false
         }
     }
 

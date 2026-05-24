@@ -8,6 +8,7 @@ import com.delminiusapps.rideforge.domain.usecase.GetSessionMetricsUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetSessionSummaryUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetWorkoutUseCase
+import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.StravaSyncInfo
@@ -29,6 +30,7 @@ class HistoryDetailViewModel(
     private val getWorkoutUseCase: GetWorkoutUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getRideHistoryUseCase: GetRideHistoryUseCase,
+    private val syncPendingSessionsUseCase: SyncPendingSessionsUseCase,
     private val syncWorkoutToStravaUseCase: SyncWorkoutToStravaUseCase,
     private val getStravaSyncStatusUseCase: GetStravaSyncStatusUseCase,
     private val sessionId: String,
@@ -87,11 +89,15 @@ class HistoryDetailViewModel(
         }
         viewModelScope.launch {
             runCatching {
-                syncWorkoutToStravaUseCase(ready.summary.id)
-            }.onSuccess { sync ->
+                syncPendingSessionsUseCase()
+                val summary = getSessionSummaryUseCase(sessionId)
+                val stravaSessionId = summary.id.ifBlank { sessionId }
+                summary to syncWorkoutToStravaUseCase(stravaSessionId)
+            }.onSuccess { (summary, sync) ->
                 _state.update { state ->
                     when (state) {
                         is HistoryDetailUiState.Ready -> state.copy(
+                            summary = summary,
                             stravaSync = sync,
                             isStravaSyncing = false,
                         )

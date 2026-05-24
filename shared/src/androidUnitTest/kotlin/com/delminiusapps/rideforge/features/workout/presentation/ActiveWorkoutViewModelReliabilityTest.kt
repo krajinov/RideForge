@@ -185,6 +185,34 @@ class ActiveWorkoutViewModelReliabilityTest {
     }
 
     @Test
+    fun trainerConnectedAfterWorkoutLoadDefaultsToTrainerModeForCompletion() = runTest(dispatcher) {
+        val environment = TestEnvironment(dispatcher)
+        val viewModel = environment.createViewModel()
+        try {
+            runCurrent()
+            assertEquals(WorkoutControlMode.SIMULATION, viewModel.readyState().controlMode)
+
+            environment.trainer.setConnected()
+            runCurrent()
+            assertEquals(WorkoutControlMode.TRAINER, viewModel.readyState().controlMode)
+
+            viewModel.onAction(ActiveWorkoutAction.Start)
+            advanceTimeBy(3_100)
+            runCurrent()
+
+            environment.trainer.setMetrics(TrainerMetrics(powerWatts = 175, cadence = 86, heartRate = 0))
+            advanceTimeBy(1_100)
+            runCurrent()
+            viewModel.onAction(ActiveWorkoutAction.End)
+            runCurrent()
+
+            assertEquals(true, environment.sessionRepository.completedHasRealTrainerData)
+        } finally {
+            viewModel.clearForTest()
+        }
+    }
+
+    @Test
     fun stoppedPedalingAutoPausesConnectedTrainerWorkout() = runTest(dispatcher) {
         val environment = TestEnvironment(dispatcher)
         environment.trainer.setConnected()
@@ -489,6 +517,7 @@ private class FakeSessionRepository : SessionRepository {
     override val syncStatus: StateFlow<SyncStatus> = _syncStatus
     val addedMetrics = mutableListOf<MetricSample>()
     var failMetricUploads = false
+    var completedHasRealTrainerData: Boolean? = null
     private var sessionCounter = 0
 
     override suspend fun startSession(workoutId: String): WorkoutSession {
@@ -520,7 +549,11 @@ private class FakeSessionRepository : SessionRepository {
         hasRealTrainerData: Boolean,
     ): WorkoutSession {
         _syncStatus.value = SyncStatus.PendingSync
-        return emptySession(sessionId, TestWorkoutId).copy(elapsedSeconds = elapsedSeconds ?: 0)
+        completedHasRealTrainerData = hasRealTrainerData
+        return emptySession(sessionId, TestWorkoutId).copy(
+            elapsedSeconds = elapsedSeconds ?: 0,
+            hasRealTrainerData = hasRealTrainerData,
+        )
     }
 
     override suspend fun getSessionMetrics(sessionId: String): List<MetricSample> = addedMetrics
