@@ -11,6 +11,8 @@ import com.delminiusapps.rideforge.models.StravaSyncInfo
 import com.delminiusapps.rideforge.models.StravaSyncState
 import com.delminiusapps.rideforge.models.SyncStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,6 +37,7 @@ class WorkoutCompleteViewModel(
     val events: SharedFlow<WorkoutCompleteEvent> = _events.asSharedFlow()
 
     private var latestSyncStatus = SyncStatus.Synced
+    private var stravaStatusPollingJob: Job? = null
 
     init {
         observeSyncStatus()
@@ -78,6 +81,7 @@ class WorkoutCompleteViewModel(
                         stravaSync = strava,
                     )
                 }
+                maybePollStravaStatus(summary.id.ifBlank { sessionId }, strava)
             }.onFailure {
                 _state.update { WorkoutCompleteUiState.Error }
             }
@@ -155,18 +159,19 @@ class WorkoutCompleteViewModel(
                 syncPendingSessionsUseCase()
                 val summary = getSessionSummaryUseCase(sessionId)
                 val stravaSessionId = summary.id.ifBlank { sessionId }
-                summary to syncWorkoutToStravaUseCase(stravaSessionId)
-            }.onSuccess { (summary, strava) ->
+                WorkoutStravaSyncResult(summary, stravaSessionId, syncWorkoutToStravaUseCase(stravaSessionId))
+            }.onSuccess { result ->
                 _state.update { state ->
                     when (state) {
                         is WorkoutCompleteUiState.Ready -> state.copy(
-                            summary = summary,
-                            stravaSync = strava,
+                            summary = result.summary,
+                            stravaSync = result.sync,
                             isStravaSyncing = false,
                         )
                         else -> state
                     }
                 }
+                maybePollStravaStatus(result.sessionId, result.sync)
             }.onFailure {
                 _state.update { state ->
                     when (state) {
@@ -190,7 +195,38 @@ class WorkoutCompleteViewModel(
             _events.emit(WorkoutCompleteEvent.OpenUrl(url))
         }
     }
+
+    private fun maybePollStravaStatus(sessionId: String, sync: StravaSyncInfo?) {
+        if (sync?.state != StravaSyncState.Syncing) return
+        stravaStatusPollingJob?.cancel()
+        stravaStatusPollingJob = viewModelScope.launch {
+            while (true) {
+                delay(StravaStatusPollIntervalMillis)
+                val latest = runCatching { getStravaSyncStatusUseCase(sessionId) }.getOrNull() ?: continue
+                _state.update { state ->
+                    when (state) {
+                        is WorkoutCompleteUiState.Ready -> state.copy(
+                            stravaSync = latest,
+                            isStravaSyncing = false,
+                        )
+                        else -> state
+                    }
+                }
+                if (latest.state != StravaSyncState.Syncing) return@launch
+            }
+        }
+    }
+
+    private companion object {
+        const val StravaStatusPollIntervalMillis = 5_000L
+    }
 }
+
+private data class WorkoutStravaSyncResult(
+    val summary: WorkoutSession,
+    val sessionId: String,
+    val sync: StravaSyncInfo,
+)
 
 sealed interface WorkoutCompleteUiState {
     data object Loading : WorkoutCompleteUiState
