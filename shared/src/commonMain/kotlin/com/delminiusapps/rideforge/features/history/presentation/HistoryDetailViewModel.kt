@@ -136,8 +136,9 @@ class HistoryDetailViewModel(
     }
 
     private fun maybePollStravaStatus(sessionId: String, sync: StravaSyncInfo?) {
-        if (sync?.state != StravaSyncState.Syncing) return
         stravaStatusPollingJob?.cancel()
+        stravaStatusPollingJob = null
+        if (sync?.state != StravaSyncState.Syncing) return
         stravaStatusPollingJob = viewModelScope.launch {
             while (true) {
                 delay(StravaStatusPollIntervalMillis)
@@ -151,7 +152,10 @@ class HistoryDetailViewModel(
                         else -> state
                     }
                 }
-                if (latest.state != StravaSyncState.Syncing) return@launch
+                if (latest.state != StravaSyncState.Syncing) {
+                    stravaStatusPollingJob = null
+                    return@launch
+                }
             }
         }
     }
