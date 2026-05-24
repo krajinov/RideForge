@@ -1,6 +1,7 @@
 package com.delminiusapps.rideforge.models
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class User(
@@ -88,6 +89,8 @@ data class WorkoutSession(
     val hasRealTrainerData: Boolean = false,
     val averageSpeedKmh: Double? = null,
     val totalDistanceKm: Double? = null,
+    @Transient
+    val riderWeightKg: Double = 78.0,
 )
 
 @Serializable

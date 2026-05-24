@@ -4,16 +4,24 @@ import com.delminiusapps.rideforge.config.AppConfig
 import com.delminiusapps.rideforge.config.JwtConfig
 import com.delminiusapps.rideforge.config.PersistenceMode
 import com.delminiusapps.rideforge.config.StravaConfig
+import com.delminiusapps.rideforge.dto.MetricSampleRequest
+import com.delminiusapps.rideforge.dto.StartSessionRequest
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.StravaConnection
 import com.delminiusapps.rideforge.models.StravaSync
 import com.delminiusapps.rideforge.models.StravaSyncStatus
+import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.repositories.InMemoryDeviceRepository
 import com.delminiusapps.rideforge.repositories.InMemorySessionRepository
 import com.delminiusapps.rideforge.repositories.InMemoryStravaConnectionRepository
 import com.delminiusapps.rideforge.repositories.InMemoryStravaSyncRepository
 import com.delminiusapps.rideforge.repositories.InMemoryWorkoutRepository
+import com.delminiusapps.rideforge.repositories.SeedData
+import com.delminiusapps.rideforge.repositories.UserRepository
+import com.delminiusapps.rideforge.services.RideMetricCalculator
+import com.delminiusapps.rideforge.services.SessionService
 import com.delminiusapps.rideforge.services.StravaApiClient
 import com.delminiusapps.rideforge.services.StravaService
 import com.delminiusapps.rideforge.services.StravaStateService
@@ -210,6 +218,51 @@ class ApplicationTest {
         val body = completed.bodyAsText()
         assertTrue(body.contains(""""averageSpeedKmh":"""))
         assertTrue(body.contains(""""totalDistanceKm":"""))
+    }
+
+    @Test
+    fun sessionMetricsUseSnapshottedRiderWeightWithoutPerSampleUserLookups() = runBlocking {
+        val users = CountingUserRepository(SeedData.users.single())
+        val sessions = InMemorySessionRepository()
+        val service = SessionService(
+            sessions = sessions,
+            workouts = InMemoryWorkoutRepository(),
+            devices = InMemoryDeviceRepository(),
+            users = users,
+        )
+
+        val started = service.start(SeedData.defaultUserId, StartSessionRequest("vo2-w1d1")).session
+        users.update(users.current.copy(weightKg = 62.0))
+
+        service.addMetric(
+            SeedData.defaultUserId,
+            started.id,
+            MetricSampleRequest(
+                elapsedSeconds = 10,
+                currentPower = 200,
+                targetPower = 200,
+                cadence = 88,
+                heartRate = 130,
+                speedKmh = 99.0,
+            ),
+        )
+        service.addMetric(
+            SeedData.defaultUserId,
+            started.id,
+            MetricSampleRequest(
+                elapsedSeconds = 20,
+                currentPower = 220,
+                targetPower = 220,
+                cadence = 90,
+                heartRate = 134,
+                speedKmh = 99.0,
+            ),
+        )
+
+        val metrics = sessions.metricsForSession(started.id)
+        assertEquals(1, users.findByIdCalls)
+        assertEquals(RideMetricCalculator.speedKmh(200, started.riderWeightKg), metrics[0].speedKmh)
+        assertEquals(RideMetricCalculator.speedKmh(220, started.riderWeightKg), metrics[1].speedKmh)
     }
 
     @Test
@@ -679,6 +732,31 @@ private fun String.extractUrlQueryParam(name: String): String {
 }
 
 private fun unusedLocalPort(): Int = ServerSocket(0).use { it.localPort }
+
+private class CountingUserRepository(initial: User) : UserRepository {
+    var findByIdCalls = 0
+        private set
+    var current = initial
+        private set
+
+    override suspend fun create(user: User): User {
+        current = user
+        return user
+    }
+
+    override suspend fun findById(id: String): User? {
+        findByIdCalls += 1
+        return current.takeIf { it.id == id }
+    }
+
+    override suspend fun findByEmail(email: String): User? =
+        current.takeIf { it.email.equals(email, ignoreCase = true) }
+
+    override suspend fun update(user: User): User {
+        current = user
+        return user
+    }
+}
 
 private fun testAppConfig(
     stravaBaseUrl: String = "https://www.strava.com",

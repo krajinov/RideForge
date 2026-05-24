@@ -173,8 +173,8 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             INSERT INTO workout_sessions (
                 id, user_id, workout_id, status, started_at, completed_at, elapsed_seconds,
                 average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data,
-                average_speed_kmh, total_distance_km
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                average_speed_kmh, total_distance_km, rider_weight_kg
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
         ).use { statement ->
             statement.bindSession(session)
@@ -197,7 +197,7 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             SET user_id = ?, workout_id = ?, status = ?, started_at = ?, completed_at = ?,
                 elapsed_seconds = ?, average_power = ?, normalized_power = ?, calories = ?,
                 tss = ?, completion_percent = ?, has_real_trainer_data = ?,
-                average_speed_kmh = ?, total_distance_km = ?
+                average_speed_kmh = ?, total_distance_km = ?, rider_weight_kg = ?
             WHERE id = ?
             """.trimIndent(),
         ).use { statement ->
@@ -215,7 +215,8 @@ class PostgresSessionRepository(private val database: PostgresDatabase) : Sessio
             statement.setBoolean(12, session.hasRealTrainerData)
             statement.setNullableDouble(13, session.averageSpeedKmh)
             statement.setNullableDouble(14, session.totalDistanceKm)
-            statement.setString(15, session.id)
+            statement.setDouble(15, session.riderWeightKg)
+            statement.setString(16, session.id)
             statement.executeUpdate()
         }
         session
@@ -564,6 +565,7 @@ private fun PreparedStatement.bindSession(session: WorkoutSession) {
     setBoolean(13, session.hasRealTrainerData)
     setNullableDouble(14, session.averageSpeedKmh)
     setNullableDouble(15, session.totalDistanceKm)
+    setDouble(16, session.riderWeightKg)
 }
 
 private fun Connection.currentDevice(userId: String): Device? =
@@ -665,6 +667,7 @@ private fun ResultSet.toWorkoutSession(): WorkoutSession = WorkoutSession(
     hasRealTrainerData = getBoolean("has_real_trainer_data"),
     averageSpeedKmh = getDoubleOrNull("average_speed_kmh"),
     totalDistanceKm = getDoubleOrNull("total_distance_km"),
+    riderWeightKg = getDouble("rider_weight_kg"),
 )
 
 private fun ResultSet.toMetricSample(): MetricSample = MetricSample(

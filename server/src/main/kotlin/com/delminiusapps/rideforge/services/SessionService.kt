@@ -27,6 +27,7 @@ class SessionService(
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
         val workout = workouts.findById(request.workoutId) ?: notFound("Workout")
+        val riderWeightKg = users.findById(userId)?.weightKg ?: RideMetricCalculator.DefaultRiderWeightKg
         val session = sessions.create(
             WorkoutSession(
                 id = newId("session"),
@@ -34,6 +35,7 @@ class SessionService(
                 workoutId = workout.id,
                 status = SessionStatus.active,
                 startedAt = nowIso(),
+                riderWeightKg = riderWeightKg,
             ),
         )
         return SessionResponse(session, workout)
@@ -94,7 +96,6 @@ class SessionService(
         if (request.speedKmh !in 0.0..140.0) badRequest("Speed must be between 0 and 140 km/h")
         if (request.elapsedSeconds != null && request.elapsedSeconds < 0) badRequest("Elapsed seconds cannot be negative")
 
-        val riderWeightKg = users.findById(userId)?.weightKg ?: RideMetricCalculator.DefaultRiderWeightKg
         val sample = sessions.addMetric(
             MetricSample(
                 sessionId = sessionId,
@@ -104,7 +105,7 @@ class SessionService(
                 targetPower = request.targetPower,
                 cadence = request.cadence,
                 heartRate = request.heartRate,
-                speedKmh = RideMetricCalculator.speedKmh(request.currentPower, riderWeightKg),
+                speedKmh = RideMetricCalculator.speedKmh(request.currentPower, session.riderWeightKg),
             ),
         )
         return MetricsAcceptedResponse(sessions.metricsForSession(sessionId).size, sample)

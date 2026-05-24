@@ -145,8 +145,8 @@ private fun Connection.seedWorkoutSessions(sessions: List<WorkoutSession>) {
         INSERT INTO workout_sessions (
             id, user_id, workout_id, status, started_at, completed_at, elapsed_seconds,
             average_power, normalized_power, calories, tss, completion_percent, has_real_trainer_data,
-            average_speed_kmh, total_distance_km
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            average_speed_kmh, total_distance_km, rider_weight_kg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (id) DO NOTHING
         """.trimIndent(),
     ).use { statement ->
@@ -166,6 +166,7 @@ private fun Connection.seedWorkoutSessions(sessions: List<WorkoutSession>) {
             statement.setBoolean(13, session.hasRealTrainerData)
             statement.setNullableDouble(14, session.averageSpeedKmh)
             statement.setNullableDouble(15, session.totalDistanceKm)
+            statement.setDouble(16, session.riderWeightKg)
             statement.addBatch()
         }
         statement.executeBatch()
