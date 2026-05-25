@@ -133,7 +133,7 @@ val rideForgeModule = module {
     factory { MetricSampleBatchUploader(get(), get()) }
     factory { GetAdaptiveDashboardUseCase(get()) }
     factory { GetAdaptiveTrendsUseCase(get()) }
-    factory { ApproveFtpEstimateUseCase(get(), get()) }
+    factory { ApproveFtpEstimateUseCase(get()) }
     factory { DismissFtpEstimateUseCase(get()) }
     factory { GetSessionAnalysisUseCase(get()) }
 }

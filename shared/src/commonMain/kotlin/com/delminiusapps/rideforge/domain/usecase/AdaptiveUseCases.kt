@@ -1,7 +1,6 @@
 package com.delminiusapps.rideforge.domain.usecase
 
 import com.delminiusapps.rideforge.domain.repository.AdaptiveRepository
-import com.delminiusapps.rideforge.domain.repository.AuthRepository
 import com.delminiusapps.rideforge.models.AdaptiveDashboard
 import com.delminiusapps.rideforge.models.DailyFatigue
 import com.delminiusapps.rideforge.models.FtpHistoryRecord
@@ -16,17 +15,10 @@ class GetAdaptiveTrendsUseCase(private val repository: AdaptiveRepository) {
 }
 
 class ApproveFtpEstimateUseCase(
-    private val adaptiveRepository: AdaptiveRepository,
-    private val authRepository: AuthRepository
+    private val adaptiveRepository: AdaptiveRepository
 ) {
     suspend operator fun invoke(id: String) {
-        val newFtp = adaptiveRepository.approveFtpEstimate(id)
-        val profile = authRepository.currentUser()
-        authRepository.updateProfile(
-            ftpWatts = newFtp,
-            weightKg = profile.weightKg,
-            units = profile.units
-        )
+        adaptiveRepository.approveFtpEstimate(id)
     }
 }
 

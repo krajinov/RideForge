@@ -33,29 +33,29 @@ class FtpEstimationService(
             .map { (_, samplesAtSecond) -> samplesAtSecond.last() }
             .sortedBy { it.elapsedSeconds ?: 0 }
 
-        if (samples.isEmpty()) return null
+        if (samples.isNotEmpty()) {
+            val peak20MinPower = peakAveragePower(samples, 1200)
+            if (peak20MinPower != null) {
+                val estimatedFtp = (peak20MinPower * 0.95).roundToInt()
+                if (estimatedFtp > user.ftp + 2) {
+                    // Check if we already have a pending recommendation for a higher FTP to avoid duplicate prompts
+                    val existingPending = adaptiveRepository.findPendingFtpRecord(user.id)
+                    if (existingPending != null && existingPending.estimatedFtp >= estimatedFtp) {
+                        return existingPending
+                    }
 
-        val peak20MinPower = peakAveragePower(samples, 1200)
-        if (peak20MinPower != null) {
-            val estimatedFtp = (peak20MinPower * 0.95).roundToInt()
-            if (estimatedFtp > user.ftp + 2) {
-                // Check if we already have a pending recommendation for a higher FTP to avoid duplicate prompts
-                val existingPending = adaptiveRepository.findPendingFtpRecord(user.id)
-                if (existingPending != null && existingPending.estimatedFtp >= estimatedFtp) {
-                    return existingPending
+                    val record = FtpHistoryRecord(
+                        id = newId("ftp"),
+                        userId = user.id,
+                        estimatedFtp = estimatedFtp,
+                        previousFtp = user.ftp,
+                        sessionId = session.id,
+                        status = "pending_approval",
+                        message = "Based on your 20-minute peak power of $peak20MinPower W during '${workout.name}', we estimate your FTP has increased from ${user.ftp} W to $estimatedFtp W!",
+                        createdAt = nowIso()
+                    )
+                    return adaptiveRepository.saveFtpRecord(record)
                 }
-
-                val record = FtpHistoryRecord(
-                    id = newId("ftp"),
-                    userId = user.id,
-                    estimatedFtp = estimatedFtp,
-                    previousFtp = user.ftp,
-                    sessionId = session.id,
-                    status = "pending_approval",
-                    message = "Based on your 20-minute peak power of $peak20MinPower W during '${workout.name}', we estimate your FTP has increased from ${user.ftp} W to $estimatedFtp W!",
-                    createdAt = nowIso()
-                )
-                return adaptiveRepository.saveFtpRecord(record)
             }
         }
 
