@@ -224,11 +224,17 @@ class ApplicationTest {
     fun sessionMetricsUseSnapshottedRiderWeightWithoutPerSampleUserLookups() = runBlocking {
         val users = CountingUserRepository(SeedData.users.single())
         val sessions = InMemorySessionRepository()
+        val adaptiveRepository = com.delminiusapps.rideforge.repositories.InMemoryAdaptiveTrainingRepository()
+        val progressionTracker = com.delminiusapps.rideforge.services.adaptive_training.ProgressionTracker(adaptiveRepository)
+        val ftpEstimationService = com.delminiusapps.rideforge.services.adaptive_training.FtpEstimationService(adaptiveRepository, sessions, users)
         val service = SessionService(
             sessions = sessions,
             workouts = InMemoryWorkoutRepository(),
             devices = InMemoryDeviceRepository(),
             users = users,
+            adaptiveRepository = adaptiveRepository,
+            progressionTracker = progressionTracker,
+            ftpEstimationService = ftpEstimationService,
         )
 
         val started = service.start(SeedData.defaultUserId, StartSessionRequest("vo2-w1d1")).session

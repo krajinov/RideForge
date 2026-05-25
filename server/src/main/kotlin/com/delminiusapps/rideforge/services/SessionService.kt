@@ -9,21 +9,32 @@ import com.delminiusapps.rideforge.dto.StartSessionRequest
 import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.models.WorkoutAnalysis
 import com.delminiusapps.rideforge.repositories.DeviceRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.UserRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
+import com.delminiusapps.rideforge.repositories.AdaptiveTrainingRepository
+import com.delminiusapps.rideforge.services.adaptive_training.ProgressionTracker
+import com.delminiusapps.rideforge.services.adaptive_training.FtpEstimationService
+import com.delminiusapps.rideforge.services.adaptive_training.WorkoutCompletionAnalyzer
+import com.delminiusapps.rideforge.services.adaptive_training.WorkoutClassifier
 import com.delminiusapps.rideforge.utils.badRequest
 import com.delminiusapps.rideforge.utils.forbidden
 import com.delminiusapps.rideforge.utils.newId
 import com.delminiusapps.rideforge.utils.notFound
 import com.delminiusapps.rideforge.utils.nowIso
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class SessionService(
     private val sessions: SessionRepository,
     private val workouts: WorkoutRepository,
     private val devices: DeviceRepository,
     private val users: UserRepository,
+    private val adaptiveRepository: AdaptiveTrainingRepository,
+    private val progressionTracker: ProgressionTracker,
+    private val ftpEstimationService: FtpEstimationService,
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
         val workout = workouts.findById(request.workoutId) ?: notFound("Workout")
@@ -56,20 +67,59 @@ class SessionService(
     suspend fun complete(userId: String, sessionId: String, request: CompleteSessionRequest): WorkoutSession {
         val session = requireOwned(userId, sessionId)
         val workout = workouts.findById(session.workoutId) ?: notFound("Workout")
+        val user = users.findById(userId) ?: notFound("User")
         val metrics = sessions.metricsForSession(sessionId)
+        
         val elapsed = request.elapsedSeconds?.takeIf { it > 0 }
             ?: session.elapsedSeconds.takeIf { it > 0 }
             ?: workout.durationMinutes * 60
+
+        // 1. Raw Average Power
         val averagePower = metrics.map { it.currentPower }.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 214
-        val normalizedPower = (averagePower * 1.10).toInt().coerceAtLeast(averagePower)
+
+        // 2. Properly calculated NP
+        val powerSamples = metrics
+            .filter { (it.elapsedSeconds ?: 0) >= 0 }
+            .groupBy { it.elapsedSeconds ?: 0 }
+            .map { (_, samplesAtSecond) -> samplesAtSecond.last() }
+            .sortedBy { it.elapsedSeconds ?: 0 }
+            .filter { it.currentPower > 0 }
+
+        val normalizedPower = if (powerSamples.size >= 30) {
+            val rolling = powerSamples.mapIndexedNotNull { index, sample ->
+                val start = sample.elapsedSeconds ?: 0
+                val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) < start + 30 }
+                val coveredSeconds = (window.lastOrNull()?.elapsedSeconds ?: start) - start
+                if (coveredSeconds < 24) {
+                    null
+                } else {
+                    window.map { it.currentPower }.average()
+                }
+            }
+            if (rolling.isEmpty()) {
+                (averagePower * 1.10).toInt().coerceAtLeast(averagePower)
+            } else {
+                val fourthPowerAverage = rolling.map { it.pow(4.0) }.average()
+                fourthPowerAverage.pow(0.25).roundToInt().coerceAtLeast(averagePower)
+            }
+        } else {
+            (averagePower * 1.10).toInt().coerceAtLeast(averagePower)
+        }
+
+        // 3. Properly calculated calories
         val calories = ((averagePower * elapsed) / 1000.0 * 3.6).toInt().coerceAtLeast(120)
-        val tss = ((elapsed / 3600.0) * (normalizedPower / 240.0) * (normalizedPower / 240.0) * 100).toInt().coerceAtLeast(1)
+
+        // 4. Properly calculated TSS using user's actual FTP
+        val userFtp = user.ftp.coerceAtLeast(50)
+        val tss = ((elapsed / 3600.0) * (normalizedPower / userFtp.toDouble()) * (normalizedPower / userFtp.toDouble()) * 100).toInt().coerceAtLeast(1)
+
         val completion = ((elapsed.toDouble() / (workout.durationMinutes * 60)) * 100).toInt().coerceIn(1, 100)
         val distanceKm = RideMetricCalculator.distanceKm(metrics)
         val hasRealTrainerData = session.hasRealTrainerData ||
             hasServerVerifiedTrainerData(userId, metrics) ||
             hasClientReportedTrainerData(request, metrics)
-        return sessions.update(
+
+        val completedSession = sessions.update(
             session.copy(
                 status = SessionStatus.completed,
                 completedAt = nowIso(),
@@ -84,7 +134,62 @@ class SessionService(
                 totalDistanceKm = distanceKm,
             ),
         )
+
+        // Run Adaptive Training analysis post-ride
+        try {
+            val intervals = workouts.intervalsForWorkout(workout.id)
+            val analysisResult = WorkoutCompletionAnalyzer.analyze(completedSession, workout, intervals, metrics, user.ftp)
+            val classification = WorkoutClassifier.classify(completedSession, workout, intervals, analysisResult, user.ftp)
+            
+            // Generate coach notes
+            val summaryNote = when {
+                analysisResult.ergComplianceScore != null && analysisResult.ergComplianceScore < 80 -> "Trainer control was the main execution limiter."
+                analysisResult.cadenceConsistencyScore != null && analysisResult.cadenceConsistencyScore >= 85 -> "Cadence control was a strength in this ride."
+                else -> "The ride is complete; pacing and cadence stability are the next focus."
+            }
+            val recommendationNote = when {
+                completion >= 98 && classification == "Overperformed" -> "Progress to the next scheduled intensity workout."
+                completion >= 90 -> "Repeat the same target structure if late intervals felt unstable."
+                else -> "Reduce the next hard block by 3-5% and prioritize full completion."
+            }
+            val recoveryNote = when {
+                tss >= 90 -> "High stress: plan an easy spin or rest day before the next hard ride."
+                tss >= 50 -> "Moderate stress: keep the next 24 hours aerobic."
+                else -> "Low stress: normal training can continue if legs feel fresh."
+            }
+            val nextWorkoutNote = if (completion >= 95) "Next planned workout" else "Repeat or easier aerobic session"
+
+            val analysis = WorkoutAnalysis(
+                sessionId = completedSession.id,
+                completionPercent = analysisResult.completionPercent,
+                intervalSuccessRate = analysisResult.intervalSuccessRate,
+                ergComplianceScore = analysisResult.ergComplianceScore,
+                cadenceConsistencyScore = analysisResult.cadenceConsistencyScore,
+                powerFade = analysisResult.powerFade,
+                hrDrift = analysisResult.hrDrift,
+                estimatedRpe = analysisResult.estimatedRpe,
+                classification = classification,
+                coachNotesSummary = summaryNote,
+                coachNotesRecommendation = recommendationNote,
+                coachNotesRecovery = recoveryNote,
+                coachNotesNextWorkout = nextWorkoutNote
+            )
+
+            // Save analysis to DB
+            adaptiveRepository.saveAnalysis(analysis)
+
+            // Update progression levels
+            progressionTracker.updateProgression(userId, workout, classification)
+
+            // Check FTP adjustments
+            ftpEstimationService.checkAndEstimateFtp(user, completedSession, workout, metrics)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return completedSession
     }
+
 
     suspend fun addMetric(userId: String, sessionId: String, request: MetricSampleRequest): MetricsAcceptedResponse {
         val session = requireOwned(userId, sessionId)

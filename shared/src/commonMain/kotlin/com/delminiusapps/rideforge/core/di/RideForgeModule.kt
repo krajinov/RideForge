@@ -37,6 +37,14 @@ import com.delminiusapps.rideforge.data.repository.remote.RemoteStravaRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteTrainingPlanRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteWorkoutSessionRepository
 import com.delminiusapps.rideforge.data.repository.remote.RemoteWorkoutRepository
+import com.delminiusapps.rideforge.data.repository.remote.RemoteAdaptiveRepository
+import com.delminiusapps.rideforge.domain.repository.AdaptiveRepository
+import com.delminiusapps.rideforge.data.mock.MockAdaptiveRepository
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveDashboardUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveTrendsUseCase
+import com.delminiusapps.rideforge.domain.usecase.ApproveFtpEstimateUseCase
+import com.delminiusapps.rideforge.domain.usecase.DismissFtpEstimateUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetSessionAnalysisUseCase
 import com.delminiusapps.rideforge.domain.usecase.CompleteWorkoutSessionUseCase
 import com.delminiusapps.rideforge.domain.usecase.DisconnectStravaUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetHomeDashboardUseCase
@@ -79,11 +87,13 @@ val rideForgeModule = module {
     single { MockTrainingPlanRepository() }
     single { MockHistoryRepository() }
     single { MockStravaRepository() }
+    single { MockAdaptiveRepository() }
     single<AuthRepository> { RemoteProfileRepository(get(), get<MockAuthRepository>(), get()) }
     single<WorkoutRepository> { RemoteWorkoutRepository(get(), get<MockWorkoutRepository>(), get()) }
     single<TrainingPlanRepository> { RemoteTrainingPlanRepository(get(), get<MockTrainingPlanRepository>(), get()) }
     single<HistoryRepository> { com.delminiusapps.rideforge.data.repository.remote.RemoteHistoryRepository(get(), get<MockHistoryRepository>(), get()) }
     single<StravaRepository> { RemoteStravaRepository(get(), get<MockStravaRepository>(), get()) }
+    single<AdaptiveRepository> { RemoteAdaptiveRepository(get(), get<MockAdaptiveRepository>(), get()) }
     single { LocalWorkoutSessionRepository(get()) }
     single { RemoteWorkoutSessionRepository(get(), get()) }
     single { LocalPendingSyncQueue(get()) }
@@ -121,4 +131,10 @@ val rideForgeModule = module {
     factory { SyncWorkoutToStravaUseCase(get()) }
     factory { GetStravaSyncStatusUseCase(get()) }
     factory { MetricSampleBatchUploader(get(), get()) }
+    factory { GetAdaptiveDashboardUseCase(get()) }
+    factory { GetAdaptiveTrendsUseCase(get()) }
+    factory { ApproveFtpEstimateUseCase(get(), get()) }
+    factory { DismissFtpEstimateUseCase(get()) }
+    factory { GetSessionAnalysisUseCase(get()) }
 }
+

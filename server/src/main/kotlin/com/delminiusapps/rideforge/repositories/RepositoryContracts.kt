@@ -10,6 +10,10 @@ import com.delminiusapps.rideforge.models.User
 import com.delminiusapps.rideforge.models.Workout
 import com.delminiusapps.rideforge.models.WorkoutInterval
 import com.delminiusapps.rideforge.models.WorkoutSession
+import com.delminiusapps.rideforge.models.WorkoutAnalysis
+import com.delminiusapps.rideforge.models.FtpHistoryRecord
+import com.delminiusapps.rideforge.models.ProgressionLevel
+import com.delminiusapps.rideforge.models.WorkoutType
 
 interface UserRepository {
     suspend fun create(user: User): User
@@ -70,3 +74,17 @@ interface StravaSyncRepository {
     suspend fun findBySessionId(sessionId: String): StravaSync?
     suspend fun deleteBySessionId(sessionId: String)
 }
+
+interface AdaptiveTrainingRepository {
+    suspend fun saveAnalysis(analysis: WorkoutAnalysis): WorkoutAnalysis
+    suspend fun findAnalysisBySessionId(sessionId: String): WorkoutAnalysis?
+    suspend fun saveFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord
+    suspend fun findPendingFtpRecord(userId: String): FtpHistoryRecord?
+    suspend fun findFtpRecordById(id: String): FtpHistoryRecord?
+    suspend fun updateFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord
+    suspend fun getFtpHistory(userId: String): List<FtpHistoryRecord>
+    suspend fun saveProgressionLevel(level: ProgressionLevel): ProgressionLevel
+    suspend fun getProgressionLevels(userId: String): List<ProgressionLevel>
+    suspend fun getProgressionLevel(userId: String, workoutType: WorkoutType): ProgressionLevel?
+}
+

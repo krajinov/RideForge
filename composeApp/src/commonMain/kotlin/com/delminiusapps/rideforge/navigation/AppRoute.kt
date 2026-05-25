@@ -22,6 +22,7 @@ sealed interface AppRoute {
     data object History : AppRoute
     data class HistoryItem(val id: String) : AppRoute
     data object Profile : AppRoute
+    data object Trends : AppRoute
 }
 
 private fun newActiveWorkoutLaunchKey(): String {
@@ -52,4 +53,5 @@ fun AppRoute.label(): String = when (this) {
     AppRoute.History -> "History"
     is AppRoute.HistoryItem -> "History"
     AppRoute.Profile -> "Profile"
+    AppRoute.Trends -> "Trends"
 }
