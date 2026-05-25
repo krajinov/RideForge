@@ -27,10 +27,12 @@ class ProgressionTracker(private val repository: AdaptiveTrainingRepository) {
         val type = workout.workoutType
         val currentLevel = getProgressionLevel(userId, type)
         val workoutLevel = getWorkoutProgressionLevel(workout)
+        val scaling = getIntensityScalingFactor(userId, workout)
+        val completedLevel = workoutLevel * scaling
 
         val newLevel = when (classification) {
-            "Overperformed" -> maxOf(currentLevel, workoutLevel) + 0.3
-            "Successful" -> maxOf(currentLevel, workoutLevel)
+            "Overperformed" -> maxOf(currentLevel, completedLevel) + 0.3
+            "Successful" -> maxOf(currentLevel, completedLevel)
             "Struggled" -> (currentLevel - 0.2).coerceAtLeast(1.0)
             "Failed" -> (currentLevel - 0.5).coerceAtLeast(1.0)
             else -> currentLevel

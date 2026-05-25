@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.dto.*
 import com.delminiusapps.rideforge.plugins.ServiceRegistry
 import com.delminiusapps.rideforge.utils.notFound
 import com.delminiusapps.rideforge.utils.badRequest
+import com.delminiusapps.rideforge.utils.forbidden
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.server.application.call
@@ -79,7 +80,7 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
             val userId = call.userId()
             val session = registry.sessionRepository.findById(sessionId) ?: notFound("Session")
             if (session.userId != userId) {
-                badRequest("Access denied")
+                forbidden()
             }
 
             val analysis = registry.adaptiveTrainingRepository.findAnalysisBySessionId(sessionId)

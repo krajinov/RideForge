@@ -391,4 +391,34 @@ class AdaptiveTrainingTest {
         // Since it uses scaled targets, it should be Successful or Easy
         assertTrue(analysis.classification == "Successful" || analysis.classification == "Easy")
     }
+
+    @Test
+    fun testProgressionTrackerScaledSuccess() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val tracker = ProgressionTracker(adaptiveRepo)
+
+        // Set user level to 2.0
+        val pl = ProgressionLevel(
+            id = "pl-1",
+            userId = "user-1",
+            workoutType = WorkoutType.SWEET_SPOT,
+            level = 2.0,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl)
+
+        // Define a workout of level 3.0 (ftp-w1d3 is hardcoded to level 3.0)
+        val customWorkout = workout.copy(
+            id = "ftp-w1d3",
+            workoutType = WorkoutType.SWEET_SPOT
+        )
+
+        // Scaling factor: 2.0 / 3.0 = 0.666 -> coerced to 0.90
+        // Completed level: 3.0 * 0.90 = 2.7
+        // Let's run updateProgression with "Successful"
+        val newLevel = tracker.updateProgression("user-1", customWorkout, "Successful")
+        
+        // Assert it is exactly 2.7 instead of 3.0
+        assertEquals(2.7, newLevel)
+    }
 }

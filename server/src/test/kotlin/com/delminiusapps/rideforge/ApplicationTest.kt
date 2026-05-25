@@ -659,6 +659,28 @@ class ApplicationTest {
         assertTrue(body.contains(""""code":"bad_gateway""""))
         assertTrue(body.contains("Strava request failed"))
     }
+
+    @Test
+    fun sessionAnalysisAccessByAnotherUserReturnsForbidden() = testApplication {
+        application { module(testAppConfig()) }
+
+        val markoToken = loginToken()
+        val sessionId = completedTrainerSession(markoToken)
+
+        // Register and log in another user
+        val register = client.post("/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"email":"another@example.com","password":"password","name":"Another Rider"}""")
+        }
+        assertEquals(HttpStatusCode.OK, register.status)
+        val anotherToken = register.bodyAsText().extractToken("accessToken")
+
+        // Try to access Marko's session analysis using Another User's token
+        val access = client.get("/adaptive/sessions/$sessionId/analysis") {
+            bearerAuth(anotherToken)
+        }
+        assertEquals(HttpStatusCode.Forbidden, access.status)
+    }
 }
 
 private fun String.extractToken(name: String): String {
