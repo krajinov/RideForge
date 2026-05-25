@@ -137,7 +137,16 @@ class SessionService(
 
         // Run Adaptive Training analysis post-ride
         try {
-            val intervals = workouts.intervalsForWorkout(workout.id)
+            val scaling = progressionTracker.getIntensityScalingFactor(userId, workout)
+            val rawIntervals = workouts.intervalsForWorkout(workout.id)
+            val intervals = rawIntervals.map { interval ->
+                val targetPercent = interval.targetFtpPercent ?: 100
+                val unscaledPower = interval.targetPowerWatts ?: ((user.ftp * targetPercent) / 100)
+                interval.copy(
+                    targetPowerWatts = (unscaledPower * scaling).roundToInt(),
+                    targetFtpPercent = (targetPercent * scaling).roundToInt()
+                )
+            }
             val analysisResult = WorkoutCompletionAnalyzer.analyze(completedSession, workout, intervals, metrics, user.ftp)
             val classification = WorkoutClassifier.classify(completedSession, workout, intervals, analysisResult, user.ftp)
             

@@ -139,7 +139,7 @@ class FtpEstimationService(
         if (powerSamples.isEmpty()) return null
         val firstSec = powerSamples.first().elapsedSeconds ?: 0
         val lastSec = powerSamples.last().elapsedSeconds ?: 0
-        val totalDuration = lastSec - firstSec
+        val totalDuration = lastSec - firstSec + 1
         if (totalDuration < windowSeconds) return null
 
         var best: Double? = null

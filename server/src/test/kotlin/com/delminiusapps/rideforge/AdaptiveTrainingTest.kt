@@ -5,6 +5,8 @@ import com.delminiusapps.rideforge.repositories.InMemoryAdaptiveTrainingReposito
 import com.delminiusapps.rideforge.repositories.InMemorySessionRepository
 import com.delminiusapps.rideforge.repositories.InMemoryUserRepository
 import com.delminiusapps.rideforge.services.adaptive_training.*
+import com.delminiusapps.rideforge.services.SessionService
+import com.delminiusapps.rideforge.dto.CompleteSessionRequest
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -263,5 +265,130 @@ class AdaptiveTrainingTest {
         assertEquals(190, record.estimatedFtp)
         assertEquals("pending_approval", record.status)
         assertTrue(record.message.contains("struggled with your last 3 high-intensity sessions"))
+    }
+
+    @Test
+    fun testFtpEstimationExact20Minutes() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Generate exactly 20 minutes (1200 seconds: 0 to 1199) of metric samples at 240W
+        val samples = (0..1199).map { sec ->
+            MetricSample("session-1", Instant.now().toString(), sec, 240, 240, 90, 160, 32.0)
+        }
+
+        val record = ftpEstimationService.checkAndEstimateFtp(user, session, workout, samples)
+        assertNotNull(record)
+        // 240W * 0.95 = 228W
+        assertEquals(228, record.estimatedFtp)
+        assertEquals("pending_approval", record.status)
+    }
+
+    @Test
+    fun testSessionServiceScaledWorkoutAnalysis() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        
+        // Define a custom workout with id "ftp-w1d3" (hardcoded to level 3.0) and 10m duration
+        val customWorkout = workout.copy(
+            id = "ftp-w1d3",
+            difficulty = "Intermediate",
+            durationMinutes = 10,
+            workoutType = WorkoutType.SWEET_SPOT,
+            intervals = listOf(
+                WorkoutInterval(
+                    id = "custom-interval-1",
+                    workoutId = "ftp-w1d3",
+                    name = "Work Interval",
+                    durationSeconds = 600,
+                    targetPowerWatts = 180, // 90% of 200W FTP
+                    targetFtpPercent = 90,
+                    type = IntervalType.work
+                )
+            )
+        )
+
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == customWorkout.id) customWorkout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = 
+                if (workoutId == customWorkout.id) customWorkout.intervals else emptyList()
+        }
+
+        userRepo.create(user)
+
+        // Create a progression level record of 2.7 for sweet spot, forcing scaling of 2.7 / 3.0 = 0.90
+        val pl = ProgressionLevel(
+            id = "pl-1",
+            userId = user.id,
+            workoutType = WorkoutType.SWEET_SPOT,
+            level = 2.7,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        val dummyDeviceRepo = object : com.delminiusapps.rideforge.repositories.DeviceRepository {
+            override suspend fun listAvailable(userId: String): List<Device> = emptyList()
+            override suspend fun current(userId: String): Device? = null
+            override suspend fun connect(device: Device): Device = device
+            override suspend fun disconnect(userId: String): Device? = null
+        }
+
+        val sessionService = SessionService(
+            sessionRepo,
+            workoutRepo,
+            dummyDeviceRepo,
+            userRepo,
+            adaptiveRepo,
+            ProgressionTracker(adaptiveRepo),
+            ftpEstimationService
+        )
+
+        // Create the active session
+        val activeSession = WorkoutSession(
+            id = "custom-session-1",
+            userId = user.id,
+            workoutId = customWorkout.id,
+            status = SessionStatus.active,
+            startedAt = Instant.now().toString(),
+            elapsedSeconds = 0,
+            riderWeightKg = 70.0
+        )
+        sessionRepo.create(activeSession)
+
+        // Add metrics at 162W (which is exactly 180W * 0.90 target)
+        // Duration of work interval is 600s
+        for (sec in 0..600) {
+            sessionRepo.addMetric(
+                MetricSample("custom-session-1", Instant.now().toString(), sec, 162, 162, 90, 150, 30.0)
+            )
+        }
+
+        // Complete the session. It should evaluate compliance against the SCALED target of 162W.
+        val completedSession = sessionService.complete(user.id, "custom-session-1", CompleteSessionRequest(elapsedSeconds = 600))
+        
+        // Fetch the saved analysis
+        val analysis = adaptiveRepo.findAnalysisBySessionId("custom-session-1")
+        assertNotNull(analysis)
+        
+        // If it used unscaled targets, compliance would be very low/0% and classification would be "Struggled" or "Failed"
+        // Since it uses scaled targets, it should be Successful or Easy
+        assertTrue(analysis.classification == "Successful" || analysis.classification == "Easy")
     }
 }
