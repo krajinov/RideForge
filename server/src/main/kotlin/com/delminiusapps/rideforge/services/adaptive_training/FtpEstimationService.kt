@@ -40,8 +40,16 @@ class FtpEstimationService(
                 if (estimatedFtp > user.ftp + 2) {
                     // Check if we already have a pending recommendation for a higher FTP to avoid duplicate prompts
                     val existingPending = adaptiveRepository.findPendingFtpRecord(user.id)
-                    if (existingPending != null && existingPending.estimatedFtp >= estimatedFtp) {
-                        return existingPending
+                    if (existingPending != null) {
+                        if (existingPending.estimatedFtp >= estimatedFtp) {
+                            return existingPending
+                        } else {
+                            // Dismiss the old pending record because the new estimate is higher/better
+                            adaptiveRepository.updateFtpRecord(existingPending.copy(
+                                status = "dismissed",
+                                message = "Superseded by a newer estimate of $estimatedFtp W"
+                            ))
+                        }
                     }
 
                     val record = FtpHistoryRecord(
@@ -86,19 +94,29 @@ class FtpEstimationService(
             if (allStruggledOrFailed) {
                 val suggestedFtp = (user.ftp * 0.95).roundToInt()
                 val existingPending = adaptiveRepository.findPendingFtpRecord(user.id)
-                if (existingPending == null || existingPending.estimatedFtp != suggestedFtp) {
-                    val record = FtpHistoryRecord(
-                        id = newId("ftp"),
-                        userId = user.id,
-                        estimatedFtp = suggestedFtp,
-                        previousFtp = user.ftp,
-                        sessionId = session.id,
-                        status = "pending_approval",
-                        message = "You have struggled with your last 3 high-intensity sessions. We recommend reducing your FTP from ${user.ftp} W to $suggestedFtp W (-5%) to scale workout intensities appropriately.",
-                        createdAt = nowIso()
-                    )
-                    return adaptiveRepository.saveFtpRecord(record)
+                if (existingPending != null) {
+                    if (existingPending.estimatedFtp == suggestedFtp) {
+                        return existingPending
+                    } else {
+                        // Dismiss the old pending record because we have a new suggestion
+                        adaptiveRepository.updateFtpRecord(existingPending.copy(
+                            status = "dismissed",
+                            message = "Superseded by a newer estimate of $suggestedFtp W"
+                        ))
+                    }
                 }
+
+                val record = FtpHistoryRecord(
+                    id = newId("ftp"),
+                    userId = user.id,
+                    estimatedFtp = suggestedFtp,
+                    previousFtp = user.ftp,
+                    sessionId = session.id,
+                    status = "pending_approval",
+                    message = "You have struggled with your last 3 high-intensity sessions. We recommend reducing your FTP from ${user.ftp} W to $suggestedFtp W (-5%) to scale workout intensities appropriately.",
+                    createdAt = nowIso()
+                )
+                return adaptiveRepository.saveFtpRecord(record)
             }
         }
 
@@ -110,6 +128,16 @@ class FtpEstimationService(
         if (record.userId != userId || record.status != "pending_approval") return null
 
         val user = userRepository.findById(userId) ?: return null
+        if (user.ftp != record.previousFtp) {
+            // Dismiss the stale record
+            val staleRecord = record.copy(
+                status = "dismissed",
+                message = "Dismissed: FTP has changed since this estimate was generated."
+            )
+            adaptiveRepository.updateFtpRecord(staleRecord)
+            return null
+        }
+
         val updatedUser = user.copy(ftp = record.estimatedFtp)
         userRepository.update(updatedUser)
 

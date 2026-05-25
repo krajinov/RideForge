@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AdaptiveTrainingTest {
@@ -476,5 +477,88 @@ class AdaptiveTrainingTest {
         assertEquals(190, record.estimatedFtp)
         assertEquals("pending_approval", record.status)
         assertTrue(record.message.contains("struggled with your last 3 high-intensity sessions"))
+    }
+
+    @Test
+    fun testFtpApprovalStaleRejection() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val record = FtpHistoryRecord(
+            id = "ftp-1",
+            userId = user.id,
+            estimatedFtp = 210,
+            previousFtp = 180, // different from user's current FTP (200)
+            sessionId = "s-1",
+            status = "pending_approval",
+            message = "Some message",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(record)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        
+        val result = ftpEstimationService.approveFtp(user.id, "ftp-1")
+        assertNull(result)
+
+        val updatedRecord = adaptiveRepo.findFtpRecordById("ftp-1")
+        assertNotNull(updatedRecord)
+        assertEquals("dismissed", updatedRecord.status)
+        assertTrue(updatedRecord.message.contains("FTP has changed"))
+    }
+
+    @Test
+    fun testFtpEstimationSupersedesPreviousPending() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val oldRecord = FtpHistoryRecord(
+            id = "ftp-old",
+            userId = user.id,
+            estimatedFtp = 205,
+            previousFtp = user.ftp,
+            sessionId = "s-old",
+            status = "pending_approval",
+            message = "Old estimate",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(oldRecord)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        val samples = (0..1200 step 10).map { sec ->
+            MetricSample("session-1", Instant.now().toString(), sec, 240, 240, 90, 150, 30.0)
+        }
+
+        val record = ftpEstimationService.checkAndEstimateFtp(user, session, workout, samples)
+
+        assertNotNull(record)
+        assertEquals(228, record.estimatedFtp)
+        assertEquals("pending_approval", record.status)
+
+        val updatedOld = adaptiveRepo.findFtpRecordById("ftp-old")
+        assertNotNull(updatedOld)
+        assertEquals("dismissed", updatedOld.status)
+        assertTrue(updatedOld.message.contains("Superseded by a newer estimate"))
     }
 }
