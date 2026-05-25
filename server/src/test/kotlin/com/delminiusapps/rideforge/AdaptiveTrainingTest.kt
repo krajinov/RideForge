@@ -183,10 +183,17 @@ class AdaptiveTrainingTest {
         val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
         val sessionRepo = InMemorySessionRepository()
         val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
 
         userRepo.create(user)
 
-        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo)
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
 
         // Generate 20 minutes (1200 seconds) of metric samples at 240W
         val samples = (1..1250).map { sec ->
@@ -198,5 +205,63 @@ class AdaptiveTrainingTest {
         // 240W * 0.95 = 228W, which is > 200W + 2
         assertEquals(228, record.estimatedFtp)
         assertEquals("pending_approval", record.status)
+    }
+
+    @Test
+    fun testFtpSetTooHigh() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        // Create 3 completed sessions of intensity (sweet spot)
+        val s1 = session.copy(id = "s-1", completedAt = "2026-05-25T09:00:00Z")
+        val s2 = session.copy(id = "s-2", completedAt = "2026-05-25T09:10:00Z")
+        val s3 = session.copy(id = "s-3", completedAt = "2026-05-25T09:20:00Z")
+        sessionRepo.create(s1)
+        sessionRepo.create(s2)
+        sessionRepo.create(s3)
+
+        // Add Struggled/Failed analysis records for them
+        val a1 = WorkoutAnalysis(
+            sessionId = "s-1",
+            completionPercent = 90,
+            intervalSuccessRate = 80,
+            ergComplianceScore = 65,
+            cadenceConsistencyScore = 80,
+            powerFade = 16.0,
+            hrDrift = 5.0,
+            estimatedRpe = 8.0,
+            classification = "Struggled",
+            coachNotesSummary = "",
+            coachNotesRecommendation = "",
+            coachNotesRecovery = "",
+            coachNotesNextWorkout = ""
+        )
+        val a2 = a1.copy(sessionId = "s-2", classification = "Failed")
+        val a3 = a1.copy(sessionId = "s-3", classification = "Struggled")
+        adaptiveRepo.saveAnalysis(a1)
+        adaptiveRepo.saveAnalysis(a2)
+        adaptiveRepo.saveAnalysis(a3)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Run check (with a single sample so no FTP increase is detected but it bypasses the empty check)
+        val dummySamples = listOf(MetricSample("session-1", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0))
+        val record = ftpEstimationService.checkAndEstimateFtp(user, session, workout, dummySamples)
+        
+        assertNotNull(record)
+        // 200W * 0.95 = 190W
+        assertEquals(190, record.estimatedFtp)
+        assertEquals("pending_approval", record.status)
+        assertTrue(record.message.contains("struggled with your last 3 high-intensity sessions"))
     }
 }

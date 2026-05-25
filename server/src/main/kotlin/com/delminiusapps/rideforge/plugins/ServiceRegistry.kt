@@ -98,7 +98,7 @@ class ServiceRegistry(config: AppConfig) : AutoCloseable {
 
     val progressionTracker = ProgressionTracker(adaptiveTrainingRepository)
     val fatigueCalculationService = FatigueCalculationService()
-    val ftpEstimationService = FtpEstimationService(adaptiveTrainingRepository, sessionRepository, userRepository)
+    val ftpEstimationService = FtpEstimationService(adaptiveTrainingRepository, sessionRepository, userRepository, workoutRepository)
     val recommendationEngine = RecommendationEngine(workoutRepository, sessionRepository, progressionTracker)
 
     val jwtService = JwtService(config.jwt)

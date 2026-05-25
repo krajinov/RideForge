@@ -9,6 +9,7 @@ import com.delminiusapps.rideforge.models.WorkoutType
 import com.delminiusapps.rideforge.repositories.AdaptiveTrainingRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.UserRepository
+import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.utils.newId
 import com.delminiusapps.rideforge.utils.nowIso
 import kotlin.math.roundToInt
@@ -16,7 +17,8 @@ import kotlin.math.roundToInt
 class FtpEstimationService(
     private val adaptiveRepository: AdaptiveTrainingRepository,
     private val sessionRepository: SessionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val workoutRepository: WorkoutRepository
 ) {
 
     suspend fun checkAndEstimateFtp(
@@ -73,10 +75,10 @@ class FtpEstimationService(
             .mapNotNull { ride ->
                 // Try to find the analysis
                 val analysis = adaptiveRepository.findAnalysisBySessionId(ride.id) ?: return@mapNotNull null
-                val type = intensityTypes.any { it.name == workout.workoutType.name } // Check type
-                if (type) analysis else null
+                val rideWorkout = workoutRepository.findById(ride.workoutId) ?: return@mapNotNull null
+                val isIntensity = intensityTypes.contains(rideWorkout.workoutType)
+                if (isIntensity) analysis else null
             }
-
         // Check if the last 3 intensity workouts were failed or struggled
         if (completedIntensityRides.size >= 3) {
             val lastThree = completedIntensityRides.take(3)
