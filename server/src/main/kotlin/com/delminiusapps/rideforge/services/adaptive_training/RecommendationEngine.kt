@@ -78,7 +78,7 @@ class RecommendationEngine(
             }
         }
 
-        // 3. Stale FTP check -> Recommend FTP test
+        // 3. Stale FTP check -> Recommend FTP test (only if an approved record exists and is old)
         val ftpHistory = adaptiveRepository.getFtpHistory(userId)
         val lastApproved = ftpHistory.lastOrNull { it.status == "approved" }
         val isStale = if (lastApproved != null) {
@@ -86,7 +86,7 @@ class RecommendationEngine(
             val thirtyDaysAgo = java.time.Instant.now().minus(30, ChronoUnit.DAYS)
             lastDate.isBefore(thirtyDaysAgo)
         } else {
-            true
+            false // No approved history yet — don't force an FTP test
         }
         if (isStale) {
             val ftpTestWorkout = workoutRepository.list(100, 0)

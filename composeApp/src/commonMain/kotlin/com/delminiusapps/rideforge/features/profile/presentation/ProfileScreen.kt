@@ -486,7 +486,6 @@ private fun EditProfileSheet(
     ModalBottomSheet(
         onDismissRequest = { if (!isSaving) onDismiss() },
         containerColor = ForgeSurface,
-        windowInsets = WindowInsets(0, 0, 0, 0),
     ) {
         Column(
             modifier = Modifier
