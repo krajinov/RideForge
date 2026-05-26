@@ -39,7 +39,6 @@ class RecommendationEngine(
                 reason = "Your fatigue is high (TSB: ${tsb}). Swapping today's session for active recovery will help prevent overtraining.",
                 createdAt = nowIso()
             )
-            adaptiveRepository.saveRecommendation(rec)
             return rec
         }
 
@@ -75,7 +74,6 @@ class RecommendationEngine(
                     reason = "You struggled with your last 2 high-intensity sessions. We recommend reducing training intensity and doing a base ride today.",
                     createdAt = nowIso()
                 )
-                adaptiveRepository.saveRecommendation(rec)
                 return rec
             }
         }
@@ -103,7 +101,6 @@ class RecommendationEngine(
                 reason = "It has been over 30 days since your last FTP change. We recommend taking an FTP test.",
                 createdAt = nowIso()
             )
-            adaptiveRepository.saveRecommendation(rec)
             return rec
         }
 
@@ -141,7 +138,6 @@ class RecommendationEngine(
                             reason = "It's been $daysSinceLastRide days since your last ride. Let's resume your training plan to maintain adaptations.",
                             createdAt = nowIso()
                         )
-                        adaptiveRepository.saveRecommendation(rec)
                         return rec
                     }
                 }
@@ -170,7 +166,6 @@ class RecommendationEngine(
                     reason = "Your fatigue is in the optimal training zone (TSB: ${tsb}). Continue with your plan.",
                     createdAt = nowIso()
                 )
-                adaptiveRepository.saveRecommendation(rec)
                 return rec
             }
         }
@@ -186,7 +181,6 @@ class RecommendationEngine(
             reason = "Ready to train. Choose a session to build cardiovascular base.",
             createdAt = nowIso()
         )
-        adaptiveRepository.saveRecommendation(rec)
         return rec
     }
 
@@ -329,9 +323,6 @@ class RecommendationEngine(
         }
 
         val finalInsights = insights.take(3)
-        
-        // Persist insights
-        adaptiveRepository.saveCoachInsights(finalInsights)
         
         return finalInsights
     }

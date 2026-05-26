@@ -349,13 +349,15 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
             }
 
             val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
-            registry.recommendationEngine.getHomeRecommendation(userId, fatigue, user.enrolledPlanId)
+            val rec = registry.recommendationEngine.getHomeRecommendation(userId, fatigue, user.enrolledPlanId)
+            registry.adaptiveTrainingRepository.saveRecommendation(rec)
             
             val recentSessionsForInsights = registry.sessionRepository.historyForUser(userId, 5, 0)
             val recentAnalysesForInsights = recentSessionsForInsights.mapNotNull { 
                 registry.adaptiveTrainingRepository.findAnalysisBySessionId(it.id)
             }
-            registry.recommendationEngine.getCoachInsights(userId, fatigue, recentAnalysesForInsights)
+            val insights = registry.recommendationEngine.getCoachInsights(userId, fatigue, recentAnalysesForInsights)
+            registry.adaptiveTrainingRepository.saveCoachInsights(insights)
 
             call.respond(mapOf("status" to "recalculated"))
         }

@@ -155,6 +155,10 @@ class PostgresAdaptiveTrainingRepository(private val database: PostgresDatabase)
                 id, user_id, current_ftp, estimated_ftp, confidence_score, recommendation, status, message, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (id) DO UPDATE SET
+                current_ftp = EXCLUDED.current_ftp,
+                estimated_ftp = EXCLUDED.estimated_ftp,
+                confidence_score = EXCLUDED.confidence_score,
+                recommendation = EXCLUDED.recommendation,
                 status = EXCLUDED.status,
                 message = EXCLUDED.message
             """.trimIndent()
