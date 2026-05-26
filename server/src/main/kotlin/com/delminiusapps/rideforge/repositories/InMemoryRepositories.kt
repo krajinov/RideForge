@@ -19,6 +19,10 @@ import com.delminiusapps.rideforge.models.WorkoutAnalysis
 import com.delminiusapps.rideforge.models.FtpHistoryRecord
 import com.delminiusapps.rideforge.models.ProgressionLevel
 import com.delminiusapps.rideforge.models.WorkoutType
+import com.delminiusapps.rideforge.models.FtpEstimateDetail
+import com.delminiusapps.rideforge.models.FatigueSnapshot
+import com.delminiusapps.rideforge.models.AdaptiveRecommendation
+import com.delminiusapps.rideforge.models.CoachInsight
 
 class InMemoryUserRepository : UserRepository {
     private val mutex = Mutex()
@@ -243,6 +247,10 @@ class InMemoryAdaptiveTrainingRepository : AdaptiveTrainingRepository {
     private val analyses = mutableMapOf<String, WorkoutAnalysis>()
     private val ftpRecords = mutableMapOf<String, FtpHistoryRecord>()
     private val progressionLevels = mutableMapOf<String, ProgressionLevel>()
+    private val ftpEstimates = mutableMapOf<String, FtpEstimateDetail>()
+    private val fatigueSnapshots = mutableMapOf<String, FatigueSnapshot>()
+    private val recommendations = mutableMapOf<String, AdaptiveRecommendation>()
+    private val insightsList = mutableListOf<CoachInsight>()
 
     override suspend fun saveAnalysis(analysis: WorkoutAnalysis): WorkoutAnalysis = mutex.withLock {
         analyses[analysis.sessionId] = analysis
@@ -278,6 +286,75 @@ class InMemoryAdaptiveTrainingRepository : AdaptiveTrainingRepository {
         ftpRecords.values
             .filter { it.userId == userId }
             .sortedBy { it.createdAt }
+    }
+
+    override suspend fun saveFtpEstimate(estimate: FtpEstimateDetail): FtpEstimateDetail = mutex.withLock {
+        ftpEstimates[estimate.id] = estimate
+        estimate
+    }
+
+    override suspend fun findPendingFtpEstimate(userId: String): FtpEstimateDetail? = mutex.withLock {
+        ftpEstimates.values
+            .filter { it.userId == userId && it.status == "pending_approval" }
+            .sortedByDescending { it.createdAt }
+            .firstOrNull()
+    }
+
+    override suspend fun findFtpEstimateById(id: String): FtpEstimateDetail? = mutex.withLock {
+        ftpEstimates[id]
+    }
+
+    override suspend fun updateFtpEstimate(estimate: FtpEstimateDetail): FtpEstimateDetail = mutex.withLock {
+        ftpEstimates[estimate.id] = estimate
+        estimate
+    }
+
+    override suspend fun getFtpEstimates(userId: String): List<FtpEstimateDetail> = mutex.withLock {
+        ftpEstimates.values
+            .filter { it.userId == userId }
+            .sortedBy { it.createdAt }
+    }
+
+    override suspend fun saveFatigueSnapshot(snapshot: FatigueSnapshot): FatigueSnapshot = mutex.withLock {
+        fatigueSnapshots["${snapshot.userId}_${snapshot.date}"] = snapshot
+        snapshot
+    }
+
+    override suspend fun getLatestFatigueSnapshot(userId: String): FatigueSnapshot? = mutex.withLock {
+        fatigueSnapshots.values
+            .filter { it.userId == userId }
+            .sortedByDescending { it.date }
+            .firstOrNull()
+    }
+
+    override suspend fun getFatigueHistory(userId: String): List<FatigueSnapshot> = mutex.withLock {
+        fatigueSnapshots.values
+            .filter { it.userId == userId }
+            .sortedBy { it.date }
+    }
+
+    override suspend fun saveRecommendation(recommendation: AdaptiveRecommendation): AdaptiveRecommendation = mutex.withLock {
+        recommendations[recommendation.id] = recommendation
+        recommendation
+    }
+
+    override suspend fun getLatestRecommendation(userId: String): AdaptiveRecommendation? = mutex.withLock {
+        recommendations.values
+            .filter { it.userId == userId }
+            .sortedByDescending { it.createdAt }
+            .firstOrNull()
+    }
+
+    override suspend fun saveCoachInsights(insights: List<CoachInsight>): Unit = mutex.withLock {
+        insightsList.addAll(insights)
+        Unit
+    }
+
+    override suspend fun getRecentCoachInsights(userId: String, limit: Int): List<CoachInsight> = mutex.withLock {
+        insightsList
+            .filter { it.userId == userId }
+            .sortedByDescending { it.createdAt }
+            .take(limit)
     }
 
     override suspend fun saveProgressionLevel(level: ProgressionLevel): ProgressionLevel = mutex.withLock {

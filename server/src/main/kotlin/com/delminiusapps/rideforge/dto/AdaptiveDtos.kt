@@ -82,3 +82,41 @@ data class WorkoutAnalysisResponse(
 data class ApproveFtpResponse(
     val updatedFtp: Int
 )
+
+@Serializable
+data class AdaptiveSummaryResponse(
+    val totalWorkouts: Int,
+    val completionRate: Int,
+    val complianceRate: Int,
+    val cadenceConsistency: Int,
+    val averageRpe: Double,
+    val totalTss: Int
+)
+
+@Serializable
+data class FtpEstimateDetailResponse(
+    val id: String,
+    val currentFtp: Int,
+    val estimatedFtp: Int,
+    val confidenceScore: Int,
+    val recommendation: String, // KEEP, INCREASE, DECREASE, TEST_REQUIRED
+    val status: String,
+    val message: String,
+    val createdAt: String
+)
+
+@Serializable
+data class FatigueDetailResponse(
+    val fitness: Double,
+    val fatigue: Double,
+    val form: Double,
+    val freshnessStatus: String
+)
+
+@Serializable
+data class CoachInsightResponse(
+    val title: String,
+    val message: String,
+    val severity: String,
+    val sourceMetric: String
+)

@@ -5,6 +5,8 @@ import com.delminiusapps.rideforge.features.history.presentation.HistoryViewMode
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
+import com.delminiusapps.rideforge.domain.usecase.GetSessionAnalysisUseCase
+
 val historyModule = module {
     viewModel { HistoryViewModel(get()) }
     viewModel { parameters ->
@@ -17,6 +19,7 @@ val historyModule = module {
             syncPendingSessionsUseCase = get(),
             syncWorkoutToStravaUseCase = get(),
             getStravaSyncStatusUseCase = get(),
+            getSessionAnalysisUseCase = get(),
             sessionId = parameters.get(),
         )
     }

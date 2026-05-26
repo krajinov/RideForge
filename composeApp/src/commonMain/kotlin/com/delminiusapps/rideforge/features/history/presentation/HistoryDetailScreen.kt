@@ -149,6 +149,7 @@ fun HistoryDetailScreen(
                         workout = workout,
                         historyItem = uiState.historyItem,
                         analysis = analysis,
+                        serverAnalysis = uiState.serverAnalysis,
                     )
                 }
 
@@ -171,7 +172,7 @@ fun HistoryDetailScreen(
                 }
 
                 item {
-                    PowerAnalyticsCard(analysis)
+                    PowerAnalyticsCard(analysis, uiState.serverAnalysis)
                 }
 
                 item {
@@ -191,7 +192,7 @@ fun HistoryDetailScreen(
                 }
 
                 item {
-                    TrainerMetricsCard(analysis.trainerMetrics)
+                    TrainerMetricsCard(analysis.trainerMetrics, uiState.serverAnalysis)
                 }
 
                 item {
@@ -203,7 +204,7 @@ fun HistoryDetailScreen(
                 }
 
                 item {
-                    CoachNotesCard(analysis.coachNotes)
+                    CoachNotesCard(analysis.coachNotes, uiState.serverAnalysis)
                 }
 
                 item {
@@ -317,6 +318,7 @@ private fun HeroSummaryCard(
     workout: Workout?,
     historyItem: RideHistoryItem?,
     analysis: WorkoutAnalysis,
+    serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
 ) {
     AppCard(
         contentPadding = PaddingValues(0.dp),
@@ -356,7 +358,12 @@ private fun HeroSummaryCard(
                 }
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallPill(workout?.workoutType?.name?.replace("_", " ") ?: "Workout", ForgeBlue)
-                    SmallPill(workout?.difficulty ?: "Completed", difficultyColor(workout?.difficulty))
+                    val classification = serverAnalysis?.classification
+                    if (classification != null) {
+                        SmallPill(classification, classificationColor(classification))
+                    } else {
+                        SmallPill(workout?.difficulty ?: "Completed", difficultyColor(workout?.difficulty))
+                    }
                 }
             }
 
@@ -372,7 +379,12 @@ private fun HeroSummaryCard(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 HeroMetric("Avg Power", "${analysis.averagePowerWatts} W", ForgeBlue, Modifier.weight(1f))
                 HeroMetric("NP", "${analysis.normalizedPowerWatts} W", ForgeBlue, Modifier.weight(1f))
-                HeroMetric("FTP Impact", analysis.ftpImpactLabel, ForgePurple, Modifier.weight(1f))
+                val successRate = serverAnalysis?.intervalSuccessRate
+                if (successRate != null) {
+                    HeroMetric("Interval Success", "$successRate%", ForgeGreen, Modifier.weight(1f))
+                } else {
+                    HeroMetric("FTP Impact", analysis.ftpImpactLabel, ForgePurple, Modifier.weight(1f))
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 HeroMetric("Cadence", analysis.averageCadenceRpm?.let { "$it rpm" } ?: "Not recorded", ForgeGreen, Modifier.weight(1f))
@@ -429,7 +441,20 @@ private fun WorkoutTimelineCard(intervals: List<IntervalAnalysis>) {
 }
 
 @Composable
-private fun PowerAnalyticsCard(analysis: WorkoutAnalysis) {
+private fun PowerAnalyticsCard(
+    analysis: WorkoutAnalysis,
+    serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
+) {
+    val curve = serverAnalysis?.let {
+        listOf(
+            PeakPower("5s", 5, it.best5sPower),
+            PeakPower("30s", 30, it.best30sPower),
+            PeakPower("1m", 60, it.best1mPower),
+            PeakPower("5m", 300, it.best5mPower),
+            PeakPower("20m", 1200, it.best20mPower),
+        )
+    } ?: analysis.powerCurve
+
     ExpandableAnalyticsCard(
         title = "Power Analytics",
         subtitle = "Power graph, curve, zones, NP, and intensity",
@@ -455,7 +480,7 @@ private fun PowerAnalyticsCard(analysis: WorkoutAnalysis) {
             DetailRow("NP vs Avg Power", "${analysis.normalizedPowerWatts} W vs ${analysis.averagePowerWatts} W")
             DetailRow("Left/right balance", "Not recorded")
         }
-        PowerCurveChips(analysis.powerCurve)
+        PowerCurveChips(curve)
         ZoneBars(analysis.powerZones, zoneColors(), showTitle = false)
     }
 }
@@ -558,26 +583,33 @@ private fun ZoneDistributionCard(analysis: WorkoutAnalysis) {
 }
 
 @Composable
-private fun TrainerMetricsCard(metrics: TrainerAnalytics?) {
+private fun TrainerMetricsCard(
+    metrics: TrainerAnalytics?,
+    serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
+) {
+    val compliance = serverAnalysis?.ergComplianceScore ?: metrics?.ergComplianceScore
+    val avgDev = serverAnalysis?.avgDeviationPower?.roundToInt() ?: metrics?.averageDeviationWatts
+    val resistanceChanges = metrics?.resistanceChanges
+    val accuracy = metrics?.targetAccuracyPercent
+
     ExpandableAnalyticsCard(
         title = "Trainer Metrics",
         subtitle = "ERG compliance and target power accuracy",
         accent = ForgePurple,
         initiallyExpanded = false,
     ) {
-        if (metrics == null) {
+        if (compliance == null && avgDev == null) {
             EmptySection("Trainer target data was not recorded for this workout.")
         } else {
             MetricRow(
-                listOf(
-                    MetricValue("ERG Compliance", "${metrics.ergComplianceScore}/100", ForgePurple),
-                    MetricValue("Accuracy", "${metrics.targetAccuracyPercent}%", ForgeBlue),
-                    MetricValue("Avg Deviation", "${metrics.averageDeviationWatts} W", ForgeOrange),
+                listOfNotNull(
+                    compliance?.let { MetricValue("ERG Compliance", "$it/100", ForgePurple) },
+                    accuracy?.let { MetricValue("Accuracy", "$it%", ForgeBlue) },
+                    avgDev?.let { MetricValue("Avg Deviation", "$it W", ForgeOrange) },
                 ),
             )
             DetailPanel {
-                DetailRow("Resistance Changes", "${metrics.resistanceChanges}")
-                DetailRow("Power Target Accuracy", "${metrics.targetAccuracyPercent}%")
+                resistanceChanges?.let { DetailRow("Resistance Changes", "$it") }
             }
         }
     }
@@ -615,7 +647,15 @@ private fun AchievementsCard(achievements: List<AchievementInsight>) {
 }
 
 @Composable
-private fun CoachNotesCard(notes: CoachNotes) {
+private fun CoachNotesCard(
+    notes: CoachNotes,
+    serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
+) {
+    val summary = serverAnalysis?.coachNotesSummary ?: notes.summary
+    val recommendation = serverAnalysis?.coachNotesRecommendation ?: notes.recommendation
+    val recovery = serverAnalysis?.coachNotesRecovery ?: notes.recovery
+    val nextWorkout = serverAnalysis?.coachNotesNextWorkout ?: notes.nextWorkout
+
     ExpandableAnalyticsCard(
         title = "Coach Notes",
         subtitle = "Recovery, recommendation, and next workout",
@@ -624,13 +664,13 @@ private fun CoachNotesCard(notes: CoachNotes) {
     ) {
         DetailPanel {
             Text(
-                notes.summary,
+                summary,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 21.sp,
             )
-            CoachNoteItem("Recommendation", notes.recommendation)
-            CoachNoteItem("Recovery", notes.recovery)
-            CoachNoteItem("Next Workout", notes.nextWorkout)
+            CoachNoteItem("Recommendation", recommendation)
+            CoachNoteItem("Recovery", recovery)
+            CoachNoteItem("Next Workout", nextWorkout)
         }
     }
 }
@@ -1030,6 +1070,17 @@ private fun difficultyColor(difficulty: String?): Color {
         "hard" -> ForgeOrange
         "expert" -> ForgeRed
         else -> ForgePurple
+    }
+}
+
+private fun classificationColor(classification: String): Color {
+    return when (classification.uppercase()) {
+        "EASY" -> ForgeGreen
+        "SUCCESSFUL" -> ForgeBlue
+        "OVERPERFORMED" -> ForgePurple
+        "STRUGGLED" -> ForgeYellow
+        "FAILED" -> ForgeRed
+        else -> ForgeMuted
     }
 }
 

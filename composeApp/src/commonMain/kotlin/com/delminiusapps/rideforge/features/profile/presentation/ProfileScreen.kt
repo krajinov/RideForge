@@ -67,6 +67,12 @@ import com.delminiusapps.rideforge.theme.ForgeStrava
 import com.delminiusapps.rideforge.theme.ForgeText
 import com.delminiusapps.rideforge.theme.RideForgeRadius
 
+import androidx.compose.material.icons.rounded.ChevronRight
+import com.delminiusapps.rideforge.models.FtpEstimate
+import com.delminiusapps.rideforge.models.FtpHistoryRecord
+import com.delminiusapps.rideforge.theme.ForgeRed
+import com.delminiusapps.rideforge.theme.ForgeYellow
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -104,6 +110,18 @@ fun ProfileScreen(
             is ProfileUiState.Loading -> item { LoadingState("Loading profile...") }
             is ProfileUiState.Ready -> {
                 val loadedProfile = uiState.profile
+                
+                uiState.pendingFtpEstimate?.let { estimate ->
+                    item {
+                        FtpEstimateBanner(
+                            estimate = estimate,
+                            onApprove = { viewModel.onAction(ProfileAction.ApproveFtp(estimate.id)) },
+                            onDismiss = { viewModel.onAction(ProfileAction.DismissFtp(estimate.id)) },
+                            isApplying = uiState.isApplyingFtp
+                        )
+                    }
+                }
+                
                 item {
                     AppCard {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -131,6 +149,9 @@ fun ProfileScreen(
                     }
                 }
                 item {
+                    FtpHistoryCard(uiState.ftpHistory)
+                }
+                item {
                     StravaIntegrationCard(
                         isConnected = uiState.isStravaConnected,
                         isBusy = uiState.isStravaBusy,
@@ -154,6 +175,147 @@ fun ProfileScreen(
             is ProfileUiState.LoggedOut -> {
                 // handled by the callback side effect typically, but we call onLogout synchronously
             }
+        }
+    }
+}
+
+@Composable
+private fun FtpEstimateBanner(
+    estimate: FtpEstimate,
+    onApprove: () -> Unit,
+    onDismiss: () -> Unit,
+    isApplying: Boolean
+) {
+    AppCard {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(ForgeGreen, CircleShape)
+                )
+                Text(
+                    text = "New FTP Estimate Detected",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = ForgeGreen
+                )
+            }
+            Text(
+                text = estimate.message,
+                fontSize = 14.sp,
+                color = ForgeMuted
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "${estimate.previousFtp} W",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ForgeMuted
+                )
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = ForgeMuted,
+                    modifier = Modifier.padding(horizontal = 16.dp).size(24.dp)
+                )
+                Text(
+                    text = "${estimate.estimatedFtp} W",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = ForgeGreen
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                AppButton(
+                    text = if (isApplying) "Applying..." else "Apply",
+                    onClick = onApprove,
+                    modifier = Modifier.weight(1f),
+                    enabled = !isApplying,
+                    variant = AppButtonVariant.Primary
+                )
+                AppButton(
+                    text = "Dismiss",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    enabled = !isApplying,
+                    variant = AppButtonVariant.Secondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FtpHistoryCard(history: List<FtpHistoryRecord>) {
+    AppCard {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text("FTP History", fontWeight = FontWeight.Bold)
+            if (history.isEmpty()) {
+                Text("No FTP changes recorded yet.", color = ForgeMuted, fontSize = 14.sp)
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    history.forEach { record ->
+                        FtpHistoryRow(record)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FtpHistoryRow(record: FtpHistoryRecord) {
+    val diff = record.estimatedFtp - record.previousFtp
+    val diffText = if (diff >= 0) "+$diff W" else "$diff W"
+    val diffColor = if (diff >= 0) ForgeGreen else ForgeRed
+    
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${record.previousFtp} W → ${record.estimatedFtp} W",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 15.sp
+            )
+            Text(
+                text = record.message,
+                color = ForgeMuted,
+                fontSize = 12.sp
+            )
+        }
+        
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = diffText,
+                color = diffColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            val badgeColor = when (record.status.lowercase()) {
+                "approved" -> ForgeGreen
+                "dismissed" -> ForgeMuted
+                else -> ForgeYellow
+            }
+            Text(
+                text = record.status.uppercase(),
+                color = badgeColor,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 10.sp
+            )
         }
     }
 }

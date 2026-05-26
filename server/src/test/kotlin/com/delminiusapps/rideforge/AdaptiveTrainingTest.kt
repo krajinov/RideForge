@@ -113,7 +113,7 @@ class AdaptiveTrainingTest {
             analysis = analysisOverperformed,
             userFtp = 200
         )
-        assertEquals("Overperformed", class1)
+        assertEquals("OVERPERFORMED", class1)
 
         // Lower completion, high RPE -> Failed
         val analysisFailed = WorkoutCompletionAnalyzer.AnalysisResult(
@@ -132,7 +132,7 @@ class AdaptiveTrainingTest {
             analysis = analysisFailed,
             userFtp = 200
         )
-        assertEquals("Failed", class2)
+        assertEquals("FAILED", class2)
     }
 
     @Test
@@ -145,7 +145,7 @@ class AdaptiveTrainingTest {
         assertEquals(1.0, initialLevels[WorkoutType.SWEET_SPOT])
 
         // Overperformed updates progression level
-        tracker.updateProgression("user-1", workout, "Overperformed")
+        tracker.updateProgression("user-1", workout, "OVERPERFORMED")
         val updatedLevels = tracker.getAllProgressionLevels("user-1")
         assertTrue(updatedLevels[WorkoutType.SWEET_SPOT]!! > 1.0)
     }
@@ -243,14 +243,14 @@ class AdaptiveTrainingTest {
             powerFade = 16.0,
             hrDrift = 5.0,
             estimatedRpe = 8.0,
-            classification = "Struggled",
+            classification = "STRUGGLED",
             coachNotesSummary = "",
             coachNotesRecommendation = "",
             coachNotesRecovery = "",
             coachNotesNextWorkout = ""
         )
-        val a2 = a1.copy(sessionId = "s-2", classification = "Failed")
-        val a3 = a1.copy(sessionId = "s-3", classification = "Struggled")
+        val a2 = a1.copy(sessionId = "s-2", classification = "FAILED")
+        val a3 = a1.copy(sessionId = "s-3", classification = "STRUGGLED")
         adaptiveRepo.saveAnalysis(a1)
         adaptiveRepo.saveAnalysis(a2)
         adaptiveRepo.saveAnalysis(a3)
@@ -390,7 +390,7 @@ class AdaptiveTrainingTest {
         
         // If it used unscaled targets, compliance would be very low/0% and classification would be "Struggled" or "Failed"
         // Since it uses scaled targets, it should be Successful or Easy
-        assertTrue(analysis.classification == "Successful" || analysis.classification == "Easy")
+        assertTrue(analysis.classification == "SUCCESSFUL" || analysis.classification == "EASY")
     }
 
     @Test
@@ -417,7 +417,7 @@ class AdaptiveTrainingTest {
         // Scaling factor: 2.0 / 3.0 = 0.666 -> coerced to 0.90
         // Completed level: 3.0 * 0.90 = 2.7
         // Let's run updateProgression with "Successful"
-        val newLevel = tracker.updateProgression("user-1", customWorkout, "Successful")
+        val newLevel = tracker.updateProgression("user-1", customWorkout, "SUCCESSFUL")
         
         // Assert it is exactly 2.7 instead of 3.0
         assertEquals(2.7, newLevel)
@@ -456,14 +456,14 @@ class AdaptiveTrainingTest {
             powerFade = 16.0,
             hrDrift = 5.0,
             estimatedRpe = 8.0,
-            classification = "Struggled",
+            classification = "STRUGGLED",
             coachNotesSummary = "",
             coachNotesRecommendation = "",
             coachNotesRecovery = "",
             coachNotesNextWorkout = ""
         )
-        val a2 = a1.copy(sessionId = "s-2", classification = "Failed")
-        val a3 = a1.copy(sessionId = "s-3", classification = "Struggled")
+        val a2 = a1.copy(sessionId = "s-2", classification = "FAILED")
+        val a3 = a1.copy(sessionId = "s-3", classification = "STRUGGLED")
         adaptiveRepo.saveAnalysis(a1)
         adaptiveRepo.saveAnalysis(a2)
         adaptiveRepo.saveAnalysis(a3)

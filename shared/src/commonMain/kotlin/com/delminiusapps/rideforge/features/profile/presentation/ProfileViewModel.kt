@@ -9,6 +9,12 @@ import com.delminiusapps.rideforge.domain.usecase.GetStravaStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.LogoutUseCase
 import com.delminiusapps.rideforge.domain.usecase.UpdateProfileUseCase
 import com.delminiusapps.rideforge.models.UserProfile
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveDashboardUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveTrendsUseCase
+import com.delminiusapps.rideforge.domain.usecase.ApproveFtpEstimateUseCase
+import com.delminiusapps.rideforge.domain.usecase.DismissFtpEstimateUseCase
+import com.delminiusapps.rideforge.models.FtpEstimate
+import com.delminiusapps.rideforge.models.FtpHistoryRecord
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,6 +31,10 @@ class ProfileViewModel(
     private val getStravaStatusUseCase: GetStravaStatusUseCase,
     private val getStravaConnectUrlUseCase: GetStravaConnectUrlUseCase,
     private val disconnectStravaUseCase: DisconnectStravaUseCase,
+    private val getAdaptiveDashboardUseCase: GetAdaptiveDashboardUseCase,
+    private val getAdaptiveTrendsUseCase: GetAdaptiveTrendsUseCase,
+    private val approveFtpEstimateUseCase: ApproveFtpEstimateUseCase,
+    private val dismissFtpEstimateUseCase: DismissFtpEstimateUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()
@@ -41,12 +51,17 @@ class ProfileViewModel(
             runCatching {
                 val profile = getCurrentUserUseCase()
                 val strava = runCatching { getStravaStatusUseCase() }.getOrNull()
-                profile to strava
-            }.onSuccess { (profile, strava) ->
+                val adaptive = runCatching { getAdaptiveDashboardUseCase() }.getOrNull()
+                val trends = runCatching { getAdaptiveTrendsUseCase() }.getOrNull()
+                Triple(profile, strava, adaptive to trends)
+            }.onSuccess { (profile, strava, adaptiveAndTrends) ->
+                val (adaptive, trends) = adaptiveAndTrends
                 _state.update {
                     ProfileUiState.Ready(
                         profile = profile,
                         isStravaConnected = strava?.connected == true,
+                        pendingFtpEstimate = adaptive?.pendingFtpEstimate,
+                        ftpHistory = trends?.second ?: emptyList()
                     )
                 }
             }.onFailure {
@@ -63,6 +78,52 @@ class ProfileViewModel(
             is ProfileAction.SaveProfile -> saveProfile(action)
             ProfileAction.ToggleStravaConnection -> toggleStravaConnection()
             ProfileAction.StravaSync -> refreshStravaStatus()
+            is ProfileAction.ApproveFtp -> approveFtp(action.id)
+            is ProfileAction.DismissFtp -> dismissFtp(action.id)
+        }
+    }
+
+    private fun approveFtp(id: String) {
+        val ready = _state.value as? ProfileUiState.Ready ?: return
+        if (ready.isApplyingFtp) return
+        viewModelScope.launch {
+            _state.update { state ->
+                if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = true) else state
+            }
+            runCatching { approveFtpEstimateUseCase(id) }
+                .onSuccess {
+                    _state.update { state ->
+                        if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = false) else state
+                    }
+                    loadProfile()
+                }
+                .onFailure {
+                    _state.update { state ->
+                        if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = false) else state
+                    }
+                }
+        }
+    }
+
+    private fun dismissFtp(id: String) {
+        val ready = _state.value as? ProfileUiState.Ready ?: return
+        if (ready.isApplyingFtp) return
+        viewModelScope.launch {
+            _state.update { state ->
+                if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = true) else state
+            }
+            runCatching { dismissFtpEstimateUseCase(id) }
+                .onSuccess {
+                    _state.update { state ->
+                        if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = false) else state
+                    }
+                    loadProfile()
+                }
+                .onFailure {
+                    _state.update { state ->
+                        if (state is ProfileUiState.Ready) state.copy(isApplyingFtp = false) else state
+                    }
+                }
         }
     }
 
@@ -96,15 +157,13 @@ class ProfileViewModel(
                 updateProfileUseCase(action.ftpWatts, action.weightKg, action.units)
             }.onSuccess { profile ->
                 _state.update { state ->
-                    when (state) {
-                        is ProfileUiState.Ready -> state.copy(
-                            profile = profile,
-                            isEditorOpen = false,
-                            isSaving = false,
-                            editError = null,
-                        )
-                        else -> ProfileUiState.Ready(profile = profile)
-                    }
+                    val currentReady = state as? ProfileUiState.Ready
+                    ProfileUiState.Ready(
+                        profile = profile,
+                        isStravaConnected = currentReady?.isStravaConnected == true,
+                        pendingFtpEstimate = currentReady?.pendingFtpEstimate,
+                        ftpHistory = currentReady?.ftpHistory ?: emptyList()
+                    )
                 }
             }.onFailure {
                 _state.update { state ->
@@ -231,6 +290,9 @@ sealed interface ProfileUiState {
         val isStravaBusy: Boolean = false,
         val hasPendingStravaAuthorization: Boolean = false,
         val stravaError: String? = null,
+        val pendingFtpEstimate: FtpEstimate? = null,
+        val ftpHistory: List<FtpHistoryRecord> = emptyList(),
+        val isApplyingFtp: Boolean = false
     ) : ProfileUiState
     data object LoggedOut : ProfileUiState
 }
@@ -242,6 +304,8 @@ sealed interface ProfileAction {
     data object Logout : ProfileAction
     data object ToggleStravaConnection : ProfileAction
     data object StravaSync : ProfileAction
+    data class ApproveFtp(val id: String) : ProfileAction
+    data class DismissFtp(val id: String) : ProfileAction
 }
 
 sealed interface ProfileEvent {
