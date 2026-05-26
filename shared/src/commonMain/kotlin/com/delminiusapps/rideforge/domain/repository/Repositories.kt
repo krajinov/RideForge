@@ -65,12 +65,3 @@ interface StravaRepository {
     suspend fun syncWorkout(sessionId: String): StravaSyncInfo
     suspend fun getSyncStatus(sessionId: String): StravaSyncInfo
 }
-
-interface AdaptiveRepository {
-    suspend fun getDashboard(): com.delminiusapps.rideforge.models.AdaptiveDashboard
-    suspend fun getTrends(): Pair<List<com.delminiusapps.rideforge.models.DailyFatigue>, List<com.delminiusapps.rideforge.models.FtpHistoryRecord>>
-    suspend fun approveFtpEstimate(id: String): Int
-    suspend fun dismissFtpEstimate(id: String)
-    suspend fun getSessionAnalysis(sessionId: String): com.delminiusapps.rideforge.models.WorkoutAnalysis
-}
-

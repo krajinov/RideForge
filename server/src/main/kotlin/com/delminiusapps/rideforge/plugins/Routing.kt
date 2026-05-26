@@ -10,7 +10,6 @@ import com.delminiusapps.rideforge.routes.sessionRoutes
 import com.delminiusapps.rideforge.routes.stravaCallbackRoutes
 import com.delminiusapps.rideforge.routes.stravaIntegrationRoutes
 import com.delminiusapps.rideforge.routes.workoutRoutes
-import com.delminiusapps.rideforge.routes.adaptiveRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.response.respond
@@ -40,7 +39,6 @@ fun Application.configureRouting(registry: ServiceRegistry) {
             historyRoutes(registry)
             deviceRoutes(registry)
             stravaIntegrationRoutes(registry)
-            adaptiveRoutes(registry)
         }
     }
 }

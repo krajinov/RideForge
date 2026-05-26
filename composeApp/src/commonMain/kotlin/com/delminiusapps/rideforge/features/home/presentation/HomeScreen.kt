@@ -8,16 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsBike
 import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,38 +72,12 @@ fun HomeScreen(
             }
             is HomeUiState.Ready -> {
                 val dashboard = uiState.dashboard
-                val adaptive = uiState.adaptive
-
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         MetricCard("FTP", "${dashboard.user.ftpWatts} W", modifier = Modifier.weight(1f))
-                        
-                        val tsbVal = adaptive?.fatigue?.tsb ?: 0.0
-                        val balanceColor = when {
-                            tsbVal < -20.0 -> ForgeMuted
-                            tsbVal > 5.0 -> ForgeGreen
-                            else -> ForgeBlue
-                        }
-                        MetricCard("Fatigue Balance", "${tsbVal.toInt()} TSB", balanceColor, Modifier.weight(1f))
+                        MetricCard("Status", "Ready", ForgeGreen, Modifier.weight(1f))
                     }
                 }
-
-                val pending = adaptive?.pendingFtpEstimate
-                if (pending != null) {
-                    item {
-                        AppCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("FTP Change Detected", fontWeight = FontWeight.Bold, color = ForgeGreen, style = MaterialTheme.typography.titleMedium)
-                                Text(pending.message, style = MaterialTheme.typography.bodyMedium, color = ForgeMuted)
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    PrimaryButton("Approve", { viewModel.onAction(HomeAction.ApproveFtp(pending.id)) }, Modifier.weight(1f))
-                                    SecondaryButton("Dismiss", { viewModel.onAction(HomeAction.DismissFtp(pending.id)) }, Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-
                 item {
                     ConnectionStatusCard(
                         status = dashboard.trainerStatus,
@@ -116,51 +85,12 @@ fun HomeScreen(
                         onClick = { onNavigate(AppRoute.Trainer) },
                     )
                 }
-
-                if (adaptive?.recommendation != null) {
-                    val rec = adaptive.recommendation
-                    item {
-                        AppCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeBlue, modifier = Modifier.size(18.dp))
-                                    Text("Coach Recommendation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                }
-                                Text(rec.title, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.bodyLarge)
-                                Text(rec.description, color = ForgeMuted, style = MaterialTheme.typography.bodyMedium)
-                                Text("Reason: ${rec.reason}", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
-                                val recWorkoutId = rec.workoutId
-                                if (recWorkoutId != null) {
-                                    PrimaryButton("Start Recommended Ride", { onNavigate(AppRoute.ActiveWorkout(recWorkoutId)) }, Modifier.fillMaxWidth(), Icons.Rounded.PlayArrow)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    item {
-                        WorkoutCard(
-                            workout = dashboard.workout,
-                            onClick = { onNavigate(AppRoute.Workout(dashboard.workout.id)) },
-                        )
-                    }
+                item {
+                    WorkoutCard(
+                        workout = dashboard.workout,
+                        onClick = { onNavigate(AppRoute.Workout(dashboard.workout.id)) },
+                    )
                 }
-
-                if (adaptive?.insights?.isNotEmpty() == true) {
-                    item {
-                        AppCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeGreen, modifier = Modifier.size(18.dp))
-                                    Text("AI Coach Insights", fontWeight = FontWeight.Bold)
-                                }
-                                adaptive.insights.forEach { insight ->
-                                    Text("• $insight", style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                    }
-                }
-
                 item { WeeklyProgressCard(dashboard.progress) }
                 item {
                     AppCard {
@@ -169,14 +99,11 @@ fun HomeScreen(
                                 Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeBlue, modifier = Modifier.size(18.dp))
                                 Text("Quick actions", fontWeight = FontWeight.Bold)
                             }
-                            val startWorkoutId = adaptive?.recommendation?.workoutId ?: dashboard.workout.id
-                            PrimaryButton("Start Workout", { onNavigate(AppRoute.ActiveWorkout(startWorkoutId)) }, Modifier.fillMaxWidth(), Icons.Rounded.PlayArrow)
+                            PrimaryButton("Start Workout", { onNavigate(AppRoute.ActiveWorkout(dashboard.workout.id)) }, Modifier.fillMaxWidth(), Icons.Rounded.PlayArrow)
                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 SecondaryButton("Plans", { onNavigate(AppRoute.Plans) }, Modifier.weight(1f), Icons.AutoMirrored.Rounded.ListAlt)
                                 SecondaryButton("History", { onNavigate(AppRoute.History) }, Modifier.weight(1f), Icons.Rounded.History)
                             }
-                            Spacer(Modifier.height(4.dp))
-                            SecondaryButton("Performance Trends", { onNavigate(AppRoute.Trends) }, Modifier.fillMaxWidth(), Icons.Rounded.TrendingUp)
                         }
                     }
                 }

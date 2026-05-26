@@ -42,7 +42,6 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -888,7 +887,6 @@ fun AppRoute.icon(): ImageVector = when (this) {
     is AppRoute.ActiveWorkout -> Icons.Rounded.FitnessCenter
     is AppRoute.WorkoutComplete -> Icons.Rounded.History
     is AppRoute.HistoryItem -> Icons.Rounded.History
-    AppRoute.Trends -> Icons.Rounded.ShowChart
 }
 
 fun workoutTypeLabel(type: WorkoutType): String = type.name

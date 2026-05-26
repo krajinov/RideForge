@@ -374,7 +374,7 @@ class RemoteStravaRepository(
     }
 }
 
-internal suspend fun <T> remoteOrFallback(
+private suspend fun <T> remoteOrFallback(
     monitor: DataSourceMonitor,
     fallback: suspend () -> T,
     remote: suspend () -> T,

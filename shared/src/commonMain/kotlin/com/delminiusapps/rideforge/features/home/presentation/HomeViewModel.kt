@@ -4,11 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.delminiusapps.rideforge.domain.trainer.TrainerConnectionRepository
 import com.delminiusapps.rideforge.domain.usecase.GetHomeDashboardUseCase
-import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveDashboardUseCase
-import com.delminiusapps.rideforge.domain.usecase.ApproveFtpEstimateUseCase
-import com.delminiusapps.rideforge.domain.usecase.DismissFtpEstimateUseCase
 import com.delminiusapps.rideforge.domain.usecase.HomeDashboard
-import com.delminiusapps.rideforge.models.AdaptiveDashboard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,9 +15,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val getHomeDashboardUseCase: GetHomeDashboardUseCase,
     private val trainerConnectionRepository: TrainerConnectionRepository,
-    private val getAdaptiveDashboardUseCase: GetAdaptiveDashboardUseCase,
-    private val approveFtpEstimateUseCase: ApproveFtpEstimateUseCase,
-    private val dismissFtpEstimateUseCase: DismissFtpEstimateUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -35,8 +28,6 @@ class HomeViewModel(
         when (action) {
             HomeAction.Refresh -> loadDashboard()
             HomeAction.ScreenVisible -> loadDashboard(showLoading = _state.value !is HomeUiState.Ready)
-            is HomeAction.ApproveFtp -> approveFtp(action.id)
-            is HomeAction.DismissFtp -> dismissFtp(action.id)
         }
     }
 
@@ -46,28 +37,12 @@ class HomeViewModel(
         }
         viewModelScope.launch {
             runCatching {
-                val dashboard = getHomeDashboardUseCase()
-                val adaptive = runCatching { getAdaptiveDashboardUseCase() }.getOrNull()
-                dashboard to adaptive
-            }.onSuccess { (dashboard, adaptive) ->
-                _state.update { HomeUiState.Ready(dashboard.withCurrentTrainerState(), adaptive) }
+                getHomeDashboardUseCase()
+            }.onSuccess { dashboard ->
+                _state.update { HomeUiState.Ready(dashboard.withCurrentTrainerState()) }
             }.onFailure {
                 _state.update { HomeUiState.Error }
             }
-        }
-    }
-
-    private fun approveFtp(id: String) {
-        viewModelScope.launch {
-            runCatching { approveFtpEstimateUseCase(id) }
-                .onSuccess { loadDashboard(showLoading = false) }
-        }
-    }
-
-    private fun dismissFtp(id: String) {
-        viewModelScope.launch {
-            runCatching { dismissFtpEstimateUseCase(id) }
-                .onSuccess { loadDashboard(showLoading = false) }
         }
     }
 
@@ -103,15 +78,10 @@ class HomeViewModel(
 sealed interface HomeAction {
     data object Refresh : HomeAction
     data object ScreenVisible : HomeAction
-    data class ApproveFtp(val id: String) : HomeAction
-    data class DismissFtp(val id: String) : HomeAction
 }
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
     data object Error : HomeUiState
-    data class Ready(
-        val dashboard: HomeDashboard,
-        val adaptive: AdaptiveDashboard?
-    ) : HomeUiState
+    data class Ready(val dashboard: HomeDashboard) : HomeUiState
 }
