@@ -15,6 +15,11 @@ import com.delminiusapps.rideforge.models.WorkoutSession
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+import com.delminiusapps.rideforge.models.WorkoutAnalysis
+import com.delminiusapps.rideforge.models.FtpHistoryRecord
+import com.delminiusapps.rideforge.models.ProgressionLevel
+import com.delminiusapps.rideforge.models.WorkoutType
+
 class InMemoryUserRepository : UserRepository {
     private val mutex = Mutex()
     private val users = SeedData.users.associateBy { it.id }.toMutableMap()
@@ -232,3 +237,62 @@ class InMemoryStravaSyncRepository : StravaSyncRepository {
         }
     }
 }
+
+class InMemoryAdaptiveTrainingRepository : AdaptiveTrainingRepository {
+    private val mutex = Mutex()
+    private val analyses = mutableMapOf<String, WorkoutAnalysis>()
+    private val ftpRecords = mutableMapOf<String, FtpHistoryRecord>()
+    private val progressionLevels = mutableMapOf<String, ProgressionLevel>()
+
+    override suspend fun saveAnalysis(analysis: WorkoutAnalysis): WorkoutAnalysis = mutex.withLock {
+        analyses[analysis.sessionId] = analysis
+        analysis
+    }
+
+    override suspend fun findAnalysisBySessionId(sessionId: String): WorkoutAnalysis? = mutex.withLock {
+        analyses[sessionId]
+    }
+
+    override suspend fun saveFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord = mutex.withLock {
+        ftpRecords[record.id] = record
+        record
+    }
+
+    override suspend fun findPendingFtpRecord(userId: String): FtpHistoryRecord? = mutex.withLock {
+        ftpRecords.values
+            .filter { it.userId == userId && it.status == "pending_approval" }
+            .sortedByDescending { it.createdAt }
+            .firstOrNull()
+    }
+
+    override suspend fun findFtpRecordById(id: String): FtpHistoryRecord? = mutex.withLock {
+        ftpRecords[id]
+    }
+
+    override suspend fun updateFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord = mutex.withLock {
+        ftpRecords[record.id] = record
+        record
+    }
+
+    override suspend fun getFtpHistory(userId: String): List<FtpHistoryRecord> = mutex.withLock {
+        ftpRecords.values
+            .filter { it.userId == userId }
+            .sortedBy { it.createdAt }
+    }
+
+    override suspend fun saveProgressionLevel(level: ProgressionLevel): ProgressionLevel = mutex.withLock {
+        val key = "${level.userId}_${level.workoutType.name}"
+        progressionLevels[key] = level
+        level
+    }
+
+    override suspend fun getProgressionLevels(userId: String): List<ProgressionLevel> = mutex.withLock {
+        progressionLevels.values.filter { it.userId == userId }
+    }
+
+    override suspend fun getProgressionLevel(userId: String, workoutType: WorkoutType): ProgressionLevel? = mutex.withLock {
+        val key = "${userId}_${workoutType.name}"
+        progressionLevels[key]
+    }
+}
+

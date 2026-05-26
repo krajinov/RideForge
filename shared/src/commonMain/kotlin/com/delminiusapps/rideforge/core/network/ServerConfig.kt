@@ -24,6 +24,6 @@ private fun normalizeApiBaseUrl(url: String): String = url.trim().trimEnd('/')
 object ServerHosts {
     const val ANDROID_EMULATOR = "10.0.2.2"
     const val LOCALHOST = "localhost"
-    const val DEVICE_LAN = "192.168.168.75"
+    const val DEVICE_LAN = "192.168.168.66"
 }
 

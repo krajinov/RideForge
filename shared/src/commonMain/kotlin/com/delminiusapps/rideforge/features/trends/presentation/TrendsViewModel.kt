@@ -1,0 +1,55 @@
+package com.delminiusapps.rideforge.features.trends.presentation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveDashboardUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetAdaptiveTrendsUseCase
+import com.delminiusapps.rideforge.models.DailyFatigue
+import com.delminiusapps.rideforge.models.FtpHistoryRecord
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class TrendsViewModel(
+    private val getAdaptiveTrendsUseCase: GetAdaptiveTrendsUseCase,
+    private val getAdaptiveDashboardUseCase: GetAdaptiveDashboardUseCase
+) : ViewModel() {
+    private val _state = MutableStateFlow<TrendsUiState>(TrendsUiState.Loading)
+    val state: StateFlow<TrendsUiState> = _state.asStateFlow()
+
+    init {
+        loadTrends()
+    }
+
+    fun refresh() {
+        loadTrends()
+    }
+
+    private fun loadTrends() {
+        _state.update { TrendsUiState.Loading }
+        viewModelScope.launch {
+            runCatching {
+                val trends = getAdaptiveTrendsUseCase()
+                val dashboard = runCatching { getAdaptiveDashboardUseCase() }.getOrNull()
+                val levels = dashboard?.progressionLevels ?: emptyMap()
+                Triple(trends.first, trends.second, levels)
+            }.onSuccess { (fatigue, ftp, levels) ->
+                _state.update { TrendsUiState.Ready(fatigue, ftp, levels) }
+            }.onFailure {
+                _state.update { TrendsUiState.Error }
+            }
+        }
+    }
+}
+
+sealed interface TrendsUiState {
+    data object Loading : TrendsUiState
+    data object Error : TrendsUiState
+    data class Ready(
+        val fatigueHistory: List<DailyFatigue>,
+        val ftpHistory: List<FtpHistoryRecord>,
+        val progressionLevels: Map<String, Double>
+    ) : TrendsUiState
+}

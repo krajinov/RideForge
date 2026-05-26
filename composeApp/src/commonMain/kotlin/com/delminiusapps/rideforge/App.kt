@@ -45,6 +45,7 @@ import com.delminiusapps.rideforge.features.workout.presentation.ActiveWorkoutSc
 import com.delminiusapps.rideforge.features.workout.presentation.WorkoutCompleteScreen
 import com.delminiusapps.rideforge.features.workout.presentation.WorkoutDetailScreen
 import com.delminiusapps.rideforge.features.workout.presentation.WorkoutListScreen
+import com.delminiusapps.rideforge.features.trends.presentation.TrendsScreen
 import com.delminiusapps.rideforge.theme.ForgeBackground
 import com.delminiusapps.rideforge.theme.RideForgeTheme
 
@@ -78,7 +79,8 @@ fun App() {
                 com.delminiusapps.rideforge.features.profile.di.profileModule,
                 com.delminiusapps.rideforge.features.history.di.historyModule,
                 com.delminiusapps.rideforge.features.splash.di.splashModule,
-                com.delminiusapps.rideforge.features.workout.di.workoutModule
+                com.delminiusapps.rideforge.features.workout.di.workoutModule,
+                com.delminiusapps.rideforge.features.trends.di.trendsModule
             )
         }) {
             val authManager = koinInject<AuthManager>()
@@ -266,6 +268,9 @@ fun App() {
                             )
                             AppRoute.Profile -> ProfileScreen(
                                 onLogout = { setRootRoute(AppRoute.Login) },
+                            )
+                            AppRoute.Trends -> TrendsScreen(
+                                onBack = { navigateBackOr(AppRoute.Home) }
                             )
                         }
                     }
