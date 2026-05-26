@@ -251,6 +251,9 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
             val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
                 .sortedBy { it.completedAt ?: it.startedAt }
             
+            // Reset progression levels first to avoid compounding prior adjustments on replay
+            registry.progressionTracker.resetProgression(userId)
+            
             // 1. Re-analyze and classify each session
             for (session in sessions) {
                 val workout = registry.workoutRepository.findById(session.workoutId) ?: continue

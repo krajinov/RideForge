@@ -627,5 +627,41 @@ class AdaptiveTrainingTest {
         val success = ftpEstimationService.dismissFtp(user.id, "ftp-1")
         assertTrue(!success)
     }
+
+    @Test
+    fun testProgressionReset() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val tracker = ProgressionTracker(adaptiveRepo)
+        val userId = "user-test"
+
+        // Set progression level to 5.0 for Sweet Spot
+        val pl1 = ProgressionLevel(
+            id = "pl-ss",
+            userId = userId,
+            workoutType = WorkoutType.SWEET_SPOT,
+            level = 5.0,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl1)
+
+        // Set progression level to 3.0 for Threshold
+        val pl2 = ProgressionLevel(
+            id = "pl-th",
+            userId = userId,
+            workoutType = WorkoutType.THRESHOLD,
+            level = 3.0,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl2)
+
+        // Reset
+        tracker.resetProgression(userId)
+
+        // Verify all levels are reset to 1.0
+        val levels = tracker.getAllProgressionLevels(userId)
+        levels.forEach { (type, level) ->
+            assertEquals(1.0, level, "Level for $type should be reset to 1.0")
+        }
+    }
 }
 

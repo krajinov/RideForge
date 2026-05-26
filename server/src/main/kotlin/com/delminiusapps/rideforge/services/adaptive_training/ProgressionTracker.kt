@@ -23,6 +23,20 @@ class ProgressionTracker(private val repository: AdaptiveTrainingRepository) {
         return map
     }
 
+    suspend fun resetProgression(userId: String) {
+        WorkoutType.values().forEach { type ->
+            val existing = repository.getProgressionLevel(userId, type)
+            val toSave = ProgressionLevel(
+                id = existing?.id ?: newId("pl"),
+                userId = userId,
+                workoutType = type,
+                level = 1.0,
+                updatedAt = nowIso()
+            )
+            repository.saveProgressionLevel(toSave)
+        }
+    }
+
     suspend fun updateProgression(userId: String, workout: Workout, classification: String): Double {
         val type = workout.workoutType
         val currentLevel = getProgressionLevel(userId, type)
