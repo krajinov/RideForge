@@ -561,4 +561,71 @@ class AdaptiveTrainingTest {
         assertEquals("dismissed", updatedOld.status)
         assertTrue(updatedOld.message.contains("Superseded by a newer estimate"))
     }
+
+    @Test
+    fun testFtpApprovalRequiresPendingStatus() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val record = FtpHistoryRecord(
+            id = "ftp-1",
+            userId = user.id,
+            estimatedFtp = 210,
+            previousFtp = user.ftp,
+            sessionId = "s-1",
+            status = "approved", // already approved
+            message = "Approved: FTP updated",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(record)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        
+        val result = ftpEstimationService.approveFtp(user.id, "ftp-1")
+        assertNull(result)
+    }
+
+    @Test
+    fun testFtpDismissalRequiresPendingStatus() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val record = FtpHistoryRecord(
+            id = "ftp-1",
+            userId = user.id,
+            estimatedFtp = 210,
+            previousFtp = user.ftp,
+            sessionId = "s-1",
+            status = "dismissed", // already dismissed
+            message = "Dismissed by rider",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(record)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        
+        val success = ftpEstimationService.dismissFtp(user.id, "ftp-1")
+        assertTrue(!success)
+    }
 }
+

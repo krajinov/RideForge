@@ -215,6 +215,9 @@ class FtpEstimationService(
         val targetUserId = record?.userId ?: estimate?.userId ?: return null
         if (targetUserId != userId) return null
         
+        if (record != null && record.status != "pending_approval") return null
+        if (estimate != null && estimate.status != "pending_approval") return null
+        
         val prevFtp = record?.previousFtp ?: estimate?.currentFtp ?: return null
         val estFtp = record?.estimatedFtp ?: estimate?.estimatedFtp ?: return null
 
@@ -261,12 +264,16 @@ class FtpEstimationService(
         val targetUserId = record?.userId ?: estimate?.userId ?: return false
         if (targetUserId != userId) return false
 
+        if (record != null && record.status != "pending_approval") return false
+        if (estimate != null && estimate.status != "pending_approval") return false
+
         record?.let {
             adaptiveRepository.updateFtpRecord(it.copy(
                 status = "dismissed",
                 message = "Dismissed by rider"
             ))
         }
+
         estimate?.let {
             adaptiveRepository.updateFtpEstimate(it.copy(
                 status = "dismissed",
