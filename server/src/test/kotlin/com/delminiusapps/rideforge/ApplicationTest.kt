@@ -27,6 +27,14 @@ import com.delminiusapps.rideforge.services.StravaService
 import com.delminiusapps.rideforge.services.StravaStateService
 import com.delminiusapps.rideforge.services.TcxWorkoutExporter
 import com.delminiusapps.rideforge.utils.nowIso
+import com.delminiusapps.rideforge.plugins.ServiceRegistry
+import com.delminiusapps.rideforge.plugins.configureMonitoring
+import com.delminiusapps.rideforge.plugins.configureCors
+import com.delminiusapps.rideforge.plugins.configureSerialization
+import com.delminiusapps.rideforge.plugins.configureErrorHandling
+import com.delminiusapps.rideforge.plugins.configureSecurity
+import com.delminiusapps.rideforge.plugins.configureRouting
+import com.delminiusapps.rideforge.models.FatigueSnapshot
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import io.ktor.client.request.bearerAuth
@@ -807,6 +815,58 @@ class ApplicationTest {
         }
         assertEquals(HttpStatusCode.OK, completedAfterLeave.status)
         assertEquals("[]", completedAfterLeave.bodyAsText())
+    }
+
+    @Test
+    fun testFatigueSnapshotRecalculatesWhenStale() = testApplication {
+        val config = testAppConfig()
+        val testRegistry = ServiceRegistry(config)
+        
+        application {
+            configureMonitoring()
+            configureCors()
+            configureSerialization()
+            configureErrorHandling()
+            configureSecurity(testRegistry, config.jwt)
+            configureRouting(testRegistry)
+        }
+
+        val token = loginToken()
+
+        // 1. Save a stale snapshot (from yesterday) in the repository
+        val yesterday = java.time.LocalDate.now().minusDays(1).toString()
+        val marko = testRegistry.userRepository.findByEmail("marko@example.com")!!
+        testRegistry.adaptiveTrainingRepository.saveFatigueSnapshot(
+            FatigueSnapshot(
+                id = "fs-stale",
+                userId = marko.id,
+                date = yesterday,
+                ctl = 40.0,
+                atl = 30.0,
+                tsb = 10.0,
+                freshnessStatus = "FRESH",
+                createdAt = "2026-05-26T10:00:00Z"
+            )
+        )
+
+        // 2. Fetch /adaptive/fatigue - it should detect the snapshot is stale, recompute dynamically
+        // (which returns 2.7 based on marko's seeded history), and save a new snapshot for today.
+        val response = client.get("/adaptive/fatigue") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("fitness"), "Response should contain fitness")
+        assertTrue(body.contains(""""fitness":2.7"""), "Expected recalculated fitness to be 2.7, but got: $body")
+
+        // 3. Verify that a new snapshot for today has been saved in the repository
+        val todayStr = java.time.LocalDate.now().toString()
+        val newSnapshot = testRegistry.adaptiveTrainingRepository.getLatestFatigueSnapshot(marko.id)
+        assertTrue(newSnapshot != null, "A new snapshot should be saved")
+        assertEquals(todayStr, newSnapshot.date)
+        assertEquals(2.7, newSnapshot.ctl)
+
+        testRegistry.close()
     }
 }
 

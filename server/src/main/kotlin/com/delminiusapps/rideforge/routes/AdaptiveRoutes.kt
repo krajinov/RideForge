@@ -167,8 +167,9 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
         get("/fatigue") {
             val userId = call.userId()
             val snapshot = registry.adaptiveTrainingRepository.getLatestFatigueSnapshot(userId)
+            val todayStr = LocalDate.now().toString()
             
-            if (snapshot != null) {
+            if (snapshot != null && snapshot.date == todayStr) {
                 call.respond(FatigueDetailResponse(
                     fitness = snapshot.ctl,
                     fatigue = snapshot.atl,
@@ -184,6 +185,20 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
                     fatigue.tsb < -10.0 -> "FATIGUED"
                     else -> "BALANCED"
                 }
+                
+                registry.adaptiveTrainingRepository.saveFatigueSnapshot(
+                    FatigueSnapshot(
+                        id = newId("fs"),
+                        userId = userId,
+                        date = todayStr,
+                        ctl = fatigue.ctl,
+                        atl = fatigue.atl,
+                        tsb = fatigue.tsb,
+                        freshnessStatus = freshnessStatus,
+                        createdAt = nowIso()
+                    )
+                )
+
                 call.respond(FatigueDetailResponse(
                     fitness = fatigue.ctl,
                     fatigue = fatigue.atl,
