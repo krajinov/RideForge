@@ -75,7 +75,13 @@ data class WorkoutAnalysisResponse(
     val coachNotesSummary: String,
     val coachNotesRecommendation: String,
     val coachNotesRecovery: String,
-    val coachNotesNextWorkout: String
+    val coachNotesNextWorkout: String,
+    val avgDeviationPower: Double? = null,
+    val best5sPower: Int? = null,
+    val best30sPower: Int? = null,
+    val best1mPower: Int? = null,
+    val best5mPower: Int? = null,
+    val best20mPower: Int? = null
 )
 
 @Serializable

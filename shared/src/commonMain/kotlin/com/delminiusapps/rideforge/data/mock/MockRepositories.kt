@@ -299,7 +299,13 @@ class MockAdaptiveRepository : com.delminiusapps.rideforge.domain.repository.Ada
             coachNotesSummary = "Cadence control was a strength in this ride.",
             coachNotesRecommendation = "Progress to the next scheduled intensity workout.",
             coachNotesRecovery = "Moderate stress: keep the next 24 hours aerobic.",
-            coachNotesNextWorkout = "Next planned workout"
+            coachNotesNextWorkout = "Next planned workout",
+            avgDeviationPower = 4.2,
+            best5sPower = 480,
+            best30sPower = 390,
+            best1mPower = 340,
+            best5mPower = 280,
+            best20mPower = 250
         )
     }
 }

@@ -107,7 +107,13 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
                     coachNotesSummary = analysis.coachNotesSummary,
                     coachNotesRecommendation = analysis.coachNotesRecommendation,
                     coachNotesRecovery = analysis.coachNotesRecovery,
-                    coachNotesNextWorkout = analysis.coachNotesNextWorkout
+                    coachNotesNextWorkout = analysis.coachNotesNextWorkout,
+                    avgDeviationPower = analysis.avgDeviationPower,
+                    best5sPower = analysis.best5sPower,
+                    best30sPower = analysis.best30sPower,
+                    best1mPower = analysis.best1mPower,
+                    best5mPower = analysis.best5mPower,
+                    best20mPower = analysis.best20mPower
                 )
             )
         }

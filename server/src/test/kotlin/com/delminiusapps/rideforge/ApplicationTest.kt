@@ -681,6 +681,47 @@ class ApplicationTest {
         }
         assertEquals(HttpStatusCode.Forbidden, access.status)
     }
+
+    @Test
+    fun sessionAnalysisReturnsCalculatedMetrics() = testApplication {
+        application { module(testAppConfig()) }
+
+        val token = loginToken()
+        connectTrainerDevice(token)
+
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"vo2-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        for (sec in 1..35) {
+            val response = client.post("/sessions/$sessionId/metrics") {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody("""{"elapsedSeconds":$sec,"currentPower":205,"targetPower":200,"cadence":90,"heartRate":130,"speedKmh":30.0}""")
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":35,"hasRealTrainerData":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, completed.status)
+
+        val response = client.get("/adaptive/sessions/$sessionId/analysis") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains(""""avgDeviationPower":5.0"""), "Response should contain avgDeviationPower: $body")
+        assertTrue(body.contains(""""best5sPower":205"""), "Response should contain best5sPower: $body")
+        assertTrue(body.contains(""""best30sPower":205"""), "Response should contain best30sPower: $body")
+    }
 }
 
 private fun String.extractToken(name: String): String {

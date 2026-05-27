@@ -99,5 +99,11 @@ private fun WorkoutAnalysisDto.toDomain(): WorkoutAnalysis = WorkoutAnalysis(
     coachNotesSummary = coachNotesSummary,
     coachNotesRecommendation = coachNotesRecommendation,
     coachNotesRecovery = coachNotesRecovery,
-    coachNotesNextWorkout = coachNotesNextWorkout
+    coachNotesNextWorkout = coachNotesNextWorkout,
+    avgDeviationPower = avgDeviationPower,
+    best5sPower = best5sPower,
+    best30sPower = best30sPower,
+    best1mPower = best1mPower,
+    best5mPower = best5mPower,
+    best20mPower = best20mPower
 )
