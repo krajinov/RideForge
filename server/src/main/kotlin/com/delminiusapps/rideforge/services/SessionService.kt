@@ -161,7 +161,7 @@ class SessionService(
                 else -> "The ride is complete; pacing and cadence stability are the next focus."
             }
             val recommendationNote = when {
-                completion >= 98 && classification == "Overperformed" -> "Progress to the next scheduled intensity workout."
+                completion >= 98 && classification == "OVERPERFORMED" -> "Progress to the next scheduled intensity workout."
                 completion >= 90 -> "Repeat the same target structure if late intervals felt unstable."
                 else -> "Reduce the next hard block by 3-5% and prioritize full completion."
             }

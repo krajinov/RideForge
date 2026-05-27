@@ -26,7 +26,7 @@ object WorkoutClassifier {
         }
 
         // 2. STRUGGLED Check
-        if (completion in 75..90 || powerFade > 15.0) {
+        if (completion in 75..90 || powerFade > 15.0 || successRate in 60..79) {
             return "STRUGGLED"
         }
 

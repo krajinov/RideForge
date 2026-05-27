@@ -205,8 +205,8 @@ object WorkoutCompletionAnalyzer {
     private fun peakAveragePower(samples: List<MetricSample>, windowSeconds: Int): Int? {
         if (samples.isEmpty()) return null
         val powerValues = samples.associate { (it.elapsedSeconds ?: 0) to it.currentPower }
-        val minSec = samples.first().elapsedSeconds ?: 0
-        val maxSec = samples.last().elapsedSeconds ?: 0
+        val minSec = samples.minOf { it.elapsedSeconds ?: 0 }
+        val maxSec = samples.maxOf { it.elapsedSeconds ?: 0 }
         val duration = maxSec - minSec + 1
         if (duration < windowSeconds) return null
 

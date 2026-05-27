@@ -445,15 +445,19 @@ private fun PowerAnalyticsCard(
     analysis: WorkoutAnalysis,
     serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
 ) {
-    val curve = serverAnalysis?.let {
-        listOf(
-            PeakPower("5s", 5, it.best5sPower),
-            PeakPower("30s", 30, it.best30sPower),
-            PeakPower("1m", 60, it.best1mPower),
-            PeakPower("5m", 300, it.best5mPower),
-            PeakPower("20m", 1200, it.best20mPower),
-        )
-    } ?: analysis.powerCurve
+    val serverPeaks = serverAnalysis?.let {
+        val peaks = listOf(it.best5sPower, it.best30sPower, it.best1mPower, it.best5mPower, it.best20mPower)
+        if (peaks.any { p -> p != null }) {
+            listOf(
+                PeakPower("5s", 5, it.best5sPower),
+                PeakPower("30s", 30, it.best30sPower),
+                PeakPower("1m", 60, it.best1mPower),
+                PeakPower("5m", 300, it.best5mPower),
+                PeakPower("20m", 1200, it.best20mPower),
+            )
+        } else null
+    }
+    val curve = serverPeaks ?: analysis.powerCurve
 
     ExpandableAnalyticsCard(
         title = "Power Analytics",
