@@ -16,6 +16,7 @@ import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.UserRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.repositories.AdaptiveTrainingRepository
+import com.delminiusapps.rideforge.repositories.TrainingPlanRepository
 import com.delminiusapps.rideforge.services.adaptive_training.ProgressionTracker
 import com.delminiusapps.rideforge.services.adaptive_training.FtpEstimationService
 import com.delminiusapps.rideforge.services.adaptive_training.WorkoutCompletionAnalyzer
@@ -38,6 +39,7 @@ class SessionService(
     private val adaptiveRepository: AdaptiveTrainingRepository,
     private val progressionTracker: ProgressionTracker,
     private val ftpEstimationService: FtpEstimationService,
+    private val plans: TrainingPlanRepository,
     private val fatigueCalculationService: FatigueCalculationService = FatigueCalculationService()
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
@@ -138,6 +140,12 @@ class SessionService(
                 totalDistanceKm = distanceKm,
             ),
         )
+
+        // Record completed workout progress for the plan if joined
+        val planId = workout.planId
+        if (plans.getJoinedPlans(userId).contains(planId)) {
+            plans.completeWorkout(userId, planId, workout.id)
+        }
 
         // Run Adaptive Training analysis post-ride
         try {

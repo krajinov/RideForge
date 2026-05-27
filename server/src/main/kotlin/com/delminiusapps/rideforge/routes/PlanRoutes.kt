@@ -23,6 +23,19 @@ fun Route.planRoutes(registry: ServiceRegistry) {
         post("/{id}/enroll") {
             call.respond(registry.trainingPlanService.enroll(call.userId(), call.requiredPath("id")))
         }
+        post("/{id}/join") {
+            call.respond(registry.trainingPlanService.enroll(call.userId(), call.requiredPath("id")))
+        }
+        post("/{id}/leave") {
+            registry.trainingPlanService.leave(call.userId(), call.requiredPath("id"))
+            call.respond(mapOf("status" to "left"))
+        }
+        get("/joined") {
+            call.respond(registry.trainingPlanService.getJoinedPlans(call.userId()))
+        }
+        get("/{id}/completed-workouts") {
+            call.respond(registry.trainingPlanService.getCompletedWorkouts(call.userId(), call.requiredPath("id")))
+        }
     }
     get("/my-plan") {
         val plan = registry.trainingPlanService.myPlan(call.userId())

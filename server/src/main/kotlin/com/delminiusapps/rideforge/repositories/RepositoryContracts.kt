@@ -30,6 +30,12 @@ interface TrainingPlanRepository {
     suspend fun list(limit: Int, offset: Int): List<TrainingPlan>
     suspend fun count(): Int
     suspend fun findById(id: String): TrainingPlan?
+    suspend fun joinPlan(userId: String, planId: String)
+    suspend fun leavePlan(userId: String, planId: String)
+    suspend fun getJoinedPlans(userId: String): List<String>
+    suspend fun completeWorkout(userId: String, planId: String, workoutId: String)
+    suspend fun getCompletedWorkouts(userId: String, planId: String): List<String>
+    suspend fun resetProgress(userId: String, planId: String)
 }
 
 interface WorkoutRepository {

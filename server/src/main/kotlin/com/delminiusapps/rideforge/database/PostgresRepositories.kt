@@ -106,6 +106,80 @@ class PostgresTrainingPlanRepository(private val database: PostgresDatabase) : T
             statement.executeQuery().use { results -> results.singleOrNull { it.toTrainingPlan() } }
         }
     }
+
+    override suspend fun joinPlan(userId: String, planId: String): Unit = database.query { connection ->
+        connection.prepareStatement(
+            "INSERT INTO user_joined_plans (user_id, plan_id, joined_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.setString(2, planId)
+            statement.setString(3, com.delminiusapps.rideforge.utils.nowIso())
+            statement.executeUpdate()
+        }
+    }
+
+    override suspend fun leavePlan(userId: String, planId: String): Unit = database.query { connection ->
+        connection.prepareStatement(
+            "DELETE FROM user_joined_plans WHERE user_id = ? AND plan_id = ?"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.setString(2, planId)
+            statement.executeUpdate()
+        }
+    }
+
+    override suspend fun getJoinedPlans(userId: String): List<String> = database.query { connection ->
+        connection.prepareStatement(
+            "SELECT plan_id FROM user_joined_plans WHERE user_id = ?"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.executeQuery().use { results ->
+                val list = mutableListOf<String>()
+                while (results.next()) {
+                    list.add(results.getString("plan_id"))
+                }
+                list
+            }
+        }
+    }
+
+    override suspend fun completeWorkout(userId: String, planId: String, workoutId: String): Unit = database.query { connection ->
+        connection.prepareStatement(
+            "INSERT INTO user_completed_plan_workouts (user_id, plan_id, workout_id, completed_at) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.setString(2, planId)
+            statement.setString(3, workoutId)
+            statement.setString(4, com.delminiusapps.rideforge.utils.nowIso())
+            statement.executeUpdate()
+        }
+    }
+
+    override suspend fun getCompletedWorkouts(userId: String, planId: String): List<String> = database.query { connection ->
+        connection.prepareStatement(
+            "SELECT workout_id FROM user_completed_plan_workouts WHERE user_id = ? AND plan_id = ?"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.setString(2, planId)
+            statement.executeQuery().use { results ->
+                val list = mutableListOf<String>()
+                while (results.next()) {
+                    list.add(results.getString("workout_id"))
+                }
+                list
+            }
+        }
+    }
+
+    override suspend fun resetProgress(userId: String, planId: String): Unit = database.query { connection ->
+        connection.prepareStatement(
+            "DELETE FROM user_completed_plan_workouts WHERE user_id = ? AND plan_id = ?"
+        ).use { statement ->
+            statement.setString(1, userId)
+            statement.setString(2, planId)
+            statement.executeUpdate()
+        }
+    }
 }
 
 class PostgresWorkoutRepository(private val database: PostgresDatabase) : WorkoutRepository {

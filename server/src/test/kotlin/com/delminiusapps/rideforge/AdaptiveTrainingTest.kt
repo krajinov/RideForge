@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.models.*
 import com.delminiusapps.rideforge.repositories.InMemoryAdaptiveTrainingRepository
 import com.delminiusapps.rideforge.repositories.InMemorySessionRepository
 import com.delminiusapps.rideforge.repositories.InMemoryUserRepository
+import com.delminiusapps.rideforge.repositories.InMemoryTrainingPlanRepository
 import com.delminiusapps.rideforge.services.adaptive_training.*
 import com.delminiusapps.rideforge.services.SessionService
 import com.delminiusapps.rideforge.dto.CompleteSessionRequest
@@ -358,7 +359,8 @@ class AdaptiveTrainingTest {
             userRepo,
             adaptiveRepo,
             ProgressionTracker(adaptiveRepo),
-            ftpEstimationService
+            ftpEstimationService,
+            InMemoryTrainingPlanRepository()
         )
 
         // Create the active session

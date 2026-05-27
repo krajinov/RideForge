@@ -68,7 +68,27 @@ class MockWorkoutRepository : WorkoutRepository {
 }
 
 class MockTrainingPlanRepository : TrainingPlanRepository {
+    private val joinedPlans = mutableSetOf<String>()
+    private val completedWorkouts = mutableMapOf<String, MutableSet<String>>()
+
     override suspend fun getPlans(): List<TrainingPlan> = MockData.trainingPlans
+
+    override suspend fun joinPlan(planId: String) {
+        joinedPlans.add(planId)
+    }
+
+    override suspend fun leavePlan(planId: String) {
+        joinedPlans.remove(planId)
+        completedWorkouts.remove(planId)
+    }
+
+    override suspend fun getJoinedPlans(): List<String> {
+        return joinedPlans.toList()
+    }
+
+    override suspend fun getPlanCompletedWorkoutIds(planId: String): List<String> {
+        return completedWorkouts[planId]?.toList() ?: emptyList()
+    }
 }
 
 class MockHistoryRepository : HistoryRepository {

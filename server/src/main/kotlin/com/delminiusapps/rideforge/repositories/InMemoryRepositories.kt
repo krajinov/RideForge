@@ -47,10 +47,38 @@ class InMemoryUserRepository : UserRepository {
 
 class InMemoryTrainingPlanRepository : TrainingPlanRepository {
     private val plans = SeedData.plans.associateBy { it.id }
+    private val mutex = Mutex()
+    private val userJoinedPlans = mutableMapOf<String, MutableSet<String>>()
+    private val userCompletedWorkouts = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
 
     override suspend fun list(limit: Int, offset: Int): List<TrainingPlan> = plans.values.drop(offset).take(limit)
     override suspend fun count(): Int = plans.size
     override suspend fun findById(id: String): TrainingPlan? = plans[id]
+
+    override suspend fun joinPlan(userId: String, planId: String): Unit = mutex.withLock {
+        userJoinedPlans.getOrPut(userId) { mutableSetOf() }.add(planId)
+    }
+
+    override suspend fun leavePlan(userId: String, planId: String): Unit = mutex.withLock {
+        userJoinedPlans[userId]?.remove(planId)
+    }
+
+    override suspend fun getJoinedPlans(userId: String): List<String> = mutex.withLock {
+        userJoinedPlans[userId]?.toList() ?: emptyList()
+    }
+
+    override suspend fun completeWorkout(userId: String, planId: String, workoutId: String): Unit = mutex.withLock {
+        userCompletedWorkouts.getOrPut(userId) { mutableMapOf() }
+            .getOrPut(planId) { mutableSetOf() }.add(workoutId)
+    }
+
+    override suspend fun getCompletedWorkouts(userId: String, planId: String): List<String> = mutex.withLock {
+        userCompletedWorkouts[userId]?.get(planId)?.toList() ?: emptyList()
+    }
+
+    override suspend fun resetProgress(userId: String, planId: String): Unit = mutex.withLock {
+        userCompletedWorkouts[userId]?.remove(planId)
+    }
 }
 
 class InMemoryWorkoutRepository : WorkoutRepository {

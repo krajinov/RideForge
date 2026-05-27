@@ -235,6 +235,7 @@ class ApplicationTest {
             adaptiveRepository = adaptiveRepository,
             progressionTracker = progressionTracker,
             ftpEstimationService = ftpEstimationService,
+            plans = com.delminiusapps.rideforge.repositories.InMemoryTrainingPlanRepository(),
         )
 
         val started = service.start(SeedData.defaultUserId, StartSessionRequest("vo2-w1d1")).session
@@ -721,6 +722,91 @@ class ApplicationTest {
         assertTrue(body.contains(""""avgDeviationPower":5.0"""), "Response should contain avgDeviationPower: $body")
         assertTrue(body.contains(""""best5sPower":205"""), "Response should contain best5sPower: $body")
         assertTrue(body.contains(""""best30sPower":205"""), "Response should contain best30sPower: $body")
+    }
+
+    @Test
+    fun testTrainingPlanJoinLeaveProgress() = testApplication {
+        application { module(testAppConfig()) }
+
+        val token = loginToken()
+
+        // 1. Get joined plans initially - should be empty
+        val initialJoined = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, initialJoined.status)
+        assertEquals("[]", initialJoined.bodyAsText())
+
+        // 2. Join a plan: "plan-ftp-builder"
+        val join1 = client.post("/plans/plan-ftp-builder/join") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, join1.status)
+
+        // Verify joined plans has "plan-ftp-builder"
+        val joined1 = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, joined1.status)
+        assertTrue(joined1.bodyAsText().contains("plan-ftp-builder"))
+
+        // 3. Complete a workout in "plan-ftp-builder". First workout: "ftp-w1d1"
+        connectTrainerDevice(token)
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"ftp-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, completed.status)
+
+        // 4. Verify completed workouts for "plan-ftp-builder" contains "ftp-w1d1"
+        val completedWorkouts = client.get("/plans/plan-ftp-builder/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completedWorkouts.status)
+        assertTrue(completedWorkouts.bodyAsText().contains("ftp-w1d1"))
+
+        // 5. Join a second plan: "plan-vo2-booster"
+        val join2 = client.post("/plans/plan-vo2-booster/join") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, join2.status)
+
+        // Verify completed workouts for "plan-vo2-booster" is empty
+        val completed2 = client.get("/plans/plan-vo2-booster/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completed2.status)
+        assertEquals("[]", completed2.bodyAsText())
+
+        // 6. Leave "plan-ftp-builder"
+        val leave1 = client.post("/plans/plan-ftp-builder/leave") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, leave1.status)
+
+        // Verify "plan-ftp-builder" is no longer in joined list
+        val joinedAfterLeave = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, joinedAfterLeave.status)
+        assertTrue(!joinedAfterLeave.bodyAsText().contains("plan-ftp-builder"))
+        assertTrue(joinedAfterLeave.bodyAsText().contains("plan-vo2-booster"))
+
+        // Verify completed workouts for "plan-ftp-builder" is reset/empty
+        val completedAfterLeave = client.get("/plans/plan-ftp-builder/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completedAfterLeave.status)
+        assertEquals("[]", completedAfterLeave.bodyAsText())
     }
 }
 

@@ -2,6 +2,7 @@ package com.delminiusapps.rideforge.features.plans.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.delminiusapps.rideforge.domain.repository.TrainingPlanRepository
 import com.delminiusapps.rideforge.domain.usecase.GetPlanWorkoutsUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetTrainingPlansUseCase
 import com.delminiusapps.rideforge.models.TrainingPlan
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 class PlanWorkoutsViewModel(
     private val getPlanWorkoutsUseCase: GetPlanWorkoutsUseCase,
     private val getTrainingPlansUseCase: GetTrainingPlansUseCase,
+    private val repository: TrainingPlanRepository,
     private val planId: String,
 ) : ViewModel() {
     private val _state = MutableStateFlow<PlanWorkoutsUiState>(PlanWorkoutsUiState.Loading)
@@ -24,7 +26,7 @@ class PlanWorkoutsViewModel(
         loadWorkouts()
     }
 
-    private fun loadWorkouts() {
+    fun loadWorkouts() {
         viewModelScope.launch {
             runCatching {
                 val plan = runCatching {
@@ -32,14 +34,45 @@ class PlanWorkoutsViewModel(
                 }.getOrNull()
                 val workouts = getPlanWorkoutsUseCase(planId)
                     .sortedWith(compareBy<Workout> { it.weekNumber }.thenBy { it.dayNumber })
+                val isJoined = repository.getJoinedPlans().contains(planId)
+                val completedWorkoutIds = repository.getPlanCompletedWorkoutIds(planId)
                 PlanWorkoutsUiState.Ready(
                     plan = plan,
                     workoutsByWeek = workouts.groupBy { it.weekNumber },
+                    isJoined = isJoined,
+                    completedWorkoutIds = completedWorkoutIds,
                 )
             }.onSuccess { ready ->
                 _state.update { ready }
             }.onFailure {
-                _state.update { PlanWorkoutsUiState.Ready(plan = null, workoutsByWeek = emptyMap()) }
+                _state.update {
+                    PlanWorkoutsUiState.Ready(
+                        plan = null,
+                        workoutsByWeek = emptyMap(),
+                        isJoined = false,
+                        completedWorkoutIds = emptyList(),
+                    )
+                }
+            }
+        }
+    }
+
+    fun joinPlan() {
+        viewModelScope.launch {
+            runCatching {
+                repository.joinPlan(planId)
+            }.onSuccess {
+                loadWorkouts()
+            }
+        }
+    }
+
+    fun leavePlan() {
+        viewModelScope.launch {
+            runCatching {
+                repository.leavePlan(planId)
+            }.onSuccess {
+                loadWorkouts()
             }
         }
     }
@@ -47,5 +80,10 @@ class PlanWorkoutsViewModel(
 
 sealed interface PlanWorkoutsUiState {
     data object Loading : PlanWorkoutsUiState
-    data class Ready(val plan: TrainingPlan?, val workoutsByWeek: Map<Int, List<Workout>>) : PlanWorkoutsUiState
+    data class Ready(
+        val plan: TrainingPlan?,
+        val workoutsByWeek: Map<Int, List<Workout>>,
+        val isJoined: Boolean,
+        val completedWorkoutIds: List<String>,
+    ) : PlanWorkoutsUiState
 }
