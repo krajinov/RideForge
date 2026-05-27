@@ -136,7 +136,7 @@ class FtpEstimationService(
             val thirtyDaysAgo = Instant.now().minus(30, ChronoUnit.DAYS)
             lastDate.isBefore(thirtyDaysAgo)
         } else {
-            true
+            false
         }
         if (isStale && bestSource == "KEEP") {
             bestEstFtp = user.ftp

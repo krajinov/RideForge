@@ -749,5 +749,38 @@ class AdaptiveTrainingTest {
         val rec3 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
         assertEquals("w-1", rec3.workoutId, "Should recommend first workout again after plan progress is reset")
     }
+
+    @Test
+    fun testFtpEstimationServiceStaleFallbackWithNoHistory() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Generate a simple list of samples at 100W (below FTP, no FTP increase)
+        val samples = listOf(
+            MetricSample("session-1", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0)
+        )
+
+        // Check FTP. Since user has no approved history, it should NOT mark it as stale or TEST_REQUIRED
+        val record = ftpEstimationService.checkAndEstimateFtp(user, session, workout, samples)
+        assertNull(record, "Should not generate pending FtpHistoryRecord because FTP is not stale and didn't increase/decrease")
+
+        // Verify the saved detailed estimate is KEEP, not TEST_REQUIRED
+        val estimates = adaptiveRepo.getFtpEstimates(user.id)
+        assertTrue(estimates.isNotEmpty(), "An estimate record should be saved")
+        val estimate = estimates.last()
+        assertEquals("KEEP", estimate.recommendation, "Should recommend KEEP, not TEST_REQUIRED, when user has no FTP history")
+    }
 }
 
