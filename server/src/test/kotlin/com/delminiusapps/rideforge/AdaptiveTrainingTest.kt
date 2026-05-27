@@ -665,5 +665,89 @@ class AdaptiveTrainingTest {
             assertEquals(1.0, level, "Level for $type should be reset to 1.0")
         }
     }
+
+    @Test
+    fun testRecommendationEnginePlanResetBehavior() = runBlocking {
+        val planRepo = InMemoryTrainingPlanRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val tracker = ProgressionTracker(adaptiveRepo)
+
+        val w1 = Workout(
+            id = "w-1",
+            planId = "plan-1",
+            name = "Workout 1",
+            description = "First session",
+            durationMinutes = 45,
+            difficulty = "Easy",
+            targetZones = listOf("ActiveRecovery"),
+            intervals = emptyList(),
+            weekNumber = 1,
+            dayNumber = 1,
+            workoutType = WorkoutType.RECOVERY
+        )
+        val w2 = Workout(
+            id = "w-2",
+            planId = "plan-1",
+            name = "Workout 2",
+            description = "Second session",
+            durationMinutes = 60,
+            difficulty = "Medium",
+            targetZones = listOf("Endurance"),
+            intervals = emptyList(),
+            weekNumber = 1,
+            dayNumber = 2,
+            workoutType = WorkoutType.ENDURANCE
+        )
+
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = listOf(w1, w2)
+            override suspend fun count(): Int = 2
+            override suspend fun findById(id: String): Workout? = if (id == "w-1") w1 else if (id == "w-2") w2 else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = if (planId == "plan-1") listOf(w1, w2) else emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        val engine = RecommendationEngine(workoutRepo, sessionRepo, tracker, adaptiveRepo, planRepo)
+
+        val userId = "user-123"
+        val fatigueState = FatigueCalculationService.FatigueState(ctl = 10.0, atl = 10.0, tsb = 0.0)
+
+        // 1. Initially user is enrolled in plan-1. No workouts completed.
+        val rec1 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-1", rec1.workoutId, "Should recommend first workout of the plan initially")
+
+        // 2. Complete workout 1 in the plan progress
+        planRepo.completeWorkout(userId, "plan-1", "w-1")
+        
+        // Also simulate completed workout session in history
+        sessionRepo.create(
+            WorkoutSession(
+                id = "sess-w1",
+                userId = userId,
+                workoutId = "w-1",
+                status = SessionStatus.completed,
+                startedAt = Instant.now().toString(),
+                completedAt = Instant.now().toString(),
+                elapsedSeconds = 2700,
+                riderWeightKg = 70.0,
+                averagePower = 150,
+                normalizedPower = 150,
+                tss = 30,
+                hasRealTrainerData = true
+            )
+        )
+
+        // 3. Get recommendation again -> should recommend w-2
+        val rec2 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-2", rec2.workoutId, "Should recommend second workout because w-1 is completed")
+
+        // 4. Leave/reset plan progress -> clears user_completed_plan_workouts, but session history remains in sessionRepo
+        planRepo.resetProgress(userId, "plan-1")
+
+        // 5. Get recommendation again -> should recommend w-1 again since progress was reset, despite session history
+        val rec3 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-1", rec3.workoutId, "Should recommend first workout again after plan progress is reset")
+    }
 }
 

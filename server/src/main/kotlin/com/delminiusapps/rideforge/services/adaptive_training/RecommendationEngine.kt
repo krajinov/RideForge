@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.models.*
 import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.repositories.AdaptiveTrainingRepository
+import com.delminiusapps.rideforge.repositories.TrainingPlanRepository
 import com.delminiusapps.rideforge.utils.newId
 import com.delminiusapps.rideforge.utils.nowIso
 import java.time.LocalDate
@@ -14,7 +15,8 @@ class RecommendationEngine(
     private val workoutRepository: WorkoutRepository,
     private val sessionRepository: SessionRepository,
     private val progressionTracker: ProgressionTracker,
-    private val adaptiveRepository: AdaptiveTrainingRepository
+    private val adaptiveRepository: AdaptiveTrainingRepository,
+    private val planRepository: TrainingPlanRepository
 ) {
 
     suspend fun getHomeRecommendation(
@@ -121,8 +123,7 @@ class RecommendationEngine(
                     val workouts = workoutRepository.findByPlanId(enrolledPlanId)
                         .sortedWith(compareBy<Workout> { it.weekNumber }.thenBy { it.dayNumber })
                     
-                    val completedIds = sessionRepository.historyForUser(userId, 100, 0)
-                        .map { it.workoutId }
+                    val completedIds = planRepository.getCompletedWorkouts(userId, enrolledPlanId)
                         .toSet()
                     
                     val nextWorkout = workouts.firstOrNull { it.id !in completedIds } ?: workouts.firstOrNull()
@@ -149,8 +150,7 @@ class RecommendationEngine(
             val workouts = workoutRepository.findByPlanId(enrolledPlanId)
                 .sortedWith(compareBy<Workout> { it.weekNumber }.thenBy { it.dayNumber })
             
-            val completedIds = sessionRepository.historyForUser(userId, 100, 0)
-                        .map { it.workoutId }
+            val completedIds = planRepository.getCompletedWorkouts(userId, enrolledPlanId)
                         .toSet()
             
             val nextWorkout = workouts.firstOrNull { it.id !in completedIds } ?: workouts.firstOrNull()
