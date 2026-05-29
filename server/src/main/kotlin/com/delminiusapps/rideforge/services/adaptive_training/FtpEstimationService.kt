@@ -190,19 +190,30 @@ class FtpEstimationService(
             createdAt = nowIso()
         )
         
-        // Manage pending state duplicates
+        // Manage pending state duplicates — only supersede an existing pending
+        // estimate when the new result is actionable (INCREASE / DECREASE).
+        // Neutral checks (KEEP, TEST_REQUIRED) must not dismiss a pending
+        // estimate because the matching ftp_history row stays pending and the
+        // rider must still be able to approve it.
         val existingPendingEstimate = adaptiveRepository.findPendingFtpEstimate(user.id)
-        if (existingPendingEstimate != null) {
-            if (existingPendingEstimate.estimatedFtp != bestEstFtp || bestSource != existingPendingEstimate.recommendation) {
-                adaptiveRepository.updateFtpEstimate(existingPendingEstimate.copy(
-                    status = "dismissed",
-                    message = "Superseded by a newer estimate"
-                ))
+        if (bestSource == "INCREASE" || bestSource == "DECREASE") {
+            if (existingPendingEstimate != null) {
+                if (existingPendingEstimate.estimatedFtp != bestEstFtp || bestSource != existingPendingEstimate.recommendation) {
+                    adaptiveRepository.updateFtpEstimate(existingPendingEstimate.copy(
+                        status = "dismissed",
+                        message = "Superseded by a newer estimate"
+                    ))
+                    adaptiveRepository.saveFtpEstimate(estimateRecord)
+                }
+            } else {
                 adaptiveRepository.saveFtpEstimate(estimateRecord)
             }
-        } else {
+        } else if (existingPendingEstimate == null) {
+            // No pending estimate exists; safe to save the neutral record.
             adaptiveRepository.saveFtpEstimate(estimateRecord)
         }
+        // else: neutral result + existing pending estimate → keep the pending
+        // estimate untouched so the rider can still approve it.
 
         return historyRecord
     }
