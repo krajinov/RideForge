@@ -51,6 +51,30 @@ class InMemoryTrainingPlanRepository : TrainingPlanRepository {
     private val userJoinedPlans = mutableMapOf<String, MutableSet<String>>()
     private val userCompletedWorkouts = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
 
+    init {
+        // Backfill joined plans and completed workouts from seed data so
+        // seeded users with enrolledPlanId are consistent with the new
+        // plan-join system (mirrors the V8 migration backfill).
+        val workoutsByPlan = SeedData.workouts.groupBy { it.planId }
+        for (user in SeedData.users) {
+            val planId = user.enrolledPlanId ?: continue
+            userJoinedPlans.getOrPut(user.id) { mutableSetOf() }.add(planId)
+
+            // Seed completed workouts from completed sessions that match
+            // workouts in the enrolled plan.
+            val planWorkoutIds = workoutsByPlan[planId]?.map { it.id }?.toSet() ?: continue
+            val completedIds = SeedData.sessions
+                .filter { it.userId == user.id && it.status == SessionStatus.completed && it.workoutId in planWorkoutIds }
+                .map { it.workoutId }
+                .toSet()
+            if (completedIds.isNotEmpty()) {
+                userCompletedWorkouts.getOrPut(user.id) { mutableMapOf() }
+                    .getOrPut(planId) { mutableSetOf() }
+                    .addAll(completedIds)
+            }
+        }
+    }
+
     override suspend fun list(limit: Int, offset: Int): List<TrainingPlan> = plans.values.drop(offset).take(limit)
     override suspend fun count(): Int = plans.size
     override suspend fun findById(id: String): TrainingPlan? = plans[id]

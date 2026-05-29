@@ -738,12 +738,12 @@ class ApplicationTest {
 
         val token = loginToken()
 
-        // 1. Get joined plans initially - should be empty
+        // 1. Get joined plans initially - seed user is pre-joined to plan-vo2-booster
         val initialJoined = client.get("/plans/joined") {
             bearerAuth(token)
         }
         assertEquals(HttpStatusCode.OK, initialJoined.status)
-        assertEquals("[]", initialJoined.bodyAsText())
+        assertTrue(initialJoined.bodyAsText().contains("plan-vo2-booster"))
 
         // 2. Join a plan: "plan-ftp-builder"
         val join1 = client.post("/plans/plan-ftp-builder/join") {
@@ -782,18 +782,13 @@ class ApplicationTest {
         assertEquals(HttpStatusCode.OK, completedWorkouts.status)
         assertTrue(completedWorkouts.bodyAsText().contains("ftp-w1d1"))
 
-        // 5. Join a second plan: "plan-vo2-booster"
-        val join2 = client.post("/plans/plan-vo2-booster/join") {
-            bearerAuth(token)
-        }
-        assertEquals(HttpStatusCode.OK, join2.status)
-
-        // Verify completed workouts for "plan-vo2-booster" is empty
+        // 5. Seed user is already joined to "plan-vo2-booster"; verify seeded
+        // completed workout (vo2-w1d3) is present from the backfill.
         val completed2 = client.get("/plans/plan-vo2-booster/completed-workouts") {
             bearerAuth(token)
         }
         assertEquals(HttpStatusCode.OK, completed2.status)
-        assertEquals("[]", completed2.bodyAsText())
+        assertTrue(completed2.bodyAsText().contains("vo2-w1d3"))
 
         // 6. Leave "plan-ftp-builder"
         val leave1 = client.post("/plans/plan-ftp-builder/leave") {
