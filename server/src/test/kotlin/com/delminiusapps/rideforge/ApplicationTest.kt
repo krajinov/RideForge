@@ -27,6 +27,14 @@ import com.delminiusapps.rideforge.services.StravaService
 import com.delminiusapps.rideforge.services.StravaStateService
 import com.delminiusapps.rideforge.services.TcxWorkoutExporter
 import com.delminiusapps.rideforge.utils.nowIso
+import com.delminiusapps.rideforge.plugins.ServiceRegistry
+import com.delminiusapps.rideforge.plugins.configureMonitoring
+import com.delminiusapps.rideforge.plugins.configureCors
+import com.delminiusapps.rideforge.plugins.configureSerialization
+import com.delminiusapps.rideforge.plugins.configureErrorHandling
+import com.delminiusapps.rideforge.plugins.configureSecurity
+import com.delminiusapps.rideforge.plugins.configureRouting
+import com.delminiusapps.rideforge.models.FatigueSnapshot
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import io.ktor.client.request.bearerAuth
@@ -235,6 +243,7 @@ class ApplicationTest {
             adaptiveRepository = adaptiveRepository,
             progressionTracker = progressionTracker,
             ftpEstimationService = ftpEstimationService,
+            plans = com.delminiusapps.rideforge.repositories.InMemoryTrainingPlanRepository(),
         )
 
         val started = service.start(SeedData.defaultUserId, StartSessionRequest("vo2-w1d1")).session
@@ -680,6 +689,179 @@ class ApplicationTest {
             bearerAuth(anotherToken)
         }
         assertEquals(HttpStatusCode.Forbidden, access.status)
+    }
+
+    @Test
+    fun sessionAnalysisReturnsCalculatedMetrics() = testApplication {
+        application { module(testAppConfig()) }
+
+        val token = loginToken()
+        connectTrainerDevice(token)
+
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"vo2-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        for (sec in 1..35) {
+            val response = client.post("/sessions/$sessionId/metrics") {
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody("""{"elapsedSeconds":$sec,"currentPower":205,"targetPower":200,"cadence":90,"heartRate":130,"speedKmh":30.0}""")
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":35,"hasRealTrainerData":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, completed.status)
+
+        val response = client.get("/adaptive/sessions/$sessionId/analysis") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains(""""avgDeviationPower":5.0"""), "Response should contain avgDeviationPower: $body")
+        assertTrue(body.contains(""""best5sPower":205"""), "Response should contain best5sPower: $body")
+        assertTrue(body.contains(""""best30sPower":205"""), "Response should contain best30sPower: $body")
+    }
+
+    @Test
+    fun testTrainingPlanJoinLeaveProgress() = testApplication {
+        application { module(testAppConfig()) }
+
+        val token = loginToken()
+
+        // 1. Get joined plans initially - seed user is pre-joined to plan-vo2-booster
+        val initialJoined = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, initialJoined.status)
+        assertTrue(initialJoined.bodyAsText().contains("plan-vo2-booster"))
+
+        // 2. Join a plan: "plan-ftp-builder"
+        val join1 = client.post("/plans/plan-ftp-builder/join") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, join1.status)
+
+        // Verify joined plans has "plan-ftp-builder"
+        val joined1 = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, joined1.status)
+        assertTrue(joined1.bodyAsText().contains("plan-ftp-builder"))
+
+        // 3. Complete a workout in "plan-ftp-builder". First workout: "ftp-w1d1"
+        connectTrainerDevice(token)
+        val started = client.post("/sessions/start") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"workoutId":"ftp-w1d1"}""")
+        }
+        assertEquals(HttpStatusCode.OK, started.status)
+        val sessionId = started.bodyAsText().extractToken("id")
+
+        val completed = client.put("/sessions/$sessionId/complete") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody("""{"elapsedSeconds":1200,"hasRealTrainerData":true}""")
+        }
+        assertEquals(HttpStatusCode.OK, completed.status)
+
+        // 4. Verify completed workouts for "plan-ftp-builder" contains "ftp-w1d1"
+        val completedWorkouts = client.get("/plans/plan-ftp-builder/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completedWorkouts.status)
+        assertTrue(completedWorkouts.bodyAsText().contains("ftp-w1d1"))
+
+        // 5. Seed user is already joined to "plan-vo2-booster"; verify seeded
+        // completed workout (vo2-w1d3) is present from the backfill.
+        val completed2 = client.get("/plans/plan-vo2-booster/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completed2.status)
+        assertTrue(completed2.bodyAsText().contains("vo2-w1d3"))
+
+        // 6. Leave "plan-ftp-builder"
+        val leave1 = client.post("/plans/plan-ftp-builder/leave") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, leave1.status)
+
+        // Verify "plan-ftp-builder" is no longer in joined list
+        val joinedAfterLeave = client.get("/plans/joined") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, joinedAfterLeave.status)
+        assertTrue(!joinedAfterLeave.bodyAsText().contains("plan-ftp-builder"))
+        assertTrue(joinedAfterLeave.bodyAsText().contains("plan-vo2-booster"))
+
+        // Verify completed workouts for "plan-ftp-builder" is reset/empty
+        val completedAfterLeave = client.get("/plans/plan-ftp-builder/completed-workouts") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, completedAfterLeave.status)
+        assertEquals("[]", completedAfterLeave.bodyAsText())
+    }
+
+    @Test
+    fun testFatigueSnapshotRecalculatesWhenStale() = testApplication {
+        val config = testAppConfig()
+        val testRegistry = ServiceRegistry(config)
+        
+        application {
+            configureMonitoring()
+            configureCors()
+            configureSerialization()
+            configureErrorHandling()
+            configureSecurity(testRegistry, config.jwt)
+            configureRouting(testRegistry)
+        }
+
+        val token = loginToken()
+
+        // 1. Save a stale snapshot (from yesterday) in the repository
+        val yesterday = java.time.LocalDate.now().minusDays(1).toString()
+        val marko = testRegistry.userRepository.findByEmail("marko@example.com")!!
+        testRegistry.adaptiveTrainingRepository.saveFatigueSnapshot(
+            FatigueSnapshot(
+                id = "fs-stale",
+                userId = marko.id,
+                date = yesterday,
+                ctl = 40.0,
+                atl = 30.0,
+                tsb = 10.0,
+                freshnessStatus = "FRESH",
+                createdAt = "2026-05-26T10:00:00Z"
+            )
+        )
+
+        // 2. Fetch /adaptive/fatigue - it should detect the snapshot is stale, recompute dynamically
+        // (which returns 2.7 based on marko's seeded history), and save a new snapshot for today.
+        val response = client.get("/adaptive/fatigue") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("fitness"), "Response should contain fitness")
+        assertTrue(body.contains(""""fitness":2.7"""), "Expected recalculated fitness to be 2.7, but got: $body")
+
+        // 3. Verify that a new snapshot for today has been saved in the repository
+        val todayStr = java.time.LocalDate.now().toString()
+        val newSnapshot = testRegistry.adaptiveTrainingRepository.getLatestFatigueSnapshot(marko.id)
+        assertTrue(newSnapshot != null, "A new snapshot should be saved")
+        assertEquals(todayStr, newSnapshot.date)
+        assertEquals(2.7, newSnapshot.ctl)
+
+        testRegistry.close()
     }
 }
 

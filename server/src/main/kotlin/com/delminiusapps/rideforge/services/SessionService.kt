@@ -10,20 +10,24 @@ import com.delminiusapps.rideforge.models.MetricSample
 import com.delminiusapps.rideforge.models.SessionStatus
 import com.delminiusapps.rideforge.models.WorkoutSession
 import com.delminiusapps.rideforge.models.WorkoutAnalysis
+import com.delminiusapps.rideforge.models.FatigueSnapshot
 import com.delminiusapps.rideforge.repositories.DeviceRepository
 import com.delminiusapps.rideforge.repositories.SessionRepository
 import com.delminiusapps.rideforge.repositories.UserRepository
 import com.delminiusapps.rideforge.repositories.WorkoutRepository
 import com.delminiusapps.rideforge.repositories.AdaptiveTrainingRepository
+import com.delminiusapps.rideforge.repositories.TrainingPlanRepository
 import com.delminiusapps.rideforge.services.adaptive_training.ProgressionTracker
 import com.delminiusapps.rideforge.services.adaptive_training.FtpEstimationService
 import com.delminiusapps.rideforge.services.adaptive_training.WorkoutCompletionAnalyzer
 import com.delminiusapps.rideforge.services.adaptive_training.WorkoutClassifier
+import com.delminiusapps.rideforge.services.adaptive_training.FatigueCalculationService
 import com.delminiusapps.rideforge.utils.badRequest
 import com.delminiusapps.rideforge.utils.forbidden
 import com.delminiusapps.rideforge.utils.newId
 import com.delminiusapps.rideforge.utils.notFound
 import com.delminiusapps.rideforge.utils.nowIso
+import java.time.LocalDate
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
@@ -35,6 +39,8 @@ class SessionService(
     private val adaptiveRepository: AdaptiveTrainingRepository,
     private val progressionTracker: ProgressionTracker,
     private val ftpEstimationService: FtpEstimationService,
+    private val plans: TrainingPlanRepository,
+    private val fatigueCalculationService: FatigueCalculationService = FatigueCalculationService()
 ) {
     suspend fun start(userId: String, request: StartSessionRequest): SessionResponse {
         val workout = workouts.findById(request.workoutId) ?: notFound("Workout")
@@ -135,6 +141,12 @@ class SessionService(
             ),
         )
 
+        // Record completed workout progress for the plan if joined
+        val planId = workout.planId
+        if (plans.getJoinedPlans(userId).contains(planId)) {
+            plans.completeWorkout(userId, planId, workout.id)
+        }
+
         // Run Adaptive Training analysis post-ride
         try {
             val scaling = progressionTracker.getIntensityScalingFactor(userId, workout)
@@ -157,7 +169,7 @@ class SessionService(
                 else -> "The ride is complete; pacing and cadence stability are the next focus."
             }
             val recommendationNote = when {
-                completion >= 98 && classification == "Overperformed" -> "Progress to the next scheduled intensity workout."
+                completion >= 98 && classification == "OVERPERFORMED" -> "Progress to the next scheduled intensity workout."
                 completion >= 90 -> "Repeat the same target structure if late intervals felt unstable."
                 else -> "Reduce the next hard block by 3-5% and prioritize full completion."
             }
@@ -181,7 +193,13 @@ class SessionService(
                 coachNotesSummary = summaryNote,
                 coachNotesRecommendation = recommendationNote,
                 coachNotesRecovery = recoveryNote,
-                coachNotesNextWorkout = nextWorkoutNote
+                coachNotesNextWorkout = nextWorkoutNote,
+                avgDeviationPower = analysisResult.avgDeviationPower,
+                best5sPower = analysisResult.best5sPower,
+                best30sPower = analysisResult.best30sPower,
+                best1mPower = analysisResult.best1mPower,
+                best5mPower = analysisResult.best5mPower,
+                best20mPower = analysisResult.best20mPower
             )
 
             // Save analysis to DB
@@ -192,6 +210,28 @@ class SessionService(
 
             // Check FTP adjustments
             ftpEstimationService.checkAndEstimateFtp(user, completedSession, workout, metrics)
+
+            // Save fatigue snapshot
+            val allSessions = sessions.historyForUser(userId, 200, 0)
+            val fatigueState = fatigueCalculationService.calculateCurrentFatigue(allSessions)
+            val freshnessStatus = when {
+                fatigueState.tsb > 5.0 -> "FRESH"
+                fatigueState.tsb < -30.0 -> "OVERREACHED"
+                fatigueState.tsb < -10.0 -> "FATIGUED"
+                else -> "BALANCED"
+            }
+            adaptiveRepository.saveFatigueSnapshot(
+                FatigueSnapshot(
+                    id = newId("fs"),
+                    userId = userId,
+                    date = LocalDate.now().toString(),
+                    ctl = fatigueState.ctl,
+                    atl = fatigueState.atl,
+                    tsb = fatigueState.tsb,
+                    freshnessStatus = freshnessStatus,
+                    createdAt = nowIso()
+                )
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }

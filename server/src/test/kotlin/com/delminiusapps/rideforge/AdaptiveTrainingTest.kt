@@ -4,6 +4,7 @@ import com.delminiusapps.rideforge.models.*
 import com.delminiusapps.rideforge.repositories.InMemoryAdaptiveTrainingRepository
 import com.delminiusapps.rideforge.repositories.InMemorySessionRepository
 import com.delminiusapps.rideforge.repositories.InMemoryUserRepository
+import com.delminiusapps.rideforge.repositories.InMemoryTrainingPlanRepository
 import com.delminiusapps.rideforge.services.adaptive_training.*
 import com.delminiusapps.rideforge.services.SessionService
 import com.delminiusapps.rideforge.dto.CompleteSessionRequest
@@ -113,7 +114,7 @@ class AdaptiveTrainingTest {
             analysis = analysisOverperformed,
             userFtp = 200
         )
-        assertEquals("Overperformed", class1)
+        assertEquals("OVERPERFORMED", class1)
 
         // Lower completion, high RPE -> Failed
         val analysisFailed = WorkoutCompletionAnalyzer.AnalysisResult(
@@ -132,7 +133,7 @@ class AdaptiveTrainingTest {
             analysis = analysisFailed,
             userFtp = 200
         )
-        assertEquals("Failed", class2)
+        assertEquals("FAILED", class2)
     }
 
     @Test
@@ -145,7 +146,7 @@ class AdaptiveTrainingTest {
         assertEquals(1.0, initialLevels[WorkoutType.SWEET_SPOT])
 
         // Overperformed updates progression level
-        tracker.updateProgression("user-1", workout, "Overperformed")
+        tracker.updateProgression("user-1", workout, "OVERPERFORMED")
         val updatedLevels = tracker.getAllProgressionLevels("user-1")
         assertTrue(updatedLevels[WorkoutType.SWEET_SPOT]!! > 1.0)
     }
@@ -243,14 +244,14 @@ class AdaptiveTrainingTest {
             powerFade = 16.0,
             hrDrift = 5.0,
             estimatedRpe = 8.0,
-            classification = "Struggled",
+            classification = "STRUGGLED",
             coachNotesSummary = "",
             coachNotesRecommendation = "",
             coachNotesRecovery = "",
             coachNotesNextWorkout = ""
         )
-        val a2 = a1.copy(sessionId = "s-2", classification = "Failed")
-        val a3 = a1.copy(sessionId = "s-3", classification = "Struggled")
+        val a2 = a1.copy(sessionId = "s-2", classification = "FAILED")
+        val a3 = a1.copy(sessionId = "s-3", classification = "STRUGGLED")
         adaptiveRepo.saveAnalysis(a1)
         adaptiveRepo.saveAnalysis(a2)
         adaptiveRepo.saveAnalysis(a3)
@@ -358,7 +359,8 @@ class AdaptiveTrainingTest {
             userRepo,
             adaptiveRepo,
             ProgressionTracker(adaptiveRepo),
-            ftpEstimationService
+            ftpEstimationService,
+            InMemoryTrainingPlanRepository()
         )
 
         // Create the active session
@@ -390,7 +392,7 @@ class AdaptiveTrainingTest {
         
         // If it used unscaled targets, compliance would be very low/0% and classification would be "Struggled" or "Failed"
         // Since it uses scaled targets, it should be Successful or Easy
-        assertTrue(analysis.classification == "Successful" || analysis.classification == "Easy")
+        assertTrue(analysis.classification == "SUCCESSFUL" || analysis.classification == "EASY")
     }
 
     @Test
@@ -417,7 +419,7 @@ class AdaptiveTrainingTest {
         // Scaling factor: 2.0 / 3.0 = 0.666 -> coerced to 0.90
         // Completed level: 3.0 * 0.90 = 2.7
         // Let's run updateProgression with "Successful"
-        val newLevel = tracker.updateProgression("user-1", customWorkout, "Successful")
+        val newLevel = tracker.updateProgression("user-1", customWorkout, "SUCCESSFUL")
         
         // Assert it is exactly 2.7 instead of 3.0
         assertEquals(2.7, newLevel)
@@ -456,14 +458,14 @@ class AdaptiveTrainingTest {
             powerFade = 16.0,
             hrDrift = 5.0,
             estimatedRpe = 8.0,
-            classification = "Struggled",
+            classification = "STRUGGLED",
             coachNotesSummary = "",
             coachNotesRecommendation = "",
             coachNotesRecovery = "",
             coachNotesNextWorkout = ""
         )
-        val a2 = a1.copy(sessionId = "s-2", classification = "Failed")
-        val a3 = a1.copy(sessionId = "s-3", classification = "Struggled")
+        val a2 = a1.copy(sessionId = "s-2", classification = "FAILED")
+        val a3 = a1.copy(sessionId = "s-3", classification = "STRUGGLED")
         adaptiveRepo.saveAnalysis(a1)
         adaptiveRepo.saveAnalysis(a2)
         adaptiveRepo.saveAnalysis(a3)
@@ -561,4 +563,359 @@ class AdaptiveTrainingTest {
         assertEquals("dismissed", updatedOld.status)
         assertTrue(updatedOld.message.contains("Superseded by a newer estimate"))
     }
+
+    @Test
+    fun testFtpApprovalRequiresPendingStatus() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val record = FtpHistoryRecord(
+            id = "ftp-1",
+            userId = user.id,
+            estimatedFtp = 210,
+            previousFtp = user.ftp,
+            sessionId = "s-1",
+            status = "approved", // already approved
+            message = "Approved: FTP updated",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(record)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        
+        val result = ftpEstimationService.approveFtp(user.id, "ftp-1")
+        assertNull(result)
+    }
+
+    @Test
+    fun testFtpDismissalRequiresPendingStatus() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val record = FtpHistoryRecord(
+            id = "ftp-1",
+            userId = user.id,
+            estimatedFtp = 210,
+            previousFtp = user.ftp,
+            sessionId = "s-1",
+            status = "dismissed", // already dismissed
+            message = "Dismissed by rider",
+            createdAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveFtpRecord(record)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        
+        val success = ftpEstimationService.dismissFtp(user.id, "ftp-1")
+        assertTrue(!success)
+    }
+
+    @Test
+    fun testProgressionReset() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val tracker = ProgressionTracker(adaptiveRepo)
+        val userId = "user-test"
+
+        // Set progression level to 5.0 for Sweet Spot
+        val pl1 = ProgressionLevel(
+            id = "pl-ss",
+            userId = userId,
+            workoutType = WorkoutType.SWEET_SPOT,
+            level = 5.0,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl1)
+
+        // Set progression level to 3.0 for Threshold
+        val pl2 = ProgressionLevel(
+            id = "pl-th",
+            userId = userId,
+            workoutType = WorkoutType.THRESHOLD,
+            level = 3.0,
+            updatedAt = Instant.now().toString()
+        )
+        adaptiveRepo.saveProgressionLevel(pl2)
+
+        // Reset
+        tracker.resetProgression(userId)
+
+        // Verify all levels are reset to 1.0
+        val levels = tracker.getAllProgressionLevels(userId)
+        levels.forEach { (type, level) ->
+            assertEquals(1.0, level, "Level for $type should be reset to 1.0")
+        }
+    }
+
+    @Test
+    fun testRecommendationEnginePlanResetBehavior() = runBlocking {
+        val planRepo = InMemoryTrainingPlanRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val tracker = ProgressionTracker(adaptiveRepo)
+
+        val w1 = Workout(
+            id = "w-1",
+            planId = "plan-1",
+            name = "Workout 1",
+            description = "First session",
+            durationMinutes = 45,
+            difficulty = "Easy",
+            targetZones = listOf("ActiveRecovery"),
+            intervals = emptyList(),
+            weekNumber = 1,
+            dayNumber = 1,
+            workoutType = WorkoutType.RECOVERY
+        )
+        val w2 = Workout(
+            id = "w-2",
+            planId = "plan-1",
+            name = "Workout 2",
+            description = "Second session",
+            durationMinutes = 60,
+            difficulty = "Medium",
+            targetZones = listOf("Endurance"),
+            intervals = emptyList(),
+            weekNumber = 1,
+            dayNumber = 2,
+            workoutType = WorkoutType.ENDURANCE
+        )
+
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = listOf(w1, w2)
+            override suspend fun count(): Int = 2
+            override suspend fun findById(id: String): Workout? = if (id == "w-1") w1 else if (id == "w-2") w2 else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = if (planId == "plan-1") listOf(w1, w2) else emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        val engine = RecommendationEngine(workoutRepo, sessionRepo, tracker, adaptiveRepo, planRepo)
+
+        val userId = "user-123"
+        val fatigueState = FatigueCalculationService.FatigueState(ctl = 10.0, atl = 10.0, tsb = 0.0)
+
+        // 1. Initially user is enrolled in plan-1. No workouts completed.
+        val rec1 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-1", rec1.workoutId, "Should recommend first workout of the plan initially")
+
+        // 2. Complete workout 1 in the plan progress
+        planRepo.completeWorkout(userId, "plan-1", "w-1")
+        
+        // Also simulate completed workout session in history
+        sessionRepo.create(
+            WorkoutSession(
+                id = "sess-w1",
+                userId = userId,
+                workoutId = "w-1",
+                status = SessionStatus.completed,
+                startedAt = Instant.now().toString(),
+                completedAt = Instant.now().toString(),
+                elapsedSeconds = 2700,
+                riderWeightKg = 70.0,
+                averagePower = 150,
+                normalizedPower = 150,
+                tss = 30,
+                hasRealTrainerData = true
+            )
+        )
+
+        // 3. Get recommendation again -> should recommend w-2
+        val rec2 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-2", rec2.workoutId, "Should recommend second workout because w-1 is completed")
+
+        // 4. Leave/reset plan progress -> clears user_completed_plan_workouts, but session history remains in sessionRepo
+        planRepo.resetProgress(userId, "plan-1")
+
+        // 5. Get recommendation again -> should recommend w-1 again since progress was reset, despite session history
+        val rec3 = engine.getHomeRecommendation(userId, fatigueState, enrolledPlanId = "plan-1")
+        assertEquals("w-1", rec3.workoutId, "Should recommend first workout again after plan progress is reset")
+    }
+
+    @Test
+    fun testFtpEstimationServiceStaleFallbackWithNoHistory() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Generate a simple list of samples at 100W (below FTP, no FTP increase)
+        val samples = listOf(
+            MetricSample("session-1", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0)
+        )
+
+        // Check FTP. Since user has no approved history, it should NOT mark it as stale or TEST_REQUIRED
+        val record = ftpEstimationService.checkAndEstimateFtp(user, session, workout, samples)
+        assertNull(record, "Should not generate pending FtpHistoryRecord because FTP is not stale and didn't increase/decrease")
+
+        // Verify the saved detailed estimate is KEEP, not TEST_REQUIRED
+        val estimates = adaptiveRepo.getFtpEstimates(user.id)
+        assertTrue(estimates.isNotEmpty(), "An estimate record should be saved")
+        val estimate = estimates.last()
+        assertEquals("KEEP", estimate.recommendation, "Should recommend KEEP, not TEST_REQUIRED, when user has no FTP history")
+    }
+
+    @Test
+    fun testPendingFtpEstimatePreservedOnNeutralRide() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Ride 1: generate a pending FTP INCREASE (20 min at 240W -> 228W estimate)
+        val ride1Samples = (0..1200 step 10).map { sec ->
+            MetricSample("session-1", Instant.now().toString(), sec, 240, 240, 90, 150, 30.0)
+        }
+        val record1 = ftpEstimationService.checkAndEstimateFtp(user, session, workout, ride1Samples)
+        assertNotNull(record1, "Ride 1 should produce a pending FTP record")
+        assertEquals("pending_approval", record1.status)
+        assertEquals(228, record1.estimatedFtp)
+
+        // Verify pending estimate exists
+        val pendingEstimateBefore = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(pendingEstimateBefore, "Pending FTP estimate should exist after ride 1")
+        assertEquals("INCREASE", pendingEstimateBefore.recommendation)
+
+        // Ride 2: neutral result (low power, no FTP change triggers)
+        val ride2Session = session.copy(id = "session-2", normalizedPower = 120, averagePower = 120)
+        val ride2Samples = listOf(
+            MetricSample("session-2", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0)
+        )
+        val record2 = ftpEstimationService.checkAndEstimateFtp(user, ride2Session, workout, ride2Samples)
+        assertNull(record2, "Neutral ride should not produce a new FTP history record")
+
+        // The key assertion: the original pending estimate must still be pending,
+        // NOT dismissed. Otherwise approveFtp(recordId) will fail.
+        val pendingEstimateAfter = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(pendingEstimateAfter, "Pending FTP estimate must survive a neutral follow-up ride")
+        assertEquals("pending_approval", pendingEstimateAfter.status)
+        assertEquals("INCREASE", pendingEstimateAfter.recommendation)
+
+        // Verify approve still works on the original record
+        val approvedUser = ftpEstimationService.approveFtp(user.id, record1.id)
+        assertNotNull(approvedUser, "approveFtp should succeed since both ftp_history and ftp_estimates rows are pending")
+        assertEquals(228, approvedUser.ftp)
+    }
+
+    @Test
+    fun testRepeatedSameTargetDecreaseKeepsEstimateInSync() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        // Create 3 struggled/failed sessions so the DECREASE path triggers
+        val s1 = session.copy(id = "s-1", completedAt = "2026-05-25T09:00:00Z")
+        val s2 = session.copy(id = "s-2", completedAt = "2026-05-25T09:10:00Z")
+        val s3 = session.copy(id = "s-3", completedAt = "2026-05-25T09:20:00Z")
+        sessionRepo.create(s1)
+        sessionRepo.create(s2)
+        sessionRepo.create(s3)
+
+        val baseAnalysis = WorkoutAnalysis(
+            sessionId = "s-1",
+            completionPercent = 90,
+            intervalSuccessRate = 80,
+            ergComplianceScore = 65,
+            cadenceConsistencyScore = 80,
+            powerFade = 16.0,
+            hrDrift = 5.0,
+            estimatedRpe = 8.0,
+            classification = "STRUGGLED",
+            coachNotesSummary = "",
+            coachNotesRecommendation = "",
+            coachNotesRecovery = "",
+            coachNotesNextWorkout = ""
+        )
+        adaptiveRepo.saveAnalysis(baseAnalysis)
+        adaptiveRepo.saveAnalysis(baseAnalysis.copy(sessionId = "s-2", classification = "FAILED"))
+        adaptiveRepo.saveAnalysis(baseAnalysis.copy(sessionId = "s-3", classification = "STRUGGLED"))
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        val dummySamples = listOf(MetricSample("session-1", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0))
+
+        // Ride 1: triggers DECREASE to 190W
+        val record1 = ftpEstimationService.checkAndEstimateFtp(user, session, workout, dummySamples)
+        assertNotNull(record1)
+        assertEquals(190, record1.estimatedFtp)
+        assertEquals("pending_approval", record1.status)
+
+        // Verify estimate matches
+        val estimate1 = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(estimate1)
+        assertEquals(record1.id, estimate1.id, "Estimate id should match history id")
+
+        // Ride 2: same scenario, same DECREASE to 190W
+        val ride2Session = session.copy(id = "session-ride2")
+        val record2 = ftpEstimationService.checkAndEstimateFtp(user, ride2Session, workout, dummySamples)
+        assertNotNull(record2)
+        assertEquals(190, record2.estimatedFtp)
+        assertEquals("pending_approval", record2.status)
+
+        // The old history row should be dismissed
+        val oldHistory = adaptiveRepo.findFtpRecordById(record1.id)
+        assertNotNull(oldHistory)
+        assertEquals("dismissed", oldHistory.status)
+
+        // The new history row should be pending
+        assertTrue(record2.id != record1.id, "Should have a new history id")
+
+        // KEY: the estimate must now point to the new history id
+        val estimate2 = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(estimate2, "A pending estimate must exist for the new history row")
+        assertEquals(record2.id, estimate2.id, "Pending estimate must match the new history row id")
+        assertEquals("DECREASE", estimate2.recommendation)
+
+        // Verify approve works with the new record
+        val approvedUser = ftpEstimationService.approveFtp(user.id, record2.id)
+        assertNotNull(approvedUser, "approveFtp should succeed with synced history and estimate rows")
+        assertEquals(190, approvedUser.ftp)
+    }
 }
+

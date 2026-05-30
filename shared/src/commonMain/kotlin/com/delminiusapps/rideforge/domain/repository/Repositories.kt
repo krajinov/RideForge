@@ -34,6 +34,10 @@ interface WorkoutRepository {
 
 interface TrainingPlanRepository {
     suspend fun getPlans(): List<TrainingPlan>
+    suspend fun joinPlan(planId: String)
+    suspend fun leavePlan(planId: String)
+    suspend fun getJoinedPlans(): List<String>
+    suspend fun getPlanCompletedWorkoutIds(planId: String): List<String>
 }
 
 interface HistoryRepository {

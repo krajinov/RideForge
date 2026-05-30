@@ -68,7 +68,27 @@ class MockWorkoutRepository : WorkoutRepository {
 }
 
 class MockTrainingPlanRepository : TrainingPlanRepository {
+    private val joinedPlans = mutableSetOf<String>()
+    private val completedWorkouts = mutableMapOf<String, MutableSet<String>>()
+
     override suspend fun getPlans(): List<TrainingPlan> = MockData.trainingPlans
+
+    override suspend fun joinPlan(planId: String) {
+        joinedPlans.add(planId)
+    }
+
+    override suspend fun leavePlan(planId: String) {
+        joinedPlans.remove(planId)
+        completedWorkouts.remove(planId)
+    }
+
+    override suspend fun getJoinedPlans(): List<String> {
+        return joinedPlans.toList()
+    }
+
+    override suspend fun getPlanCompletedWorkoutIds(planId: String): List<String> {
+        return completedWorkouts[planId]?.toList() ?: emptyList()
+    }
 }
 
 class MockHistoryRepository : HistoryRepository {
@@ -299,7 +319,13 @@ class MockAdaptiveRepository : com.delminiusapps.rideforge.domain.repository.Ada
             coachNotesSummary = "Cadence control was a strength in this ride.",
             coachNotesRecommendation = "Progress to the next scheduled intensity workout.",
             coachNotesRecovery = "Moderate stress: keep the next 24 hours aerobic.",
-            coachNotesNextWorkout = "Next planned workout"
+            coachNotesNextWorkout = "Next planned workout",
+            avgDeviationPower = 4.2,
+            best5sPower = 480,
+            best30sPower = 390,
+            best1mPower = 340,
+            best5mPower = 280,
+            best20mPower = 250
         )
     }
 }

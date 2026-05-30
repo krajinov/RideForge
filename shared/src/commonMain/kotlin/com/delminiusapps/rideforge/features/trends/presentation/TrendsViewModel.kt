@@ -34,9 +34,19 @@ class TrendsViewModel(
                 val trends = getAdaptiveTrendsUseCase()
                 val dashboard = runCatching { getAdaptiveDashboardUseCase() }.getOrNull()
                 val levels = dashboard?.progressionLevels ?: emptyMap()
-                Triple(trends.first, trends.second, levels)
-            }.onSuccess { (fatigue, ftp, levels) ->
-                _state.update { TrendsUiState.Ready(fatigue, ftp, levels) }
+                val recommendation = dashboard?.recommendation
+                val insights = dashboard?.insights ?: emptyList()
+                TrendsData(trends.first, trends.second, levels, recommendation, insights)
+            }.onSuccess { data ->
+                _state.update {
+                    TrendsUiState.Ready(
+                        fatigueHistory = data.fatigue,
+                        ftpHistory = data.ftp,
+                        progressionLevels = data.levels,
+                        recommendation = data.recommendation,
+                        insights = data.insights
+                    )
+                }
             }.onFailure {
                 _state.update { TrendsUiState.Error }
             }
@@ -44,12 +54,22 @@ class TrendsViewModel(
     }
 }
 
+private data class TrendsData(
+    val fatigue: List<DailyFatigue>,
+    val ftp: List<FtpHistoryRecord>,
+    val levels: Map<String, Double>,
+    val recommendation: com.delminiusapps.rideforge.models.AdaptiveRecommendation?,
+    val insights: List<String>
+)
+
 sealed interface TrendsUiState {
     data object Loading : TrendsUiState
     data object Error : TrendsUiState
     data class Ready(
         val fatigueHistory: List<DailyFatigue>,
         val ftpHistory: List<FtpHistoryRecord>,
-        val progressionLevels: Map<String, Double>
+        val progressionLevels: Map<String, Double>,
+        val recommendation: com.delminiusapps.rideforge.models.AdaptiveRecommendation? = null,
+        val insights: List<String> = emptyList()
     ) : TrendsUiState
 }
