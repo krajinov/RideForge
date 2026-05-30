@@ -834,5 +834,88 @@ class AdaptiveTrainingTest {
         assertNotNull(approvedUser, "approveFtp should succeed since both ftp_history and ftp_estimates rows are pending")
         assertEquals(228, approvedUser.ftp)
     }
+
+    @Test
+    fun testRepeatedSameTargetDecreaseKeepsEstimateInSync() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        // Create 3 struggled/failed sessions so the DECREASE path triggers
+        val s1 = session.copy(id = "s-1", completedAt = "2026-05-25T09:00:00Z")
+        val s2 = session.copy(id = "s-2", completedAt = "2026-05-25T09:10:00Z")
+        val s3 = session.copy(id = "s-3", completedAt = "2026-05-25T09:20:00Z")
+        sessionRepo.create(s1)
+        sessionRepo.create(s2)
+        sessionRepo.create(s3)
+
+        val baseAnalysis = WorkoutAnalysis(
+            sessionId = "s-1",
+            completionPercent = 90,
+            intervalSuccessRate = 80,
+            ergComplianceScore = 65,
+            cadenceConsistencyScore = 80,
+            powerFade = 16.0,
+            hrDrift = 5.0,
+            estimatedRpe = 8.0,
+            classification = "STRUGGLED",
+            coachNotesSummary = "",
+            coachNotesRecommendation = "",
+            coachNotesRecovery = "",
+            coachNotesNextWorkout = ""
+        )
+        adaptiveRepo.saveAnalysis(baseAnalysis)
+        adaptiveRepo.saveAnalysis(baseAnalysis.copy(sessionId = "s-2", classification = "FAILED"))
+        adaptiveRepo.saveAnalysis(baseAnalysis.copy(sessionId = "s-3", classification = "STRUGGLED"))
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+        val dummySamples = listOf(MetricSample("session-1", Instant.now().toString(), 10, 100, 100, 90, 120, 25.0))
+
+        // Ride 1: triggers DECREASE to 190W
+        val record1 = ftpEstimationService.checkAndEstimateFtp(user, session, workout, dummySamples)
+        assertNotNull(record1)
+        assertEquals(190, record1.estimatedFtp)
+        assertEquals("pending_approval", record1.status)
+
+        // Verify estimate matches
+        val estimate1 = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(estimate1)
+        assertEquals(record1.id, estimate1.id, "Estimate id should match history id")
+
+        // Ride 2: same scenario, same DECREASE to 190W
+        val ride2Session = session.copy(id = "session-ride2")
+        val record2 = ftpEstimationService.checkAndEstimateFtp(user, ride2Session, workout, dummySamples)
+        assertNotNull(record2)
+        assertEquals(190, record2.estimatedFtp)
+        assertEquals("pending_approval", record2.status)
+
+        // The old history row should be dismissed
+        val oldHistory = adaptiveRepo.findFtpRecordById(record1.id)
+        assertNotNull(oldHistory)
+        assertEquals("dismissed", oldHistory.status)
+
+        // The new history row should be pending
+        assertTrue(record2.id != record1.id, "Should have a new history id")
+
+        // KEY: the estimate must now point to the new history id
+        val estimate2 = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(estimate2, "A pending estimate must exist for the new history row")
+        assertEquals(record2.id, estimate2.id, "Pending estimate must match the new history row id")
+        assertEquals("DECREASE", estimate2.recommendation)
+
+        // Verify approve works with the new record
+        val approvedUser = ftpEstimationService.approveFtp(user.id, record2.id)
+        assertNotNull(approvedUser, "approveFtp should succeed with synced history and estimate rows")
+        assertEquals(190, approvedUser.ftp)
+    }
 }
 

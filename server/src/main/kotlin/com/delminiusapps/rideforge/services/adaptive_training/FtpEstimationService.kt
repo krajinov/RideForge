@@ -198,7 +198,15 @@ class FtpEstimationService(
         val existingPendingEstimate = adaptiveRepository.findPendingFtpEstimate(user.id)
         if (bestSource == "INCREASE" || bestSource == "DECREASE") {
             if (existingPendingEstimate != null) {
-                if (existingPendingEstimate.estimatedFtp != bestEstFtp || bestSource != existingPendingEstimate.recommendation) {
+                // Dismiss and replace when:
+                //  - the target FTP or recommendation changed, OR
+                //  - the history record was replaced (new id), so the old
+                //    estimate points to a now-dismissed history row.
+                val valueChanged = existingPendingEstimate.estimatedFtp != bestEstFtp ||
+                    bestSource != existingPendingEstimate.recommendation
+                val historyReplaced = historyRecord != null &&
+                    existingPendingEstimate.id != historyRecord.id
+                if (valueChanged || historyReplaced) {
                     adaptiveRepository.updateFtpEstimate(existingPendingEstimate.copy(
                         status = "dismissed",
                         message = "Superseded by a newer estimate"
