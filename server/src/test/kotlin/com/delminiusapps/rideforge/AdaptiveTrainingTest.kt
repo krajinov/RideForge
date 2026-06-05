@@ -917,5 +917,38 @@ class AdaptiveTrainingTest {
         assertNotNull(approvedUser, "approveFtp should succeed with synced history and estimate rows")
         assertEquals(190, approvedUser.ftp)
     }
+
+    @Test
+    fun testPeakPowerWithSparseSamples() {
+        // Samples every 10 seconds at 240W over 60 seconds.
+        // Old implementation would zero-fill gaps, reporting ~24W for a 30s window.
+        // Correct implementation should report ~240W.
+        val sparseSamples = (0..60 step 10).map { sec ->
+            MetricSample("session-1", "2026-05-25T10:00:00Z", sec, 240, 240, 90, 150, 30.0)
+        }
+
+        val analysis = WorkoutCompletionAnalyzer.analyze(
+            session = session,
+            workout = workout,
+            intervals = listOf(interval),
+            metrics = sparseSamples,
+            userFtp = 200
+        )
+
+        // best30sPower should be close to 240W, not the ~24W the old code produced
+        assertNotNull(analysis.best30sPower, "Should compute best 30s power from sparse samples")
+        assertTrue(
+            analysis.best30sPower!! >= 230,
+            "Expected best30sPower ~240W from 240W sparse samples, but got ${analysis.best30sPower}"
+        )
+
+        // best5sPower should be null with 10-second sample spacing — there
+        // are never 2 samples within a 5-second window, so no meaningful
+        // 5-second peak can be computed. This is correct behavior.
+        assertNull(
+            analysis.best5sPower,
+            "Should not compute best 5s power when sample spacing (10s) exceeds window (5s)"
+        )
+    }
 }
 

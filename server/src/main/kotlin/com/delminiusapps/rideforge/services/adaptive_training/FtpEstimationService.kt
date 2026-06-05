@@ -314,7 +314,7 @@ class FtpEstimationService(
         powerSamples.forEachIndexed { index, sample ->
             val start = sample.elapsedSeconds ?: 0
             val windowEnd = start + windowSeconds
-            val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) < windowEnd }
+            val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) <= windowEnd }
             val coveredSeconds = (window.lastOrNull()?.elapsedSeconds ?: start) - start
             if (coveredSeconds >= (windowSeconds * 0.8).roundToInt() && window.isNotEmpty()) {
                 val average = window.map { it.currentPower }.average()

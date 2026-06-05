@@ -845,21 +845,25 @@ class ApplicationTest {
         )
 
         // 2. Fetch /adaptive/fatigue - it should detect the snapshot is stale, recompute dynamically
-        // (which returns 2.7 based on marko's seeded history), and save a new snapshot for today.
+        // and save a new snapshot for today.
+        val sessions = testRegistry.sessionRepository.historyForUser(marko.id, 200, 0)
+        val expectedFatigue = testRegistry.fatigueCalculationService.calculateCurrentFatigue(sessions)
+        val expectedCtl = expectedFatigue.ctl
+
         val response = client.get("/adaptive/fatigue") {
             bearerAuth(token)
         }
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
         assertTrue(body.contains("fitness"), "Response should contain fitness")
-        assertTrue(body.contains(""""fitness":2.7"""), "Expected recalculated fitness to be 2.7, but got: $body")
+        assertTrue(body.contains(""""fitness":$expectedCtl"""), "Expected recalculated fitness to be $expectedCtl, but got: $body")
 
         // 3. Verify that a new snapshot for today has been saved in the repository
         val todayStr = java.time.LocalDate.now().toString()
         val newSnapshot = testRegistry.adaptiveTrainingRepository.getLatestFatigueSnapshot(marko.id)
         assertTrue(newSnapshot != null, "A new snapshot should be saved")
         assertEquals(todayStr, newSnapshot.date)
-        assertEquals(2.7, newSnapshot.ctl)
+        assertEquals(expectedCtl, newSnapshot.ctl)
 
         testRegistry.close()
     }

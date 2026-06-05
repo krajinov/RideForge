@@ -203,37 +203,30 @@ object WorkoutCompletionAnalyzer {
     }
 
     private fun peakAveragePower(samples: List<MetricSample>, windowSeconds: Int): Int? {
-        if (samples.isEmpty()) return null
-        val powerValues = samples.associate { (it.elapsedSeconds ?: 0) to it.currentPower }
-        val minSec = samples.minOf { it.elapsedSeconds ?: 0 }
-        val maxSec = samples.maxOf { it.elapsedSeconds ?: 0 }
-        val duration = maxSec - minSec + 1
-        if (duration < windowSeconds) return null
+        val powerSamples = samples.filter { it.currentPower > 0 }
+        if (powerSamples.isEmpty()) return null
+        val firstSec = powerSamples.first().elapsedSeconds ?: 0
+        val lastSec = powerSamples.last().elapsedSeconds ?: 0
+        val totalDuration = lastSec - firstSec + 1
+        if (totalDuration < windowSeconds) return null
 
-        var bestAverage = 0.0
-        var found = false
-        var currentSum = 0
-        var currentCount = 0
-        
-        for (sec in minSec..maxSec) {
-            val power = powerValues[sec] ?: 0
-            currentSum += power
-            currentCount++
-            
-            if (currentCount > windowSeconds) {
-                val outSec = sec - windowSeconds
-                currentSum -= powerValues[outSec] ?: 0
-                currentCount--
-            }
-            
-            if (currentCount == windowSeconds) {
-                val avg = currentSum.toDouble() / windowSeconds
-                if (!found || avg > bestAverage) {
-                    bestAverage = avg
-                    found = true
+        var best: Double? = null
+        powerSamples.forEachIndexed { index, sample ->
+            val start = sample.elapsedSeconds ?: 0
+            val windowEnd = start + windowSeconds
+            val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) <= windowEnd }
+            // Require at least 2 samples and that the samples' time span
+            // covers at least 80% of the window duration.
+            if (window.size >= 2) {
+                val windowFirstSec = window.first().elapsedSeconds ?: start
+                val windowLastSec = window.last().elapsedSeconds ?: start
+                val coveredSeconds = windowLastSec - windowFirstSec
+                if (coveredSeconds >= (windowSeconds * 0.8).roundToInt()) {
+                    val average = window.map { it.currentPower }.average()
+                    best = maxOf(best ?: average, average)
                 }
             }
         }
-        return if (found) bestAverage.roundToInt() else null
+        return best?.roundToInt()
     }
 }
