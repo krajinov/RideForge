@@ -35,6 +35,7 @@ import com.delminiusapps.rideforge.plugins.configureErrorHandling
 import com.delminiusapps.rideforge.plugins.configureSecurity
 import com.delminiusapps.rideforge.plugins.configureRouting
 import com.delminiusapps.rideforge.models.FatigueSnapshot
+import com.delminiusapps.rideforge.models.AdaptiveRecommendation
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import io.ktor.client.request.bearerAuth
@@ -61,6 +62,7 @@ import java.util.Collections
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertNotEquals
 
 class ApplicationTest {
     @Test
@@ -865,6 +867,57 @@ class ApplicationTest {
         assertEquals(todayStr, newSnapshot.date)
         assertEquals(expectedCtl, newSnapshot.ctl)
 
+        testRegistry.close()
+    }
+
+    @Test
+    fun testRecommendationRecalculatesDynamically() = testApplication {
+        val config = testAppConfig()
+        val testRegistry = ServiceRegistry(config)
+        
+        application {
+            configureMonitoring()
+            configureCors()
+            configureSerialization()
+            configureErrorHandling()
+            configureSecurity(testRegistry, config.jwt)
+            configureRouting(testRegistry)
+        }
+
+        val token = loginToken()
+        val marko = testRegistry.userRepository.findByEmail("marko@example.com")!!
+
+        // 1. Save a stale recommendation (of type "TEST_REQUIRED" or a custom old one)
+        testRegistry.adaptiveTrainingRepository.saveRecommendation(
+            AdaptiveRecommendation(
+                id = "rec-stale",
+                userId = marko.id,
+                type = "TEST_REQUIRED",
+                workoutId = null,
+                title = "Stale Test Recommendation",
+                description = "This should not be returned",
+                reason = "Stale reason",
+                createdAt = "2026-05-26T10:00:00Z"
+            )
+        )
+
+        // 2. Fetch /adaptive/recommendation - it should compute recommendation dynamically
+        // instead of returning the saved stale one from database.
+        val response = client.get("/adaptive/recommendation") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        
+        // Assert it does NOT contain the stale recommendation details
+        assertTrue(!body.contains("Stale Test Recommendation"), "Should not return stale recommendation title")
+        assertTrue(!body.contains("TEST_REQUIRED"), "Should not return stale recommendation type")
+        
+        // Assert that a new recommendation is saved in repository and it matches the computed one
+        val latestRec = testRegistry.adaptiveTrainingRepository.getLatestRecommendation(marko.id)
+        assertTrue(latestRec != null)
+        assertNotEquals("rec-stale", latestRec.id)
+        
         testRegistry.close()
     }
 }

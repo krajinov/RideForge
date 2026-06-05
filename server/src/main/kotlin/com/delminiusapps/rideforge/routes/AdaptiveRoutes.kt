@@ -210,30 +210,20 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
 
         get("/recommendation") {
             val userId = call.userId()
-            val rec = registry.adaptiveTrainingRepository.getLatestRecommendation(userId)
+            val user = registry.userRepository.findById(userId) ?: notFound("User")
+            val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
+            val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
+            val activeRec = registry.recommendationEngine.getHomeRecommendation(userId, fatigue, user.enrolledPlanId)
             
-            if (rec != null) {
-                call.respond(AdaptiveRecommendationResponse(
-                    type = rec.type,
-                    workoutId = rec.workoutId,
-                    title = rec.title,
-                    description = rec.description,
-                    reason = rec.reason
-                ))
-            } else {
-                val user = registry.userRepository.findById(userId) ?: notFound("User")
-                val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
-                val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
-                val activeRec = registry.recommendationEngine.getHomeRecommendation(userId, fatigue, user.enrolledPlanId)
-                
-                call.respond(AdaptiveRecommendationResponse(
-                    type = activeRec.type,
-                    workoutId = activeRec.workoutId,
-                    title = activeRec.title,
-                    description = activeRec.description,
-                    reason = activeRec.reason
-                ))
-            }
+            registry.adaptiveTrainingRepository.saveRecommendation(activeRec)
+            
+            call.respond(AdaptiveRecommendationResponse(
+                type = activeRec.type,
+                workoutId = activeRec.workoutId,
+                title = activeRec.title,
+                description = activeRec.description,
+                reason = activeRec.reason
+            ))
         }
 
         get("/insights") {
