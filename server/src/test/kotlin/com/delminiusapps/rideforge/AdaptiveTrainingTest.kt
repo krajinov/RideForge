@@ -950,5 +950,60 @@ class AdaptiveTrainingTest {
             "Should not compute best 5s power when sample spacing (10s) exceeds window (5s)"
         )
     }
+
+    @Test
+    fun testPendingFtpEstimatePreservedOnNewerLowerIncrease() = runBlocking {
+        val adaptiveRepo = InMemoryAdaptiveTrainingRepository()
+        val sessionRepo = InMemorySessionRepository()
+        val userRepo = InMemoryUserRepository()
+        val workoutRepo = object : com.delminiusapps.rideforge.repositories.WorkoutRepository {
+            override suspend fun list(limit: Int, offset: Int): List<Workout> = emptyList()
+            override suspend fun count(): Int = 0
+            override suspend fun findById(id: String): Workout? = if (id == workout.id) workout else null
+            override suspend fun findByPlanId(planId: String): List<Workout> = emptyList()
+            override suspend fun intervalsForWorkout(workoutId: String): List<WorkoutInterval> = emptyList()
+        }
+
+        userRepo.create(user)
+
+        val ftpEstimationService = FtpEstimationService(adaptiveRepo, sessionRepo, userRepo, workoutRepo)
+
+        // Ride 1: generate a pending FTP INCREASE (20 min at 250W -> 238W estimate)
+        val ride1Samples = (0..1200 step 10).map { sec ->
+            MetricSample("session-1", Instant.now().toString(), sec, 250, 250, 90, 150, 30.0)
+        }
+        val record1 = ftpEstimationService.checkAndEstimateFtp(user, session, workout, ride1Samples)
+        assertNotNull(record1, "Ride 1 should produce a pending FTP record")
+        assertEquals("pending_approval", record1.status)
+        assertEquals(238, record1.estimatedFtp)
+
+        // Verify pending estimate exists with 238W
+        val pendingEstimateBefore = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(pendingEstimateBefore)
+        assertEquals(238, pendingEstimateBefore.estimatedFtp)
+        assertEquals("INCREASE", pendingEstimateBefore.recommendation)
+        assertEquals("pending_approval", pendingEstimateBefore.status)
+
+        // Ride 2: lower FTP INCREASE (20 min at 240W -> 228W estimate)
+        val ride2Session = session.copy(id = "session-2")
+        val ride2Samples = (0..1200 step 10).map { sec ->
+            MetricSample("session-2", Instant.now().toString(), sec, 240, 240, 90, 150, 30.0)
+        }
+        val record2 = ftpEstimationService.checkAndEstimateFtp(user, ride2Session, workout, ride2Samples)
+        assertNotNull(record2, "Ride 2 should reuse the existing pending record")
+        assertEquals(record1.id, record2.id, "Should reuse the same pending record ID")
+
+        // The key assertion: the original pending estimate must still be pending,
+        // has 238W (not 228W), and is NOT dismissed.
+        val pendingEstimateAfter = adaptiveRepo.findPendingFtpEstimate(user.id)
+        assertNotNull(pendingEstimateAfter, "Pending FTP estimate must survive and keep the higher value")
+        assertEquals("pending_approval", pendingEstimateAfter.status)
+        assertEquals(238, pendingEstimateAfter.estimatedFtp)
+
+        // Verify approve works on the record and updates FTP to 238
+        val approvedUser = ftpEstimationService.approveFtp(user.id, record1.id)
+        assertNotNull(approvedUser, "approveFtp should succeed since both rows are pending and in sync")
+        assertEquals(238, approvedUser.ftp)
+    }
 }
 

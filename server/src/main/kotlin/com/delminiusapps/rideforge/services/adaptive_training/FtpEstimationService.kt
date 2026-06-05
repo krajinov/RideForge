@@ -153,6 +153,12 @@ class FtpEstimationService(
                 if (existingPending != null) {
                     if (existingPending.estimatedFtp >= bestEstFtp && bestSource == "INCREASE") {
                         historyRecord = existingPending
+                        bestEstFtp = existingPending.estimatedFtp
+                        bestMessage = existingPending.message
+                        val existingEst = adaptiveRepository.findPendingFtpEstimate(user.id)
+                        if (existingEst != null && existingEst.id == existingPending.id) {
+                            bestConfidence = existingEst.confidenceScore
+                        }
                     } else {
                         adaptiveRepository.updateFtpRecord(existingPending.copy(
                             status = "dismissed",
