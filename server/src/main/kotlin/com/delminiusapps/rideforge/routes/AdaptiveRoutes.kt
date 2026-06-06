@@ -228,26 +228,18 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
 
         get("/insights") {
             val userId = call.userId()
-            val insights = registry.adaptiveTrainingRepository.getRecentCoachInsights(userId, 10)
+            val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
+            val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
             
-            if (insights.isNotEmpty()) {
-                call.respond(insights.map { 
-                    CoachInsightResponse(it.title, it.message, it.severity, it.sourceMetric)
-                })
-            } else {
-                val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
-                val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
-                
-                val recentSessions = registry.sessionRepository.historyForUser(userId, 5, 0)
-                val recentAnalyses = recentSessions.mapNotNull { 
-                    registry.adaptiveTrainingRepository.findAnalysisBySessionId(it.id)
-                }
-                val activeInsights = registry.recommendationEngine.getCoachInsights(userId, fatigue, recentAnalyses)
-                
-                call.respond(activeInsights.map { 
-                    CoachInsightResponse(it.title, it.message, it.severity, it.sourceMetric)
-                })
+            val recentSessions = sessions.take(5)
+            val recentAnalyses = recentSessions.mapNotNull { 
+                registry.adaptiveTrainingRepository.findAnalysisBySessionId(it.id)
             }
+            val activeInsights = registry.recommendationEngine.getCoachInsights(userId, fatigue, recentAnalyses)
+            
+            call.respond(activeInsights.map { 
+                CoachInsightResponse(it.title, it.message, it.severity, it.sourceMetric)
+            })
         }
 
         get("/progression") {
