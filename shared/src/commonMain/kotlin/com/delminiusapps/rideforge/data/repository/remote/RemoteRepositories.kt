@@ -149,6 +149,10 @@ class RemoteTrainingPlanRepository(
     ) {
         api.get<List<String>>("/plans/$planId/completed-workouts")
     }
+
+    override suspend fun completeWorkout(planId: String, workoutId: String) {
+        fallback.completeWorkout(planId, workoutId)
+    }
 }
 
 class RemoteWorkoutRepository(

@@ -42,7 +42,7 @@ object WorkoutClassifier {
         val actualAvgPower = session.averagePower ?: 0
 
         val intensityThresholdReached = actualAvgPower >= targetAvgPower * 1.05
-        if (completion >= 95 && intensityThresholdReached && powerFade < 5.0) {
+        if (completion >= 95 && successRate >= 90 && intensityThresholdReached && powerFade < 5.0) {
             return "OVERPERFORMED"
         }
 

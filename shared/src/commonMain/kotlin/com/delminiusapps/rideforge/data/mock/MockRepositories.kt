@@ -89,6 +89,10 @@ class MockTrainingPlanRepository : TrainingPlanRepository {
     override suspend fun getPlanCompletedWorkoutIds(planId: String): List<String> {
         return completedWorkouts[planId]?.toList() ?: emptyList()
     }
+
+    override suspend fun completeWorkout(planId: String, workoutId: String) {
+        completedWorkouts.getOrPut(planId) { mutableSetOf() }.add(workoutId)
+    }
 }
 
 class MockHistoryRepository : HistoryRepository {

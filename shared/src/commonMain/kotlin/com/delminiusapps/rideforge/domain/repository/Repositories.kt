@@ -38,6 +38,7 @@ interface TrainingPlanRepository {
     suspend fun leavePlan(planId: String)
     suspend fun getJoinedPlans(): List<String>
     suspend fun getPlanCompletedWorkoutIds(planId: String): List<String>
+    suspend fun completeWorkout(planId: String, workoutId: String)
 }
 
 interface HistoryRepository {
