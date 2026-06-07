@@ -915,6 +915,65 @@ class ApplicationTest {
         
         testRegistry.close()
     }
+
+    @Test
+    fun testRecalculateAndSummaryWithLargeHistory() = testApplication {
+        val config = testAppConfig()
+        val testRegistry = ServiceRegistry(config)
+        
+        application {
+            configureMonitoring()
+            configureCors()
+            configureSerialization()
+            configureErrorHandling()
+            configureSecurity(testRegistry, config.jwt)
+            configureRouting(testRegistry)
+        }
+
+        val token = loginToken()
+        val marko = testRegistry.userRepository.findByEmail("marko@example.com")!!
+
+        // Save 205 completed sessions for Marko
+        for (i in 1..205) {
+            val session = WorkoutSession(
+                id = "session-large-$i",
+                userId = marko.id,
+                workoutId = "vo2-w1d1",
+                status = SessionStatus.completed,
+                startedAt = "2026-06-01T10:00:00Z",
+                completedAt = "2026-06-01T10:45:00Z",
+                elapsedSeconds = 2700,
+                averagePower = 200,
+                normalizedPower = 210,
+                calories = 500,
+                tss = 60,
+                completionPercent = 100,
+                hasRealTrainerData = true,
+                averageSpeedKmh = 30.0,
+                totalDistanceKm = 22.5
+            )
+            testRegistry.sessionRepository.create(session)
+        }
+
+        // Fetch /adaptive/summary - it should report totalWorkouts = 205 and totalTss = 205 * 60
+        val summaryResponse = client.get("/adaptive/summary") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, summaryResponse.status)
+        val summaryBody = summaryResponse.bodyAsText()
+        // 205 added + 4 pre-seeded sessions
+        assertTrue(summaryBody.contains("\"totalWorkouts\":209"), "Expected 209 total workouts in summary, got: $summaryBody")
+        assertTrue(summaryBody.contains("\"totalTss\":12488"), "Expected 12488 total TSS in summary, got: $summaryBody")
+
+        // Fetch /adaptive/recalculate - should complete successfully
+        val recalculateResponse = client.post("/adaptive/recalculate") {
+            bearerAuth(token)
+        }
+        assertEquals(HttpStatusCode.OK, recalculateResponse.status)
+        assertTrue(recalculateResponse.bodyAsText().contains("recalculated"))
+
+        testRegistry.close()
+    }
 }
 
 private fun String.extractToken(name: String): String {

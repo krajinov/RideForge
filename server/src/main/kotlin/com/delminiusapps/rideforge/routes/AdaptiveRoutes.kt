@@ -120,7 +120,12 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
 
         get("/summary") {
             val userId = call.userId()
-            val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
+            val totalCount = registry.sessionRepository.historyCount(userId)
+            val sessions = if (totalCount > 0) {
+                registry.sessionRepository.historyForUser(userId, totalCount, 0)
+            } else {
+                emptyList()
+            }
             val analyses = sessions.mapNotNull { registry.adaptiveTrainingRepository.findAnalysisBySessionId(it.id) }
             
             val totalWorkouts = sessions.size
@@ -249,8 +254,12 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
         post("/recalculate") {
             val userId = call.userId()
             val user = registry.userRepository.findById(userId) ?: notFound("User")
-            val sessions = registry.sessionRepository.historyForUser(userId, 200, 0)
-                .sortedBy { it.completedAt ?: it.startedAt }
+            val totalCount = registry.sessionRepository.historyCount(userId)
+            val sessions = if (totalCount > 0) {
+                registry.sessionRepository.historyForUser(userId, totalCount, 0)
+            } else {
+                emptyList()
+            }.sortedBy { it.completedAt ?: it.startedAt }
             
             // Reset progression levels first to avoid compounding prior adjustments on replay
             registry.progressionTracker.resetProgression(userId)

@@ -142,9 +142,13 @@ class SessionService(
         )
 
         // Record completed workout progress for the plan if joined
-        val planId = workout.planId
-        if (plans.getJoinedPlans(userId).contains(planId)) {
-            plans.completeWorkout(userId, planId, workout.id)
+        try {
+            val planId = workout.planId
+            if (plans.getJoinedPlans(userId).contains(planId)) {
+                plans.completeWorkout(userId, planId, workout.id)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         // Run Adaptive Training analysis post-ride
