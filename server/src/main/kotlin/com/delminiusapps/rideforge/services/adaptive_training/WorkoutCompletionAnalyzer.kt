@@ -210,14 +210,29 @@ object WorkoutCompletionAnalyzer {
         val totalDuration = lastSec - firstSec + 1
         if (totalDuration < windowSeconds) return null
 
+        // Estimate the recording interval from the data so we can set a
+        // density threshold that works for both 1-Hz and sparse (e.g. 10-s)
+        // recordings.
+        val recordingInterval = if (powerSamples.size >= 2) {
+            val span = (powerSamples.last().elapsedSeconds ?: 0) -
+                       (powerSamples.first().elapsedSeconds ?: 0)
+            maxOf(1, span / (powerSamples.size - 1))
+        } else 1
+
+        // Expect at least 60% of the samples we'd see at the detected
+        // recording frequency, with a hard floor of 2.
+        val expectedSamples = windowSeconds / recordingInterval
+        val minSampleCount = maxOf(2, (expectedSamples * 0.6).roundToInt())
+
         var best: Double? = null
         powerSamples.forEachIndexed { index, sample ->
             val start = sample.elapsedSeconds ?: 0
             val windowEnd = start + windowSeconds
             val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) <= windowEnd }
-            // Require at least 2 samples and that the samples' time span
-            // covers at least 80% of the window duration.
-            if (window.size >= 2) {
+            // Require sufficient sample coverage: time span must cover at
+            // least 80% of the window AND sample count must meet the
+            // recording-frequency-aware minimum to reject telemetry gaps.
+            if (window.size >= minSampleCount) {
                 val windowFirstSec = window.first().elapsedSeconds ?: start
                 val windowLastSec = window.last().elapsedSeconds ?: start
                 val coveredSeconds = windowLastSec - windowFirstSec

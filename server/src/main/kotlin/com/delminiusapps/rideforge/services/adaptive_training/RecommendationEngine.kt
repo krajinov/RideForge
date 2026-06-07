@@ -126,7 +126,7 @@ class RecommendationEngine(
                     val completedIds = planRepository.getCompletedWorkouts(userId, enrolledPlanId)
                         .toSet()
                     
-                    val nextWorkout = workouts.firstOrNull { it.id !in completedIds } ?: workouts.firstOrNull()
+                    val nextWorkout = workouts.firstOrNull { it.id !in completedIds }
                     
                     if (nextWorkout != null) {
                         val rec = AdaptiveRecommendation(
@@ -141,6 +141,7 @@ class RecommendationEngine(
                         )
                         return rec
                     }
+                    // All plan workouts completed — fall through to plan completion below
                 }
             }
         }
@@ -153,7 +154,7 @@ class RecommendationEngine(
             val completedIds = planRepository.getCompletedWorkouts(userId, enrolledPlanId)
                         .toSet()
             
-            val nextWorkout = workouts.firstOrNull { it.id !in completedIds } ?: workouts.firstOrNull()
+            val nextWorkout = workouts.firstOrNull { it.id !in completedIds }
             
             if (nextWorkout != null) {
                 val rec = AdaptiveRecommendation(
@@ -167,6 +168,20 @@ class RecommendationEngine(
                     createdAt = nowIso()
                 )
                 return rec
+            }
+
+            // All plan workouts completed — return a completion recommendation
+            if (workouts.isNotEmpty()) {
+                return AdaptiveRecommendation(
+                    id = newId("rec"),
+                    userId = userId,
+                    type = "PLAN_COMPLETED",
+                    workoutId = null,
+                    title = "Plan Completed! 🎉",
+                    description = "Congratulations! You have completed every workout in your training plan.",
+                    reason = "All ${workouts.size} workouts in your plan are marked complete. Consider enrolling in a new plan to continue progressing.",
+                    createdAt = nowIso()
+                )
             }
         }
 
