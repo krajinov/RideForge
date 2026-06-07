@@ -913,11 +913,6 @@ class ApplicationTest {
         assertTrue(!body.contains("Stale Test Recommendation"), "Should not return stale recommendation title")
         assertTrue(!body.contains("TEST_REQUIRED"), "Should not return stale recommendation type")
         
-        // Assert that a new recommendation is saved in repository and it matches the computed one
-        val latestRec = testRegistry.adaptiveTrainingRepository.getLatestRecommendation(marko.id)
-        assertTrue(latestRec != null)
-        assertNotEquals("rec-stale", latestRec.id)
-        
         testRegistry.close()
     }
 }

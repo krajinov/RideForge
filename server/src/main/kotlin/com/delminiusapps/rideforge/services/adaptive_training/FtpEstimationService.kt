@@ -125,10 +125,13 @@ class FtpEstimationService(
             }
             if (allStruggledOrFailed) {
                 val suggestedFtp = (user.ftp * 0.95).roundToInt()
-                bestEstFtp = suggestedFtp
-                bestConfidence = 85
-                bestSource = "DECREASE"
-                bestMessage = "FTP may be too high: You have struggled with your last 3 high-intensity sessions. We recommend reducing your FTP from ${user.ftp} W to $suggestedFtp W (-5%)."
+                val confidence = 85
+                if (confidence > bestConfidence) {
+                    bestEstFtp = suggestedFtp
+                    bestConfidence = confidence
+                    bestSource = "DECREASE"
+                    bestMessage = "FTP may be too high: You have struggled with your last 3 high-intensity sessions. We recommend reducing your FTP from ${user.ftp} W to $suggestedFtp W (-5%)."
+                }
             }
         }
 
@@ -321,15 +324,28 @@ class FtpEstimationService(
         val totalDuration = lastSec - firstSec + 1
         if (totalDuration < windowSeconds) return null
 
+        val recordingInterval = if (powerSamples.size >= 2) {
+            val span = (powerSamples.last().elapsedSeconds ?: 0) -
+                       (powerSamples.first().elapsedSeconds ?: 0)
+            maxOf(1, span / (powerSamples.size - 1))
+        } else 1
+
+        val expectedSamples = windowSeconds / recordingInterval
+        val minSampleCount = maxOf(2, (expectedSamples * 0.6).roundToInt())
+
         var best: Double? = null
         powerSamples.forEachIndexed { index, sample ->
             val start = sample.elapsedSeconds ?: 0
             val windowEnd = start + windowSeconds
             val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) <= windowEnd }
-            val coveredSeconds = (window.lastOrNull()?.elapsedSeconds ?: start) - start
-            if (coveredSeconds >= (windowSeconds * 0.8).roundToInt() && window.isNotEmpty()) {
-                val average = window.map { it.currentPower }.average()
-                best = maxOf(best ?: average, average)
+            if (window.size >= minSampleCount) {
+                val windowFirstSec = window.first().elapsedSeconds ?: start
+                val windowLastSec = window.last().elapsedSeconds ?: start
+                val coveredSeconds = windowLastSec - windowFirstSec
+                if (coveredSeconds >= (windowSeconds * 0.8).roundToInt()) {
+                    val average = window.map { it.currentPower }.average()
+                    best = maxOf(best ?: average, average)
+                }
             }
         }
         return best?.roundToInt()

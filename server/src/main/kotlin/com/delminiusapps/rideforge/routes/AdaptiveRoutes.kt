@@ -215,8 +215,6 @@ fun Route.adaptiveRoutes(registry: ServiceRegistry) {
             val fatigue = registry.fatigueCalculationService.calculateCurrentFatigue(sessions)
             val activeRec = registry.recommendationEngine.getHomeRecommendation(userId, fatigue, user.enrolledPlanId)
             
-            registry.adaptiveTrainingRepository.saveRecommendation(activeRec)
-            
             call.respond(AdaptiveRecommendationResponse(
                 type = activeRec.type,
                 workoutId = activeRec.workoutId,
