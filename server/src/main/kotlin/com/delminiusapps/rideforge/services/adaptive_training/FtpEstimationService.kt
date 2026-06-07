@@ -50,9 +50,13 @@ class FtpEstimationService(
         }
 
         // 2. Normalized Power Trend (NP > current FTP for 30m+, confidence: 80%)
+        //    Only trust NP when the session has real trainer data — otherwise
+        //    SessionService.complete fabricates NP as 110% of average power
+        //    (or defaults to 214 W with no metrics), which could produce
+        //    false FTP recommendations.
         val elapsed = session.elapsedSeconds ?: 0
         val np = session.normalizedPower ?: 0
-        if (elapsed >= 1800 && np > user.ftp) {
+        if (elapsed >= 1800 && np > user.ftp && session.hasRealTrainerData) {
             val confidence = 80
             if (confidence > bestConfidence || (confidence == bestConfidence && np > bestEstFtp)) {
                 bestEstFtp = np
@@ -269,7 +273,8 @@ class FtpEstimationService(
         record?.let {
             adaptiveRepository.updateFtpRecord(it.copy(
                 status = "approved",
-                message = "Approved: FTP updated to $estFtp W"
+                message = "Approved: FTP updated to $estFtp W",
+                createdAt = nowIso() // Update timestamp so staleness check uses approval time
             ))
         }
         estimate?.let {
