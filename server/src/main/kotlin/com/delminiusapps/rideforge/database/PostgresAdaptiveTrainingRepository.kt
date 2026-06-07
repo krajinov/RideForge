@@ -121,13 +121,14 @@ class PostgresAdaptiveTrainingRepository(private val database: PostgresDatabase)
         connection.prepareStatement(
             """
             UPDATE ftp_history
-            SET status = ?, message = ?
+            SET status = ?, message = ?, created_at = ?
             WHERE id = ?
             """.trimIndent()
         ).use { statement ->
             statement.setString(1, record.status)
             statement.setString(2, record.message)
-            statement.setString(3, record.id)
+            statement.setString(3, record.createdAt)
+            statement.setString(4, record.id)
             statement.executeUpdate()
         }
         record
