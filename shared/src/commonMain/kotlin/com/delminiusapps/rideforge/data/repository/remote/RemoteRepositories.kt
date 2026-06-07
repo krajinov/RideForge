@@ -121,6 +121,38 @@ class RemoteTrainingPlanRepository(
     ) {
         api.get<PageDto<TrainingPlanDto>>("/plans").items.map { it.toDomain() }
     }
+
+    override suspend fun joinPlan(planId: String): Unit = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.joinPlan(planId) }
+    ) {
+        api.post<Unit, Unit>("/plans/$planId/join", Unit)
+    }
+
+    override suspend fun leavePlan(planId: String): Unit = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.leavePlan(planId) }
+    ) {
+        api.post<Unit, Unit>("/plans/$planId/leave", Unit)
+    }
+
+    override suspend fun getJoinedPlans(): List<String> = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.getJoinedPlans() }
+    ) {
+        api.get<List<String>>("/plans/joined")
+    }
+
+    override suspend fun getPlanCompletedWorkoutIds(planId: String): List<String> = remoteOrFallback(
+        monitor = monitor,
+        fallback = { fallback.getPlanCompletedWorkoutIds(planId) }
+    ) {
+        api.get<List<String>>("/plans/$planId/completed-workouts")
+    }
+
+    override suspend fun completeWorkout(planId: String, workoutId: String) {
+        fallback.completeWorkout(planId, workoutId)
+    }
 }
 
 class RemoteWorkoutRepository(

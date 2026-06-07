@@ -49,9 +49,18 @@ import com.delminiusapps.rideforge.theme.ForgeGreen
 import com.delminiusapps.rideforge.theme.ForgeMuted
 import com.delminiusapps.rideforge.theme.ForgeSurfaceHigh
 
+import com.delminiusapps.rideforge.navigation.AppRoute
+import com.delminiusapps.rideforge.presentation.components.PrimaryButton
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.PlayArrow
+import com.delminiusapps.rideforge.theme.ForgeOrange
+import com.delminiusapps.rideforge.theme.ForgeRed
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrendsScreen(
+    onNavigate: (AppRoute) -> Unit,
     onBack: () -> Unit,
     viewModel: TrendsViewModel = koinViewModel()
 ) {
@@ -98,7 +107,10 @@ fun TrendsScreen(
                     TrendsContent(
                         fatigueHistory = uiState.fatigueHistory,
                         ftpHistory = uiState.ftpHistory,
-                        levels = uiState.progressionLevels
+                        levels = uiState.progressionLevels,
+                        recommendation = uiState.recommendation,
+                        insights = uiState.insights,
+                        onNavigate = onNavigate
                     )
                 }
             }
@@ -110,9 +122,62 @@ fun TrendsScreen(
 private fun TrendsContent(
     fatigueHistory: List<DailyFatigue>,
     ftpHistory: List<FtpHistoryRecord>,
-    levels: Map<String, Double>
+    levels: Map<String, Double>,
+    recommendation: com.delminiusapps.rideforge.models.AdaptiveRecommendation?,
+    insights: List<String>,
+    onNavigate: (AppRoute) -> Unit
 ) {
     ScreenLazyColumn {
+        // Section 0: AI Coach Insights
+        if (insights.isNotEmpty()) {
+            item {
+                AppCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeGreen, modifier = Modifier.size(18.dp))
+                            Text("AI Coach Insights", fontWeight = FontWeight.Bold)
+                        }
+                        insights.forEach { insight ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(vertical = 2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(ForgeGreen, CircleShape)
+                                )
+                                Text(insight, style = MaterialTheme.typography.bodyMedium, color = ForgeMuted)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Section 0.5: Recommended Next Workout
+        if (recommendation != null) {
+            item {
+                AppCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeBlue, modifier = Modifier.size(18.dp))
+                            Text("Coach Recommendation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        }
+                        Text(recommendation.title, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.bodyLarge)
+                        Text(recommendation.description, color = ForgeMuted, style = MaterialTheme.typography.bodyMedium)
+                        Text("Reason: ${recommendation.reason}", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                        val recWorkoutId = recommendation.workoutId
+                        if (recWorkoutId != null) {
+                            Spacer(Modifier.height(4.dp))
+                            PrimaryButton("Start Recommended Ride", { onNavigate(AppRoute.ActiveWorkout(recWorkoutId)) }, Modifier.fillMaxWidth(), Icons.Rounded.PlayArrow)
+                        }
+                    }
+                }
+            }
+        }
+
         // Section 1: Progression Levels
         item {
             AppCard {
@@ -150,7 +215,7 @@ private fun TrendsContent(
                                     )
                                 }
                                 LinearProgressIndicator(
-                                    progress = (level / 10.0).toFloat().coerceIn(0f, 1f),
+                                    progress = { (level / 10.0).toFloat().coerceIn(0f, 1f) },
                                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(4.dp)),
                                     color = ForgeGreen,
                                     trackColor = ForgeSurfaceHigh
@@ -167,7 +232,7 @@ private fun TrendsContent(
             AppCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Training Load (ATL / CTL)",
+                        text = "Training Load (ATL / CTL / TSB)",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
                         color = ForgeBlue
@@ -184,6 +249,37 @@ private fun TrendsContent(
                         }
                     } else {
                         Column {
+                            val currentFatigue = fatigueHistory.lastOrNull()
+                            val currentCtl = currentFatigue?.ctl?.toInt() ?: 0
+                            val currentAtl = currentFatigue?.atl?.toInt() ?: 0
+                            val currentTsb = currentFatigue?.tsb?.toInt() ?: 0
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                    Text("Fitness (CTL)", style = MaterialTheme.typography.bodySmall, color = ForgeMuted)
+                                    Text("$currentCtl", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color(0xFF3B82F6))
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                    Text("Fatigue (ATL)", style = MaterialTheme.typography.bodySmall, color = ForgeMuted)
+                                    Text("$currentAtl", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444))
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                    Text("Form (TSB)", style = MaterialTheme.typography.bodySmall, color = ForgeMuted)
+                                    val tsbColor = when {
+                                        currentTsb > 5 -> ForgeGreen
+                                        currentTsb >= -10 -> ForgeBlue
+                                        currentTsb >= -30 -> ForgeOrange
+                                        else -> ForgeRed
+                                    }
+                                    Text("$currentTsb", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = tsbColor)
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+
                             // Legend
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

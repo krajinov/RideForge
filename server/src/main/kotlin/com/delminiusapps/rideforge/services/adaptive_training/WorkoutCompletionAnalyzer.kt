@@ -18,7 +18,13 @@ object WorkoutCompletionAnalyzer {
         val cadenceConsistencyScore: Int?,
         val powerFade: Double?,
         val hrDrift: Double?,
-        val estimatedRpe: Double
+        val estimatedRpe: Double,
+        val avgDeviationPower: Double? = null,
+        val best5sPower: Int? = null,
+        val best30sPower: Int? = null,
+        val best1mPower: Int? = null,
+        val best5mPower: Int? = null,
+        val best20mPower: Int? = null
     )
 
     fun analyze(
@@ -61,14 +67,14 @@ object WorkoutCompletionAnalyzer {
                 val targetPower = interval.targetPowerWatts ?: (interval.targetFtpPercent?.let { (userFtp * it) / 100 }) ?: userFtp
                 
                 if (intervalSamples.isNotEmpty()) {
-                    val avgPower = intervalSamples.map { it.currentPower }.average()
-                    val compliance = intervalSamples.count { abs(it.currentPower - targetPower) <= maxOf(15, (targetPower * 0.08).roundToInt()) }
-                    val compliancePercent = (compliance.toDouble() / intervalSamples.size) * 100.0
-                    
-                    // Successful if user held at least 88% of target power, OR had 80% sample compliance
-                    if (avgPower >= targetPower * 0.88 || compliancePercent >= 80.0) {
-                        successfulWorkIntervals++
-                    }
+                     val avgPower = intervalSamples.map { it.currentPower }.average()
+                     val compliance = intervalSamples.count { abs(it.currentPower - targetPower) <= maxOf(15, (targetPower * 0.08).roundToInt()) }
+                     val compliancePercent = (compliance.toDouble() / intervalSamples.size) * 100.0
+                     
+                     // Successful if user held at least 88% of target power, OR had 80% sample compliance
+                     if (avgPower >= targetPower * 0.88 || compliancePercent >= 80.0) {
+                         successfulWorkIntervals++
+                     }
                 }
             }
         }
@@ -79,11 +85,16 @@ object WorkoutCompletionAnalyzer {
             completionPercent
         }
 
-        // 2. ERG Compliance Score
+        // 2. ERG Compliance Score and Average Deviation
         val targetSamples = samples.filter { it.targetPower > 0 && it.currentPower > 0 }
         val ergComplianceScore = if (targetSamples.size >= 5) {
             val compliant = targetSamples.count { abs(it.currentPower - it.targetPower) <= maxOf(10, (it.targetPower * 0.05).roundToInt()) }
             ((compliant.toDouble() / targetSamples.size) * 100).roundToInt().coerceIn(0, 100)
+        } else null
+
+        val avgDeviationPower = if (targetSamples.isNotEmpty()) {
+            val totalDeviation = targetSamples.sumOf { abs(it.currentPower - it.targetPower).toDouble() }
+            ((totalDeviation / targetSamples.size) * 10).roundToInt() / 10.0
         } else null
 
         // 3. Cadence Consistency Score
@@ -105,6 +116,13 @@ object WorkoutCompletionAnalyzer {
         val rawRpe = (intensityFactor * 7.5) + driftModifier + (durationRatio * 0.8) + (100 - completionPercent) * 0.05
         val estimatedRpe = rawRpe.coerceIn(1.0, 10.0)
 
+        // 7. Peak Power Efforts: 5s, 30s, 1m, 5m, 20m
+        val best5sPower = peakAveragePower(samples, 5)
+        val best30sPower = peakAveragePower(samples, 30)
+        val best1mPower = peakAveragePower(samples, 60)
+        val best5mPower = peakAveragePower(samples, 300)
+        val best20mPower = peakAveragePower(samples, 1200)
+
         return AnalysisResult(
             completionPercent = completionPercent,
             intervalSuccessRate = intervalSuccessRate,
@@ -112,7 +130,13 @@ object WorkoutCompletionAnalyzer {
             cadenceConsistencyScore = cadenceConsistencyScore,
             powerFade = powerFade,
             hrDrift = hrDrift,
-            estimatedRpe = ((estimatedRpe * 10).roundToInt() / 10.0)
+            estimatedRpe = ((estimatedRpe * 10).roundToInt() / 10.0),
+            avgDeviationPower = avgDeviationPower,
+            best5sPower = best5sPower,
+            best30sPower = best30sPower,
+            best1mPower = best1mPower,
+            best5mPower = best5mPower,
+            best20mPower = best20mPower
         )
     }
 
@@ -176,5 +200,48 @@ object WorkoutCompletionAnalyzer {
         if (firstRatio <= 0.0) return null
         val drift = ((secondRatio - firstRatio) / firstRatio) * 100.0
         return ((drift * 10).roundToInt() / 10.0)
+    }
+
+    private fun peakAveragePower(samples: List<MetricSample>, windowSeconds: Int): Int? {
+        val powerSamples = samples.filter { it.currentPower > 0 }
+        if (powerSamples.isEmpty()) return null
+        val firstSec = powerSamples.first().elapsedSeconds ?: 0
+        val lastSec = powerSamples.last().elapsedSeconds ?: 0
+        val totalDuration = lastSec - firstSec + 1
+        if (totalDuration < windowSeconds) return null
+
+        // Estimate the recording interval from the data so we can set a
+        // density threshold that works for both 1-Hz and sparse (e.g. 10-s)
+        // recordings.
+        val recordingInterval = if (powerSamples.size >= 2) {
+            val span = (powerSamples.last().elapsedSeconds ?: 0) -
+                       (powerSamples.first().elapsedSeconds ?: 0)
+            maxOf(1, span / (powerSamples.size - 1))
+        } else 1
+
+        // Expect at least 60% of the samples we'd see at the detected
+        // recording frequency, with a hard floor of 2.
+        val expectedSamples = windowSeconds / recordingInterval
+        val minSampleCount = maxOf(2, (expectedSamples * 0.6).roundToInt())
+
+        var best: Double? = null
+        powerSamples.forEachIndexed { index, sample ->
+            val start = sample.elapsedSeconds ?: 0
+            val windowEnd = start + windowSeconds
+            val window = powerSamples.drop(index).takeWhile { (it.elapsedSeconds ?: 0) <= windowEnd }
+            // Require sufficient sample coverage: time span must cover at
+            // least 80% of the window AND sample count must meet the
+            // recording-frequency-aware minimum to reject telemetry gaps.
+            if (window.size >= minSampleCount) {
+                val windowFirstSec = window.first().elapsedSeconds ?: start
+                val windowLastSec = window.last().elapsedSeconds ?: start
+                val coveredSeconds = windowLastSec - windowFirstSec
+                if (coveredSeconds >= (windowSeconds * 0.8).roundToInt()) {
+                    val average = window.map { it.currentPower }.average()
+                    best = maxOf(best ?: average, average)
+                }
+            }
+        }
+        return best?.roundToInt()
     }
 }

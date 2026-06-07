@@ -120,7 +120,7 @@ val rideForgeModule = module {
     factory { StartWorkoutSessionUseCase(get()) }
     factory { PauseWorkoutSessionUseCase(get()) }
     factory { ResumeWorkoutSessionUseCase(get()) }
-    factory { CompleteWorkoutSessionUseCase(get()) }
+    factory { CompleteWorkoutSessionUseCase(get(), get(), get()) }
     factory { UploadMetricBatchUseCase(get()) }
     factory { SyncPendingSessionsUseCase(get()) }
     factory { ObserveSessionSyncStatusUseCase(get()) }

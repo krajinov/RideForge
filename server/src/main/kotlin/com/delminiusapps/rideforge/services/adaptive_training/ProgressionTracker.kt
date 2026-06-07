@@ -23,6 +23,20 @@ class ProgressionTracker(private val repository: AdaptiveTrainingRepository) {
         return map
     }
 
+    suspend fun resetProgression(userId: String) {
+        WorkoutType.values().forEach { type ->
+            val existing = repository.getProgressionLevel(userId, type)
+            val toSave = ProgressionLevel(
+                id = existing?.id ?: newId("pl"),
+                userId = userId,
+                workoutType = type,
+                level = 1.0,
+                updatedAt = nowIso()
+            )
+            repository.saveProgressionLevel(toSave)
+        }
+    }
+
     suspend fun updateProgression(userId: String, workout: Workout, classification: String): Double {
         val type = workout.workoutType
         val currentLevel = getProgressionLevel(userId, type)
@@ -30,11 +44,11 @@ class ProgressionTracker(private val repository: AdaptiveTrainingRepository) {
         val scaling = getIntensityScalingFactor(userId, workout)
         val completedLevel = workoutLevel * scaling
 
-        val newLevel = when (classification) {
-            "Overperformed" -> maxOf(currentLevel, completedLevel) + 0.3
-            "Successful" -> maxOf(currentLevel, completedLevel)
-            "Struggled" -> (currentLevel - 0.2).coerceAtLeast(1.0)
-            "Failed" -> (currentLevel - 0.5).coerceAtLeast(1.0)
+        val newLevel = when (classification.uppercase()) {
+            "OVERPERFORMED" -> maxOf(currentLevel, completedLevel) + 0.3
+            "SUCCESSFUL" -> maxOf(currentLevel, completedLevel)
+            "STRUGGLED" -> (currentLevel - 0.2).coerceAtLeast(1.0)
+            "FAILED" -> (currentLevel - 0.5).coerceAtLeast(1.0)
             else -> currentLevel
         }.coerceIn(1.0, 10.0)
 

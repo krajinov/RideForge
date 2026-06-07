@@ -45,11 +45,14 @@ class RemoteAdaptiveRepository(
         api.post<Unit, Unit>("/adaptive/ftp-estimate/$id/dismiss", Unit)
     }
 
-    override suspend fun getSessionAnalysis(sessionId: String): WorkoutAnalysis = remoteOrFallback(
-        monitor = monitor,
-        fallback = { fallback.getSessionAnalysis(sessionId) }
-    ) {
-        api.get<WorkoutAnalysisDto>("/adaptive/sessions/$sessionId/analysis").toDomain()
+    override suspend fun getSessionAnalysis(sessionId: String): WorkoutAnalysis {
+        // Do NOT use remoteOrFallback here: a 404 means no analysis exists for
+        // this session, and falling back to MockAdaptiveRepository would return
+        // unrelated static data that the UI would display as real.  Let the
+        // exception propagate so the ViewModel treats it as null.
+        val dto = api.get<WorkoutAnalysisDto>("/adaptive/sessions/$sessionId/analysis")
+        monitor.markRemote()
+        return dto.toDomain()
     }
 }
 
@@ -99,5 +102,11 @@ private fun WorkoutAnalysisDto.toDomain(): WorkoutAnalysis = WorkoutAnalysis(
     coachNotesSummary = coachNotesSummary,
     coachNotesRecommendation = coachNotesRecommendation,
     coachNotesRecovery = coachNotesRecovery,
-    coachNotesNextWorkout = coachNotesNextWorkout
+    coachNotesNextWorkout = coachNotesNextWorkout,
+    avgDeviationPower = avgDeviationPower,
+    best5sPower = best5sPower,
+    best30sPower = best30sPower,
+    best1mPower = best1mPower,
+    best5mPower = best5mPower,
+    best20mPower = best20mPower
 )

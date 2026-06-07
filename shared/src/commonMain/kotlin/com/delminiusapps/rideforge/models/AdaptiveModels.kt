@@ -47,6 +47,32 @@ data class FtpHistoryRecord(
     val createdAt: String
 )
 
+data class CoachInsight(
+    val title: String,
+    val message: String,
+    val severity: String, // 'positive', 'neutral', 'warning'
+    val sourceMetric: String
+)
+
+data class FtpEstimateDetail(
+    val id: String,
+    val currentFtp: Int,
+    val estimatedFtp: Int,
+    val confidenceScore: Int,
+    val recommendation: String, // 'KEEP', 'INCREASE', 'DECREASE', 'TEST_REQUIRED'
+    val message: String,
+    val status: String,
+    val createdAt: String
+)
+
+data class FatigueSnapshot(
+    val date: String,
+    val ctl: Double,
+    val atl: Double,
+    val tsb: Double,
+    val freshnessStatus: String
+)
+
 data class WorkoutAnalysis(
     val sessionId: String,
     val completionPercent: Int,
@@ -60,5 +86,11 @@ data class WorkoutAnalysis(
     val coachNotesSummary: String,
     val coachNotesRecommendation: String,
     val coachNotesRecovery: String,
-    val coachNotesNextWorkout: String
+    val coachNotesNextWorkout: String,
+    val avgDeviationPower: Double? = null,
+    val best5sPower: Int? = null,
+    val best30sPower: Int? = null,
+    val best1mPower: Int? = null,
+    val best5mPower: Int? = null,
+    val best20mPower: Int? = null
 )

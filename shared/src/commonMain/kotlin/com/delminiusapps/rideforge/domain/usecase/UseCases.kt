@@ -117,9 +117,25 @@ class ResumeWorkoutSessionUseCase(private val repository: SessionRepository) {
     suspend operator fun invoke(sessionId: String) = repository.resumeSession(sessionId)
 }
 
-class CompleteWorkoutSessionUseCase(private val repository: SessionRepository) {
-    suspend operator fun invoke(sessionId: String, elapsedSeconds: Int?, hasRealTrainerData: Boolean = false) =
-        repository.completeSession(sessionId, elapsedSeconds, hasRealTrainerData)
+class CompleteWorkoutSessionUseCase(
+    private val repository: SessionRepository,
+    private val trainingPlanRepository: TrainingPlanRepository? = null,
+    private val workoutRepository: WorkoutRepository? = null,
+) {
+    suspend operator fun invoke(sessionId: String, elapsedSeconds: Int?, hasRealTrainerData: Boolean = false): com.delminiusapps.rideforge.models.WorkoutSession {
+        val session = repository.completeSession(sessionId, elapsedSeconds, hasRealTrainerData)
+        val workoutId = session.workoutId
+        if (workoutId.isNotBlank()) {
+            runCatching {
+                val workout = workoutRepository?.getWorkout(workoutId)
+                val planId = workout?.planId
+                if (!planId.isNullOrBlank()) {
+                    trainingPlanRepository?.completeWorkout(planId, workoutId)
+                }
+            }
+        }
+        return session
+    }
 }
 
 class UploadMetricBatchUseCase(private val repository: SessionRepository) {

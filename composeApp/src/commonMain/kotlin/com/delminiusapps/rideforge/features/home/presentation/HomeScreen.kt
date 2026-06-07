@@ -46,6 +46,15 @@ import com.delminiusapps.rideforge.theme.ForgeBlue
 import com.delminiusapps.rideforge.theme.ForgeGreen
 import com.delminiusapps.rideforge.theme.ForgeMuted
 import com.delminiusapps.rideforge.theme.ForgeSurfaceHigh
+import com.delminiusapps.rideforge.presentation.components.AppButton
+import com.delminiusapps.rideforge.presentation.components.AppButtonVariant
+import androidx.compose.material.icons.rounded.ChevronRight
+import com.delminiusapps.rideforge.theme.ForgeOrange
+import com.delminiusapps.rideforge.theme.ForgeRed
+import com.delminiusapps.rideforge.theme.ForgeYellow
+import com.delminiusapps.rideforge.theme.ForgeText
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
 
 @Composable
 fun HomeScreen(
@@ -84,12 +93,20 @@ fun HomeScreen(
                         MetricCard("FTP", "${dashboard.user.ftpWatts} W", modifier = Modifier.weight(1f))
                         
                         val tsbVal = adaptive?.fatigue?.tsb ?: 0.0
-                        val balanceColor = when {
-                            tsbVal < -20.0 -> ForgeMuted
-                            tsbVal > 5.0 -> ForgeGreen
-                            else -> ForgeBlue
+                        val statusLabel = when {
+                            tsbVal > 5.0 -> "FRESH"
+                            tsbVal >= -10.0 -> "BALANCED"
+                            tsbVal >= -30.0 -> "FATIGUED"
+                            else -> "OVERREACHED"
                         }
-                        MetricCard("Fatigue Balance", "${tsbVal.toInt()} TSB", balanceColor, Modifier.weight(1f))
+                        val balanceColor = when (statusLabel) {
+                            "FRESH" -> ForgeGreen
+                            "BALANCED" -> ForgeBlue
+                            "FATIGUED" -> ForgeOrange
+                            "OVERREACHED" -> ForgeRed
+                            else -> ForgeMuted
+                        }
+                        MetricCard("Form ($statusLabel)", "${tsbVal.toInt()} TSB", balanceColor, Modifier.weight(1f))
                     }
                 }
 
@@ -97,12 +114,68 @@ fun HomeScreen(
                 if (pending != null) {
                     item {
                         AppCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("FTP Change Detected", fontWeight = FontWeight.Bold, color = ForgeGreen, style = MaterialTheme.typography.titleMedium)
-                                Text(pending.message, style = MaterialTheme.typography.bodyMedium, color = ForgeMuted)
-                                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    PrimaryButton("Approve", { viewModel.onAction(HomeAction.ApproveFtp(pending.id)) }, Modifier.weight(1f))
-                                    SecondaryButton("Dismiss", { viewModel.onAction(HomeAction.DismissFtp(pending.id)) }, Modifier.weight(1f))
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(ForgeGreen, CircleShape)
+                                    )
+                                    Text(
+                                        text = "FTP Change Detected",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = ForgeGreen
+                                    )
+                                }
+                                Text(
+                                    text = pending.message,
+                                    fontSize = 14.sp,
+                                    color = ForgeMuted
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "${pending.previousFtp} W",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = ForgeMuted
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Rounded.ChevronRight,
+                                        contentDescription = null,
+                                        tint = ForgeMuted,
+                                        modifier = Modifier.padding(horizontal = 16.dp).size(24.dp)
+                                    )
+                                    Text(
+                                        text = "${pending.estimatedFtp} W",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = ForgeGreen
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    AppButton(
+                                        text = "Approve",
+                                        onClick = { viewModel.onAction(HomeAction.ApproveFtp(pending.id)) },
+                                        modifier = Modifier.weight(1f),
+                                        variant = AppButtonVariant.Primary
+                                    )
+                                    AppButton(
+                                        text = "Dismiss",
+                                        onClick = { viewModel.onAction(HomeAction.DismissFtp(pending.id)) },
+                                        modifier = Modifier.weight(1f),
+                                        variant = AppButtonVariant.Secondary
+                                    )
                                 }
                             }
                         }
@@ -148,13 +221,24 @@ fun HomeScreen(
                 if (adaptive?.insights?.isNotEmpty() == true) {
                     item {
                         AppCard {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Icon(Icons.Rounded.Bolt, contentDescription = null, tint = ForgeGreen, modifier = Modifier.size(18.dp))
                                     Text("AI Coach Insights", fontWeight = FontWeight.Bold)
                                 }
                                 adaptive.insights.forEach { insight ->
-                                    Text("• $insight", style = MaterialTheme.typography.bodyMedium)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(vertical = 2.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .background(ForgeGreen, CircleShape)
+                                        )
+                                        Text(insight, style = MaterialTheme.typography.bodyMedium, color = ForgeText)
+                                    }
                                 }
                             }
                         }

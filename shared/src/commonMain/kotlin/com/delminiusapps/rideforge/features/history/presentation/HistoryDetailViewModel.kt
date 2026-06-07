@@ -10,6 +10,7 @@ import com.delminiusapps.rideforge.domain.usecase.GetStravaSyncStatusUseCase
 import com.delminiusapps.rideforge.domain.usecase.GetWorkoutUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncPendingSessionsUseCase
 import com.delminiusapps.rideforge.domain.usecase.SyncWorkoutToStravaUseCase
+import com.delminiusapps.rideforge.domain.usecase.GetSessionAnalysisUseCase
 import com.delminiusapps.rideforge.models.RideHistoryItem
 import com.delminiusapps.rideforge.models.StravaSyncInfo
 import com.delminiusapps.rideforge.models.StravaSyncState
@@ -35,6 +36,7 @@ class HistoryDetailViewModel(
     private val syncPendingSessionsUseCase: SyncPendingSessionsUseCase,
     private val syncWorkoutToStravaUseCase: SyncWorkoutToStravaUseCase,
     private val getStravaSyncStatusUseCase: GetStravaSyncStatusUseCase,
+    private val getSessionAnalysisUseCase: GetSessionAnalysisUseCase,
     private val sessionId: String,
 ) : ViewModel() {
     private val _state = MutableStateFlow<HistoryDetailUiState>(HistoryDetailUiState.Loading)
@@ -67,6 +69,7 @@ class HistoryDetailViewModel(
                 val historyItem = history.firstOrNull { it.id == sessionId }
                 val stravaSessionId = summary.id.ifBlank { sessionId }
                 val strava = runCatching { getStravaSyncStatusUseCase(stravaSessionId) }.getOrNull()
+                val serverAnalysis = runCatching { getSessionAnalysisUseCase(sessionId) }.getOrNull()
                 val analysis = buildWorkoutAnalysis(
                     summary = summary,
                     workout = workout,
@@ -74,7 +77,15 @@ class HistoryDetailViewModel(
                     userFtp = userFtp,
                     history = history,
                 )
-                HistoryDetailUiState.Ready(summary, workout, historyItem, userFtp, analysis, strava)
+                HistoryDetailUiState.Ready(
+                    summary = summary,
+                    workout = workout,
+                    historyItem = historyItem,
+                    userFtp = userFtp,
+                    analysis = analysis,
+                    stravaSync = strava,
+                    serverAnalysis = serverAnalysis
+                )
             }.onSuccess { ready ->
                 _state.update { ready }
                 maybePollStravaStatus(ready.summary.id.ifBlank { sessionId }, ready.stravaSync)
@@ -182,6 +193,7 @@ sealed interface HistoryDetailUiState {
         val analysis: WorkoutAnalysis,
         val stravaSync: StravaSyncInfo? = null,
         val isStravaSyncing: Boolean = false,
+        val serverAnalysis: com.delminiusapps.rideforge.models.WorkoutAnalysis? = null,
     ) : HistoryDetailUiState
 }
 

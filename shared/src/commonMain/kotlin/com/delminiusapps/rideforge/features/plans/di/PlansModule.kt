@@ -10,5 +10,5 @@ import org.koin.dsl.module
 val plansModule = module {
     factoryOf(::GetPlanWorkoutsUseCase)
     viewModel { PlansViewModel(get()) }
-    viewModel { (planId: String) -> PlanWorkoutsViewModel(get(), get(), planId) }
+    viewModel { (planId: String) -> PlanWorkoutsViewModel(get(), get(), get(), planId) }
 }

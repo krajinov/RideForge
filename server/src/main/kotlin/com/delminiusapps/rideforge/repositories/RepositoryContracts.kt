@@ -14,6 +14,10 @@ import com.delminiusapps.rideforge.models.WorkoutAnalysis
 import com.delminiusapps.rideforge.models.FtpHistoryRecord
 import com.delminiusapps.rideforge.models.ProgressionLevel
 import com.delminiusapps.rideforge.models.WorkoutType
+import com.delminiusapps.rideforge.models.FtpEstimateDetail
+import com.delminiusapps.rideforge.models.FatigueSnapshot
+import com.delminiusapps.rideforge.models.AdaptiveRecommendation
+import com.delminiusapps.rideforge.models.CoachInsight
 
 interface UserRepository {
     suspend fun create(user: User): User
@@ -26,6 +30,12 @@ interface TrainingPlanRepository {
     suspend fun list(limit: Int, offset: Int): List<TrainingPlan>
     suspend fun count(): Int
     suspend fun findById(id: String): TrainingPlan?
+    suspend fun joinPlan(userId: String, planId: String)
+    suspend fun leavePlan(userId: String, planId: String)
+    suspend fun getJoinedPlans(userId: String): List<String>
+    suspend fun completeWorkout(userId: String, planId: String, workoutId: String)
+    suspend fun getCompletedWorkouts(userId: String, planId: String): List<String>
+    suspend fun resetProgress(userId: String, planId: String)
 }
 
 interface WorkoutRepository {
@@ -78,11 +88,29 @@ interface StravaSyncRepository {
 interface AdaptiveTrainingRepository {
     suspend fun saveAnalysis(analysis: WorkoutAnalysis): WorkoutAnalysis
     suspend fun findAnalysisBySessionId(sessionId: String): WorkoutAnalysis?
+    
     suspend fun saveFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord
     suspend fun findPendingFtpRecord(userId: String): FtpHistoryRecord?
     suspend fun findFtpRecordById(id: String): FtpHistoryRecord?
     suspend fun updateFtpRecord(record: FtpHistoryRecord): FtpHistoryRecord
     suspend fun getFtpHistory(userId: String): List<FtpHistoryRecord>
+
+    suspend fun saveFtpEstimate(estimate: FtpEstimateDetail): FtpEstimateDetail
+    suspend fun findPendingFtpEstimate(userId: String): FtpEstimateDetail?
+    suspend fun findFtpEstimateById(id: String): FtpEstimateDetail?
+    suspend fun updateFtpEstimate(estimate: FtpEstimateDetail): FtpEstimateDetail
+    suspend fun getFtpEstimates(userId: String): List<FtpEstimateDetail>
+
+    suspend fun saveFatigueSnapshot(snapshot: FatigueSnapshot): FatigueSnapshot
+    suspend fun getLatestFatigueSnapshot(userId: String): FatigueSnapshot?
+    suspend fun getFatigueHistory(userId: String): List<FatigueSnapshot>
+
+    suspend fun saveRecommendation(recommendation: AdaptiveRecommendation): AdaptiveRecommendation
+    suspend fun getLatestRecommendation(userId: String): AdaptiveRecommendation?
+
+    suspend fun saveCoachInsights(insights: List<CoachInsight>)
+    suspend fun getRecentCoachInsights(userId: String, limit: Int): List<CoachInsight>
+    
     suspend fun saveProgressionLevel(level: ProgressionLevel): ProgressionLevel
     suspend fun getProgressionLevels(userId: String): List<ProgressionLevel>
     suspend fun getProgressionLevel(userId: String, workoutType: WorkoutType): ProgressionLevel?

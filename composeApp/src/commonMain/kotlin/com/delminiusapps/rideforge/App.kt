@@ -270,6 +270,7 @@ fun App() {
                                 onLogout = { setRootRoute(AppRoute.Login) },
                             )
                             AppRoute.Trends -> TrendsScreen(
+                                onNavigate = navigateTo,
                                 onBack = { navigateBackOr(AppRoute.Home) }
                             )
                         }

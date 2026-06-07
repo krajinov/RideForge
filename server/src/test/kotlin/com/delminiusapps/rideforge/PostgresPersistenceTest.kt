@@ -75,6 +75,29 @@ class PostgresPersistenceTest {
             assertEquals(1, registry.sessionService.getMetrics(userId, sessionId).size)
         }
     }
+
+    @Test
+    fun testDatabaseSeedingBackfillsPlanJoins() = runBlocking {
+        val databaseUrl = System.getenv("TEST_DATABASE_URL")
+        assumeTrue("Set TEST_DATABASE_URL to run PostgreSQL persistence tests.", !databaseUrl.isNullOrBlank())
+
+        val config = postgresTestConfig(databaseUrl).copy(
+            migrateDatabaseOnStart = true,
+            seedDatabaseOnStart = true
+        )
+
+        ServiceRegistry(config).use { registry ->
+            val marko = registry.userRepository.findByEmail("marko@example.com")
+            assertTrue(marko != null, "Marko should be seeded")
+            assertEquals("plan-vo2-booster", marko.enrolledPlanId, "Marko should be enrolled in plan-vo2-booster")
+
+            val joinedPlans = registry.planRepository.getJoinedPlans(marko.id)
+            assertTrue(joinedPlans.contains("plan-vo2-booster"), "Marko should be joined to plan-vo2-booster via backfill")
+
+            val completed = registry.planRepository.getCompletedWorkouts(marko.id, "plan-vo2-booster")
+            assertTrue(completed.contains("vo2-w1d3"), "Completed workouts should include vo2-w1d3")
+        }
+    }
 }
 
 private fun postgresTestConfig(databaseUrl: String): AppConfig = AppConfig(

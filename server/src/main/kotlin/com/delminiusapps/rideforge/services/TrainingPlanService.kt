@@ -42,8 +42,28 @@ class TrainingPlanService(
     suspend fun enroll(userId: String, planId: String): EnrollResponse {
         val plan = get(planId)
         val user = users.findById(userId) ?: notFound("User")
+        plans.joinPlan(userId, planId)
         val updated = users.update(user.copy(enrolledPlanId = planId))
         return EnrollResponse(plan, updated.toResponse())
+    }
+
+    suspend fun leave(userId: String, planId: String): Unit {
+        val user = users.findById(userId) ?: notFound("User")
+        plans.leavePlan(userId, planId)
+        plans.resetProgress(userId, planId)
+        if (user.enrolledPlanId == planId) {
+            val remaining = plans.getJoinedPlans(userId)
+            val nextEnrolled = remaining.firstOrNull()
+            users.update(user.copy(enrolledPlanId = nextEnrolled))
+        }
+    }
+
+    suspend fun getJoinedPlans(userId: String): List<String> {
+        return plans.getJoinedPlans(userId)
+    }
+
+    suspend fun getCompletedWorkouts(userId: String, planId: String): List<String> {
+        return plans.getCompletedWorkouts(userId, planId)
     }
 
     suspend fun myPlan(userId: String): TrainingPlan? {
